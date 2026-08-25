@@ -7,37 +7,33 @@ Backend/database is a separate personal project, not part of this class scope.
 ## Structure
 
 ```
-index.html          entry point — login, hardcoded admin/admin per prof
+index.html          entry point — "ADMIN"/"ADMIN" login page
 pages/
-  register.html
-  rooms.html         room list / create / join
-  home.html          room feed, ranked by type + deadline (home + dashboard merged)
-  calendar.html      month grid
-  notes.html         shared notes
-  approve.html       admin approval queue
+  login.html         log in card, quick login + OAuth buttons (visual only)
+  home.html          room feed
 css/
-  style.css          uniform stylesheet — everything except auth
-  auth.css           login/register pages only
+  styles.css         main stylesheet
+  styles_login.css   login page only
 js/
-  data.js            shared fake in-memory data — swap for real API later
-  rooms.js
-  todos.js           home feed + priority ranking
-  calendar.js
-  notes.js
-  approve.js
+  rooms.js           room list / create / join
 assets/
-  images/
-  icons/
+  IMG_1783.jpg
 ```
 
 ## Auth
 
-Login is hardcoded as `admin` / `admin` per instructions — no JS auth logic, no auth.js. The form on `index.html` just navigates to `pages/rooms.html`. Focus stays on design and frontend integration.
+Login is hardcoded per instructions — no real auth logic. Focus stays on design and frontend integration.
 
 ## Status
 
-Scaffold only. Each JS file has `TODO Week N` comments marking what to build and when — see the 10-week plan doc.
+Early build. `pages/home.html` and `js/rooms.js` are still placeholders. Login page is built and styled.
+
+**Known issue:** `pages/login.html` currently links `../assets/styles_login.css`, but the file lives at `css/styles_login.css` — fix the path or the page loads unstyled.
 
 ## Local dev
 
 No build step. Open `index.html` in a browser, or serve the folder with any static server (e.g. VS Code Live Server).
+
+## License
+
+MIT — see `LICENSE`.

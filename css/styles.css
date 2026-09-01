@@ -31,12 +31,12 @@ ul { list-style: none; }
   --hairline: #d2d2d9;
   --blue: #0073ec;
 
-  --exam: #df0000;
-  --quiz: #b45309;
-  --case-study: #6b21a8;
-  --activity: #c2410c;
-  --seatwork: #0369a1;
-  --assignment: #52525b;
+  --exam: #DF0000;
+  --quiz: #F2B84B;
+  --case-study: #C79ADB;
+  --activity: #F2795A;
+  --seatwork: #009CDF;
+  --assignment: #8F8F97;
 
   --radius-lg: 20px;
   --radius-md: 17px;

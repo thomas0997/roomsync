@@ -92,6 +92,9 @@ ul { list-style: none; }
   background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 6px, #ececec 6px, #ececec 12px);
   border: 1px dashed #b8b8b8;
 }
+.logo-mark, .room-avatar {
+  object-fit: cover;
+}
 .brand-word { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: #fff; }
 .brand-word .dim { color: rgba(255,255,255,0.4); }
 .brand-word-lg { font-size: 19px; color: var(--near-black); }
@@ -308,6 +311,7 @@ ul { list-style: none; }
 .week-label-accent { color: var(--blue); }
 .week-label-accent-muted { color: var(--gray-text); }
 .week-label .bullet { color: var(--gray-text); font-weight: 400; margin: 0 2px; }
+.week-label .week-date { font-weight: 100; }
 .section-rule { border: none; border-top: 1px solid var(--hairline); margin: 18px 0; }
 .empty-week-note { font-size: 12px; color: var(--gray-text); padding: 8px 0 20px; }
 

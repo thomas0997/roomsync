@@ -31,12 +31,12 @@ ul { list-style: none; }
   --hairline: #d2d2d9;
   --blue: #0073ec;
 
-  --exam: #df0000;
-  --quiz: #b45309;
-  --case-study: #6b21a8;
-  --activity: #c2410c;
-  --seatwork: #0369a1;
-  --assignment: #52525b;
+  --exam: #DF0000;
+  --quiz: #F2B84B;
+  --case-study: #C79ADB;
+  --activity: #F2795A;
+  --seatwork: #009CDF;
+  --assignment: #8F8F97;
 
   --radius-lg: 20px;
   --radius-md: 17px;
@@ -327,7 +327,7 @@ ul { list-style: none; }
 .day-card-meta { display: flex; align-items: center; gap: 8px; }
 .date-pill { background: var(--blue); color: #fff; font-size: 7px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); }
 .task-count {
-  width: 13px; height: 13px; border-radius: 5px; background: #d9d9d9; color: var(--gray-text);
+  width: 13px; height: 13px; border-radius: 100%; background: #d9d9d9; color: var(--gray-text);
   font-size: 7px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 

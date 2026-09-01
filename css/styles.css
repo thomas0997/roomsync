@@ -569,7 +569,7 @@ ul { list-style: none; }
   .page-title { font-size: 20px; letter-spacing: -1px; margin-bottom: 6px; }
   .page-subtitle { font-size: 10px; }
 
-  .board-controls { margin-top: 10px; margin-bottom: 24px; display: flex; justify-content: flex-end; }
+  .board-controls { margin-top: -20px; margin-bottom: 24px; display: flex; justify-content: flex-end; }
 
   .week-section { margin-bottom: 0; }
   .board-grid {

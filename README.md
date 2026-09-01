@@ -1,4 +1,4 @@
-# roomsync
+# RoomSync
 
 Peer-driven deadline tracker for classroom rooms. Frontend-only build for Intro to Web Programming: rooms, TODOs with type-based priority (Exam, Quiz, Case Study, Seatwork, Assignment), calendar, notes, and admin approval workflow. HTML, CSS, JavaScript.
 

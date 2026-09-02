@@ -18,7 +18,8 @@
   ============================================================ -->
   <header class="topbar">
     <div class="topbar-brand">
-      <img src="../assets/roomsync_logo.png" alt="RoomSync Logo" class="logo-mark">
+      <!-- PLACEHOLDER LOGO: replace this box with the real logo image (e.g. <img src="../assets/images/logo.png" alt="RoomSync logo">) -->
+      <div class="logo-mark logo-placeholder"></div>
       <span class="brand-word desktop-only-inline"><span class="dim">room</span>sync</span>
       <span class="brand-word mobile-only-inline"><span class="dim">room</span>sync</span>
     </div>
@@ -34,6 +35,26 @@
     </nav>
 
     <div class="topbar-actions">
+      <!-- Room switcher — tablet width. Click to see and switch between rooms. -->
+      <div class="room-switcher tablet-only">
+        <button class="room-pill-floating" id="roomPillBtnTablet" aria-haspopup="true" aria-expanded="false">
+          <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
+          <span class="room-avatar" data-room-avatar></span>
+          <span class="room-name" data-room-name>The Bozos</span>
+        </button>
+        <div class="room-dropdown" id="roomDropdownTablet" hidden>
+          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="">
+            <span class="room-avatar"></span> The Bozos
+          </button>
+          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline">
+            <span class="room-avatar room-avatar-outline"></span> Auron Inc.
+          </button>
+          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline">
+            <span class="room-avatar room-avatar-outline"></span> CYB201
+          </button>
+        </div>
+      </div>
+
       <!-- Mobile hamburger toggle -->
       <button class="hamburger mobile-only" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
         <!-- PLACEHOLDER ICON: hamburger menu icon -->
@@ -53,26 +74,30 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-top">
         <div class="sidebar-logo-row">
-          <img src="../assets/roomsync_logo.png" alt="RoomSync Logo" class="logo-mark logo-mark-lg">
+          <!-- PLACEHOLDER LOGO: replace this box with the real logo image -->
+          <div class="logo-mark logo-mark-lg logo-placeholder"></div>
           <span class="brand-word brand-word-lg sidebar-wordmark"><span class="dim">room</span>sync</span>
         </div>
 
         <!-- Desktop: room list lives here, directly under the logo -->
         <div class="room-buttons desktop-only" role="tablist" aria-label="Your rooms">
           <button class="room-pill room-pill-active">
-            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos Logo" class="room-avatar">
+            <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
+            <span class="room-avatar"></span>
             <span class="room-name">The Bozos</span>
             <span class="room-dot"></span>
             <span class="room-count">13</span>
           </button>
           <button class="room-pill">
-            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc. Logo" class="room-avatar">
+            <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
+            <span class="room-avatar room-avatar-outline"></span>
             <span class="room-name">Auron Inc.</span>
             <span class="room-dot"></span>
             <span class="room-count">4</span>
           </button>
           <button class="room-pill">
-            <img src="../assets/CYB201_Logo.jpg" alt="CYB201 Logo" class="room-avatar">
+            <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
+            <span class="room-avatar room-avatar-outline"></span>
             <span class="room-name">CYB201</span>
             <span class="room-dot"></span>
             <span class="room-count">9</span>
@@ -141,15 +166,25 @@
     ============================================================ -->
     <main class="content">
 
-      <!-- Room switcher — tablet/mobile: floating pill top-right (desktop shows the full list in the sidebar instead) -->
-      <div class="room-pill-floating tablet-mobile-only">
-        <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos Logo" class="room-avatar">
-        <span class="room-name">The Bozos</span>
+      <!-- Room switcher — mobile width. Click to see and switch between rooms. -->
+      <div class="room-switcher mobile-only">
+        <button class="room-pill-floating" id="roomPillBtnMobile" aria-haspopup="true" aria-expanded="false">
+          <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
+          <span class="room-avatar" data-room-avatar></span>
+          <span class="room-name" data-room-name>The Bozos</span>
+        </button>
+        <div class="room-dropdown" id="roomDropdownMobile" hidden>
+          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="">
+            <span class="room-avatar"></span> The Bozos
+          </button>
+          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline">
+            <span class="room-avatar room-avatar-outline"></span> Auron Inc.
+          </button>
+          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline">
+            <span class="room-avatar room-avatar-outline"></span> CYB201
+          </button>
+        </div>
       </div>
-
-      <button class="btn-todo tablet-only" id="newTodoBtnTablet">
-        <span class="plus">+</span> New TODO
-      </button>
 
       <div class="page-header-row">
         <div class="page-header">
@@ -159,6 +194,9 @@
           <p class="page-subtitle">Every deadline for The Bozos, laid out day by day.</p>
         </div>
         <button class="btn-todo desktop-only" id="newTodoBtnDesktop">
+          <span class="plus">+</span> New TODO
+        </button>
+        <button class="btn-todo tablet-only" id="newTodoBtnTablet">
           <span class="plus">+</span> New TODO
         </button>
       </div>
@@ -180,7 +218,7 @@
            THIS WEEK
       ============================================================ -->
       <section class="week-section" aria-labelledby="thisWeekLabel">
-        <h2 class="week-label" id="thisWeekLabel"><span class="week-label-accent">THIS WEEK</span> <span class="bullet">•</span> <span class="week-date">August 9 – 15</span></h2>
+        <h2 class="week-label" id="thisWeekLabel"><span class="week-label-accent">THIS WEEK</span> <span class="bullet">•</span> August 9 – 15</h2>
 
         <div class="board board-grid" id="board-thisweek">
           <article class="day-card day-card-today">
@@ -217,7 +255,7 @@
            NEXT WEEK
       ============================================================ -->
       <section class="week-section" aria-labelledby="nextWeekLabel">
-        <h2 class="week-label week-label-muted" id="nextWeekLabel"><span class="week-label-accent-muted">NEXT WEEK</span> <span class="bullet">•</span> <span class="week-date">August 16 – 22</span></h2>
+        <h2 class="week-label week-label-muted" id="nextWeekLabel"><span class="week-label-accent-muted">NEXT WEEK</span> <span class="bullet">•</span> August 16 – 22</h2>
 
         <div class="board board-grid" id="board-nextweek">
 
@@ -388,7 +426,7 @@
            WEEK AFTER
       ============================================================ -->
       <section class="week-section" aria-labelledby="weekAfterLabel">
-        <h2 class="week-label week-label-muted" id="weekAfterLabel"><span class="week-label-accent-muted">WEEK AFTER</span> <span class="bullet">•</span> <span class="week-date">August 23 – 29</span></h2>
+        <h2 class="week-label week-label-muted" id="weekAfterLabel"><span class="week-label-accent-muted">WEEK AFTER</span> <span class="bullet">•</span> August 23 – 29</h2>
         <p class="empty-week-note">Nothing scheduled yet.</p>
       </section>
 

@@ -106,6 +106,61 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  /* ---------- Room switcher (mobile + tablet pill) ---------- */
+  var roomPillButtons = [
+    document.getElementById('roomPillBtnMobile'),
+    document.getElementById('roomPillBtnTablet')
+  ].filter(Boolean);
+  var roomDropdowns = [
+    document.getElementById('roomDropdownMobile'),
+    document.getElementById('roomDropdownTablet')
+  ].filter(Boolean);
+
+  function closeAllRoomDropdowns() {
+    roomDropdowns.forEach(function (dd) { dd.hidden = true; });
+    roomPillButtons.forEach(function (btn) { btn.setAttribute('aria-expanded', 'false'); });
+  }
+
+  roomPillButtons.forEach(function (btn, i) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var thisDropdown = roomDropdowns[i];
+      var isOpen = !thisDropdown.hidden;
+      closeAllRoomDropdowns();
+      if (!isOpen) {
+        thisDropdown.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // Selecting a room updates both pill instances (mobile + tablet) so they stay in sync,
+  // and marks the chosen room active in whichever dropdown was used.
+  document.querySelectorAll('.room-dropdown-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      var roomName = item.dataset.room;
+      var avatarClass = item.dataset.avatarClass || '';
+
+      document.querySelectorAll('[data-room-name]').forEach(function (el) { el.textContent = roomName; });
+      document.querySelectorAll('[data-room-avatar]').forEach(function (el) {
+        el.className = 'room-avatar' + (avatarClass ? ' ' + avatarClass : '');
+      });
+
+      document.querySelectorAll('.room-dropdown-item').forEach(function (el) {
+        el.classList.toggle('active', el.dataset.room === roomName);
+      });
+
+      closeAllRoomDropdowns();
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.room-switcher')) closeAllRoomDropdowns();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAllRoomDropdowns();
+  });
+
   /* ---------- New TODO buttons (all three breakpoints) — placeholder handler ---------- */
   var todoButtons = [
     document.getElementById('newTodoBtnDesktop'),

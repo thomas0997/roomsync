@@ -97,6 +97,8 @@ ul { list-style: none; }
 .brand-word-lg { font-size: 19px; color: var(--near-black); }
 .brand-word-lg .dim { color: rgba(51,51,51,0.35); }
 
+
+/* TOP BAR NEEDS TO BE IN THE RIGHT SIDE. RIGHT ALIGNED */
 .topbar-nav { gap: 22px; align-items: center; }
 .topbar-nav a { font-size: 12px; font-weight: 500; color: #d6d6d6; }
 .topbar-nav a.active { color: #fff; font-weight: 700; }

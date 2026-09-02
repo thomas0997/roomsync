@@ -31,12 +31,12 @@ ul { list-style: none; }
   --hairline: #d2d2d9;
   --blue: #0073ec;
 
-  --exam: #DF0000;
-  --quiz: #F2B84B;
-  --case-study: #C79ADB;
-  --activity: #F2795A;
-  --seatwork: #009CDF;
-  --assignment: #8F8F97;
+  --exam: #df0000;
+  --quiz: #b45309;
+  --case-study: #6b21a8;
+  --activity: #c2410c;
+  --seatwork: #0369a1;
+  --assignment: #52525b;
 
   --radius-lg: 20px;
   --radius-md: 17px;
@@ -91,9 +91,6 @@ ul { list-style: none; }
 .logo-placeholder {
   background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 6px, #ececec 6px, #ececec 12px);
   border: 1px dashed #b8b8b8;
-}
-.logo-mark, .room-avatar {
-  object-fit: cover;
 }
 .brand-word { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: #fff; }
 .brand-word .dim { color: rgba(255,255,255,0.4); }
@@ -186,6 +183,11 @@ ul { list-style: none; }
 .sidebar-link:hover { background: rgba(0,0,0,0.04); }
 .sidebar-icon { width: 22px; height: 22px; flex-shrink: 0; }
 .sidebar-icon svg { width: 100%; height: 100%; }
+.sidebar-icon.icon-placeholder {
+  border-radius: 6px;
+  background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 4px, #ececec 4px, #ececec 8px);
+  border: 1px dashed #b8b8b8;
+}
 
 .sidebar-footer { padding: 0; }
 .profile-row {
@@ -311,7 +313,6 @@ ul { list-style: none; }
 .week-label-accent { color: var(--blue); }
 .week-label-accent-muted { color: var(--gray-text); }
 .week-label .bullet { color: var(--gray-text); font-weight: 400; margin: 0 2px; }
-.week-label .week-date { font-weight: 100; }
 .section-rule { border: none; border-top: 1px solid var(--hairline); margin: 18px 0; }
 .empty-week-note { font-size: 12px; color: var(--gray-text); padding: 8px 0 20px; }
 
@@ -331,7 +332,7 @@ ul { list-style: none; }
 .day-card-meta { display: flex; align-items: center; gap: 8px; }
 .date-pill { background: var(--blue); color: #fff; font-size: 7px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); }
 .task-count {
-  width: 13px; height: 13px; border-radius: 100%; background: #d9d9d9; color: var(--gray-text);
+  width: 13px; height: 13px; border-radius: 5px; background: #d9d9d9; color: var(--gray-text);
   font-size: 7px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
@@ -455,7 +456,9 @@ ul { list-style: none; }
   .sidebar:not(.expanded) .sidebar-wordmark { display: none; }
 
   .sidebar:not(.expanded) .sidebar-divider { width: 60%; }
-  .sidebar-nav { width: 100%; align-items: center; }
+  .sidebar-nav { width: 100%; align-items: center; } /* collapsed rail: center icons */
+  .sidebar.expanded .sidebar-nav { align-items: stretch; } /* expanded: links stretch full width so text left-aligns */
+  .sidebar.expanded .sidebar-link { width: 100%; justify-content: flex-start; }
   .sidebar:not(.expanded) .sidebar-link { justify-content: center; padding: 12px; }
   .sidebar:not(.expanded) .sidebar-label { display: none; }
   .sidebar:not(.expanded) .sidebar-link.mobile-only-inline-flex { display: none !important; }
@@ -495,6 +498,16 @@ ul { list-style: none; }
   .board.board-grid .day-card { display: flex; flex-direction: column; }
 
   .task-colors { left: 84px; }
+
+  /* Grid vs scroll view toggle (JS adds .view-scroll to .board) — was missing at tablet, only existed at desktop */
+  .board.view-scroll {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .board.view-scroll .day-card { flex: 0 0 220px; }
 
   .sidebar-overlay { z-index: 21; }
   .sidebar-overlay.open { display: block; inset: 0; }
@@ -573,7 +586,7 @@ ul { list-style: none; }
   .page-title { font-size: 20px; letter-spacing: -1px; margin-bottom: 6px; }
   .page-subtitle { font-size: 10px; }
 
-  .board-controls { margin-top: -20px; margin-bottom: 24px; display: flex; justify-content: flex-end; }
+  .board-controls { margin-top: 10px; margin-bottom: 24px; display: flex; justify-content: flex-end; }
 
   .week-section { margin-bottom: 0; }
   .board-grid {
@@ -585,6 +598,7 @@ ul { list-style: none; }
   /* Grid vs scroll view toggle (JS adds .view-scroll to .board) */
   .board.view-scroll {
     display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 8px;

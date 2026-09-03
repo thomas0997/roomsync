@@ -140,10 +140,15 @@ document.addEventListener('DOMContentLoaded', function () {
     item.addEventListener('click', function () {
       var roomName = item.dataset.room;
       var avatarClass = item.dataset.avatarClass || '';
+      var avatarSrc = item.dataset.avatarSrc || '';
 
       document.querySelectorAll('[data-room-name]').forEach(function (el) { el.textContent = roomName; });
       document.querySelectorAll('[data-room-avatar]').forEach(function (el) {
         el.className = 'room-avatar' + (avatarClass ? ' ' + avatarClass : '');
+        if (avatarSrc) {
+          el.src = avatarSrc;
+          el.alt = roomName;
+        }
       });
 
       document.querySelectorAll('.room-dropdown-item').forEach(function (el) {

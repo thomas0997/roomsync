@@ -176,4 +176,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  /* ---------- Settings button — routes to settings.html ---------- */
+  var settingsBtn = document.getElementById('settingsBtn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', function () {
+      window.location.href = 'settings.html';
+    });
+  }
+
 });

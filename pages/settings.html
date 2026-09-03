@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RoomSync — Settings</title>
+<meta name="description" content="Manage your RoomSync notifications, appearance, rooms, and account.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="../css/styles.css" rel="stylesheet">
+</head>
+<body class="settings-page">
+
+  <!-- ============================================================
+       HEADER — simplified: no icon rail, no hamburger, no sidebar.
+       Same dark bar + logo + nav pattern as the main app, always
+       shown in full (this page has no mobile/tablet collapse).
+  ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <!-- PLACEHOLDER LOGO: replace this box with the real logo image -->
+      <div class="rs-brand-logo"></div>
+      <span class="brand-word"><span class="dim">room</span>sync</span>
+    </div>
+
+    <nav class="topbar-nav settings-nav-always">
+      <a href="home.html">Home</a>
+      <a href="calendar.html">Calendar</a>
+      <a href="notes.html">Notes</a>
+      <a href="discussion.html">Discussion</a>
+      <a href="approve.html">Approve</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main class="settings-main">
+    <div class="settings-head-row">
+      <h1 class="settings-title">Settings</h1>
+      <a href="home.html" class="settings-close" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+      </a>
+    </div>
+
+    <form id="settingsForm">
+
+      <!-- ---------- NOTIFICATIONS ---------- -->
+      <fieldset class="settings-card">
+        <legend>Notifications</legend>
+
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-label">New Deadline Reminders</div>
+            <div class="settings-row-sub">Email when a new TODO is approved</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" checked>
+            <span class="settings-toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-label">Discussion Mentions</div>
+            <div class="settings-row-sub">Notify when someone @mentions you</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" checked>
+            <span class="settings-toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="settings-row settings-row-last">
+          <div class="settings-row-text">
+            <div class="settings-row-label">Approval requests</div>
+            <div class="settings-row-sub">Admin only — new items pending review</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox">
+            <span class="settings-toggle-track"></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- ---------- APPEARANCE ---------- -->
+      <fieldset class="settings-card">
+        <legend>Appearance</legend>
+
+        <div class="settings-row settings-row-last">
+          <div class="settings-row-text">
+            <div class="settings-row-label">Theme</div>
+          </div>
+          <div class="settings-select-wrap">
+            <select id="themeSelect">
+              <option>System</option>
+              <option>Light</option>
+              <option>Dark</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ---------- ROOMS ---------- -->
+      <fieldset class="settings-card">
+        <legend>Rooms</legend>
+
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-label settings-room-name">CYB201</div>
+          </div>
+          <button type="button" class="btn-leave-room">Leave Room</button>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-row-text">
+            <div class="settings-row-label settings-room-name">The Bozos</div>
+          </div>
+          <button type="button" class="btn-leave-room">Leave Room</button>
+        </div>
+
+        <div class="settings-row settings-row-last">
+          <div class="settings-row-text">
+            <div class="settings-row-label settings-room-name">Auron Inc.</div>
+          </div>
+          <button type="button" class="btn-leave-room">Leave Room</button>
+        </div>
+      </fieldset>
+
+      <!-- ---------- DANGER ZONE ---------- -->
+      <fieldset class="settings-card settings-card-danger">
+        <legend>Danger Zone</legend>
+
+        <div class="settings-row settings-row-last" style="margin-top: -20px; ">
+          <div class="settings-row-text">
+            <div class="settings-row-label">Delete Account</div>
+            <div class="settings-row-sub">Removes you from every room permanently</div>
+          </div>
+          <button type="button" class="btn-delete-account" id="deleteAccountBtn">Delete Account</button>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn-save-changes">Save Changes</button>
+    </form>
+  </main>
+
+  <script src="../js/settings.js"></script>
+</body>
+</html>

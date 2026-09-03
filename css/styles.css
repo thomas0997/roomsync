@@ -31,14 +31,12 @@ ul { list-style: none; }
   --hairline: #d2d2d9;
   --blue: #0073ec;
 
-
-  /* THIS IS FIXED. DO NOT CHANGE THIS!! */
-  --exam: #DF0000;
-  --quiz: #F2B84B;
-  --case-study: #C79ADB;
-  --activity: #F2795A;
-  --seatwork: #009CDF;
-  --assignment: #8F8F97;
+  --exam: #df0000;
+  --quiz: #b45309;
+  --case-study: #6b21a8;
+  --activity: #c2410c;
+  --seatwork: #0369a1;
+  --assignment: #52525b;
 
   --radius-lg: 20px;
   --radius-md: 17px;
@@ -75,32 +73,25 @@ ul { list-style: none; }
   z-index: 40;
 }
 .topbar-brand { display: flex; align-items: center; gap: 10px; }
-.logo-mark {
+/* Brand logo — entirely separate from any avatar/circle class. Never has border-radius, on purpose:
+   the imported logo image already has its own curved corners baked in. */
+.rs-brand-logo {
+  display: block;
   width: 34px;
   height: 34px;
-  border-radius: 9px;
-  background: #d9d9d9;
-  color: #333;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 800;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 0;
+  object-fit: cover;
+
 }
-.logo-mark .slash { color: #fff; margin-right: 1px; }
-.logo-mark-lg { width: 44px; height: 44px; font-size: 18px; border-radius: 12px; }
-.logo-placeholder {
-  background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 6px, #ececec 6px, #ececec 12px);
-  border: 1px dashed #b8b8b8;
+.rs-brand-logo-lg {
+  width: 44px;
+  height: 44px;
 }
 .brand-word { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: #fff; }
 .brand-word .dim { color: rgba(255,255,255,0.4); }
 .brand-word-lg { font-size: 19px; color: var(--near-black); }
 .brand-word-lg .dim { color: rgba(51,51,51,0.35); }
 
-
-/* TOP BAR NEEDS TO BE IN THE RIGHT SIDE. RIGHT ALIGNED */
 .topbar-nav { gap: 22px; align-items: center; }
 .topbar-nav a { font-size: 12px; font-weight: 500; color: #d6d6d6; }
 .topbar-nav a.active { color: #fff; font-weight: 700; }
@@ -563,6 +554,8 @@ ul { list-style: none; }
   .desktop-tablet-expanded-only { display: flex !important; }
 
   .topbar { display: flex; }
+  .topbar-brand { display: flex; } /* re-enable the logo at desktop — the tablet rule that hides it (to avoid duplicating the sidebar's own logo) was bleeding through since min-width rules don't stop applying at wider widths */
+  .topbar-actions { margin-left: 0; } /* cancel the tablet fix's margin-left:auto, which was also bleeding through here and fighting with topbar-nav's own auto margin below, splitting the free space between both instead of pushing nav fully right */
   .topbar-nav { display: flex; margin-left: auto; }
 
   .sidebar {

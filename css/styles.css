@@ -456,7 +456,6 @@ ul { list-style: none; }
 
   .mobile-only { display: none !important; }
   .mobile-only-inline { display: none !important; }
-  .mobile-only-inline-flex { display: none !important; }
   .tablet-only { display: flex !important; }
 
   .topbar { display: flex; } /* tablet: icon rail on the left AND this thin bar stays, matching Figma — bar just hides brand/nav/hamburger, keeping only its background */
@@ -492,7 +491,6 @@ ul { list-style: none; }
   .sidebar.expanded .sidebar-link { width: 100%; justify-content: flex-start; }
   .sidebar:not(.expanded) .sidebar-link { justify-content: center; padding: 12px; }
   .sidebar:not(.expanded) .sidebar-label { display: none; }
-  .sidebar:not(.expanded) .sidebar-link.mobile-only-inline-flex { display: none !important; }
 
   .profile-row { border-radius: 0; justify-content: center; }
   .sidebar:not(.expanded) .profile-text-conditional { display: none; }
@@ -790,4 +788,8 @@ ul { list-style: none; }
   .settings-title { font-size: 24px; }
   .settings-card { padding: 20px 18px 4px; }
   .settings-row { flex-wrap: wrap; }
+}
+
+.task-colors{
+  display: none;
 }

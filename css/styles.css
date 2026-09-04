@@ -141,6 +141,7 @@ ul { list-style: none; }
    APP SHELL / SIDEBAR
    ============================================================ */
 .app-shell { display: flex; min-height: calc(100vh - 62px); }
+.sidebar-logo-row { display: none; align-items: center; gap: 14px; margin-bottom: 20px; }
 
 .sidebar {
   position: fixed;
@@ -161,7 +162,6 @@ ul { list-style: none; }
 .sidebar.open { transform: translateX(0); }
 
 .sidebar-top { padding: 24px 20px; }
-.sidebar-logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
 .sidebar-wordmark { color: var(--near-black); }
 .sidebar-divider { height: 1px; background: var(--hairline); margin-bottom: 16px; }
 

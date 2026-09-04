@@ -447,13 +447,17 @@ ul { list-style: none; }
 /* Mobile: hide desktop-only room button list, layout toggle, room-buttons row */
 .room-buttons { display: none; }
 .board-controls { display: none; }
-
+.task-colors {
+  display: none;
+}
 
 /* ============================================================
    TABLET — 768px and up
    ============================================================ */
 @media (min-width: 768px) {
-
+  .task-colors {
+    display: flex; /* whatever it currently is at tablet/desktop */
+  }
   .mobile-only { display: none !important; }
   .mobile-only-inline { display: none !important; }
   .tablet-only { display: flex !important; }
@@ -788,8 +792,4 @@ ul { list-style: none; }
   .settings-title { font-size: 24px; }
   .settings-card { padding: 20px 18px 4px; }
   .settings-row { flex-wrap: wrap; }
-}
-
-.task-colors{
-  display: none;
 }

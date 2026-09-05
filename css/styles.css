@@ -794,3 +794,146 @@ ul { list-style: none; }
   .settings-card { padding: 20px 18px 4px; }
   .settings-row { flex-wrap: wrap; }
 }
+
+/* ============================================================
+   CALENDAR PAGE
+   Reuses .board/.day-card/.reminder-card/.type-badge/.week-label
+   from Home for the Exams section — same components, same colors,
+   and now shown at every breakpoint (not desktop-only).
+   ============================================================ */
+
+/* The whole calendar (nav + grid) is one unified card. Width is fluid
+   (no hardcoded max-width) so it actually scales with the viewport —
+   fixed-pixel widths were why zooming out left dead space instead of
+   the calendar growing to fill it. */
+.cal-card {
+  background: var(--gray-bg-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+  margin-top: 2rem;
+}
+
+.cal-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cal-month-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+
+.cal-nav-group { display: flex; gap: 6px; }
+.cal-nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--gray-bg);
+  color: var(--gray-text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline);
+  padding: 0;
+}
+.cal-nav-btn svg { width: 15px; height: 15px; }
+.cal-nav-btn:hover { background: var(--hairline); color: var(--near-black); }
+
+.cal-grid-wrap {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: 100%;
+}
+.cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--gray-bg);
+}
+.cal-dow-row div {
+  text-align: center;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #8d8d95;
+  padding: 7px 0;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.cal-cell {
+  border: 0.5px solid var(--hairline);
+  min-height: 54px;
+  padding: 3px 3px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5px;
+  background: #fff;
+  overflow: hidden;
+}
+.cal-cell-empty { background: var(--gray-bg-2); }
+.cal-cell-exam { background: rgba(223,0,0,0.06); }
+.cal-daynum { font-size: 8px; font-weight: 600; color: #8d8d95; align-self: flex-start; }
+.cal-daynum-today {
+  background: var(--blue);
+  color: #fff;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7.5px;
+  font-weight: 700;
+}
+.cal-chip {
+  font-size: 5.5px;
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 3px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.cal-chip-exam { background: var(--exam); }
+.cal-chip-quiz { background: var(--quiz); }
+.cal-chip-case-study { background: var(--case-study); }
+.cal-chip-activity { background: var(--activity); }
+.cal-chip-seatwork { background: var(--seatwork); }
+.cal-chip-assignment { background: var(--assignment); }
+
+.exams-section { margin-top: 8px; }
+.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; padding-top: 0.5rem;}
+
+
+/* ============================================================
+   CALENDAR — TABLET (matches Home's 768px breakpoint)
+   ============================================================ */
+@media (min-width: 768px) {
+  .cal-card { padding: 24px; }
+  .cal-month-title { font-size: 20px; }
+  .cal-cell { min-height: 64px; padding: 4px; }
+  .cal-daynum { font-size: 9px; }
+  .cal-chip { font-size: 6.5px; padding: 2px 4px; }
+  .cal-dow-row div { font-size: 9px; }
+  .exam-proctor { font-size: 9px; }
+}
+
+
+/* ============================================================
+   CALENDAR — DESKTOP (matches Home's 1200px breakpoint)
+   ============================================================ */
+@media (min-width: 1200px) {
+  .cal-card { padding: 28px 30px; }
+  .cal-month-title { font-size: 20px; }
+  .cal-cell { min-height: 80px; padding: 6px; }
+  .cal-daynum { font-size: 10px; }
+  .cal-daynum-today { width: 17px; height: 17px; font-size: 8.5px; }
+  .cal-chip { font-size: 7.5px; padding: 2px 6px; }
+  .cal-dow-row div { font-size: 11px; padding: 9px 0; }
+  .exam-proctor { font-size: 10px; margin-top: -6px; }
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RoomSync — Calendar</title>
+<meta name="description" content="RoomSync calendar — exams, quizzes, and deadlines for your room, laid out by month.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="../css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ============================================================
+       TOP BAR — identical structure/behavior to home.html
+  ============================================================ -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="rs-brand-logo">
+      <span class="brand-word desktop-only-inline"><span class="dim">room</span>sync</span>
+      <span class="brand-word mobile-only-inline"><span class="dim">room</span>sync</span>
+    </div>
+
+    <nav class="topbar-nav desktop-only">
+      <a href="home.html">Home</a>
+      <a href="calendar.html" class="active">Calendar</a>
+      <a href="notes.html">Notes</a>
+      <a href="discussion.html">Discussion</a>
+      <a href="approve.html">Approve</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <div class="room-switcher tablet-only">
+        <button class="room-pill-floating" id="roomPillBtnTablet" aria-haspopup="true" aria-expanded="false">
+          <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar" data-room-avatar>
+          <span class="room-name" data-room-name>The Bozos</span>
+        </button>
+        <div class="room-dropdown" id="roomDropdownTablet" hidden>
+          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="" data-avatar-src="../assets/TheBozos_Logo.jpg">
+            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar"> The Bozos
+          </button>
+          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline" data-avatar-src="../assets/Auroninc_Logo.jpg">
+            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar"> Auron Inc.
+          </button>
+          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline" data-avatar-src="../assets/CYB201_Logo.jpg">
+            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar"> CYB201
+          </button>
+        </div>
+      </div>
+
+      <button class="hamburger mobile-only" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+
+    <!-- ============================================================
+         SIDEBAR — identical to home.html, Calendar marked active
+    ============================================================ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-logo-row">
+          <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="rs-brand-logo">
+          <span class="brand-word brand-word-lg sidebar-wordmark"><span class="dim">room</span>sync</span>
+        </div>
+
+        <div class="room-buttons desktop-only" role="tablist" aria-label="Your rooms">
+          <button class="room-pill room-pill-active">
+            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar">
+            <span class="room-name">The Bozos</span>
+            <span class="room-dot"></span>
+            <span class="room-count">13</span>
+          </button>
+          <button class="room-pill">
+            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar room-avatar-outline">
+            <span class="room-name">Auron Inc.</span>
+            <span class="room-dot"></span>
+            <span class="room-count">4</span>
+          </button>
+          <button class="room-pill">
+            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar room-avatar-outline">
+            <span class="room-name">CYB201</span>
+            <span class="room-dot"></span>
+            <span class="room-count">9</span>
+          </button>
+        </div>
+
+        <div class="sidebar-divider tablet-only-block"></div>
+
+        <nav class="sidebar-nav tablet-mobile-nav">
+          <a href="home.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.7c-.42 0-.83.16-1.15.46L2.9 10.1c-.4.37-.42 1-.05 1.4.37.4 1 .42 1.4.05l.4-.37V19.5c0 1.24 1.01 2.25 2.25 2.25H9.5a.75.75 0 0 0 .75-.75v-4.5c0-.83.67-1.5 1.5-1.5h.5c.83 0 1.5.67 1.5 1.5V21c0 .41.34.75.75.75h2.5c1.24 0 2.25-1.01 2.25-2.25v-8.32l.4.37c.4.37 1.03.35 1.4-.05.37-.4.35-1.03-.05-1.4l-7.95-6.94a1.7 1.7 0 0 0-1.15-.46z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Home</span>
+          </a>
+          <a href="calendar.html" class="sidebar-link active">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="4.5" width="18" height="16" rx="4"/>
+                <rect x="7" y="2" width="2.2" height="4.5" rx="1.1"/>
+                <rect x="14.8" y="2" width="2.2" height="4.5" rx="1.1"/>
+                <rect x="3" y="9" width="18" height="1.6" fill="#f5f5f7"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Calendar</span>
+          </a>
+          <a href="notes.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V9.24a3 3 0 0 0-.879-2.121l-4.24-4.24A3 3 0 0 0 11.76 2H8z"/>
+                <path d="M12 2.5v4.74a2 2 0 0 0 2 2h4.74z" fill="#f5f5f7"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Notes</span>
+          </a>
+          <a href="discussion.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.68 1.4 5.07 3.6 6.68-.14.98-.55 2.24-1.42 3.4a.5.5 0 0 0 .5.78c2.02-.4 3.6-1.2 4.66-1.9.86.2 1.76.32 2.66.32 5.52 0 10-3.94 10-8.8S17.52 2 12 2z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Discussion</span>
+          </a>
+          <a href="approve.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" mask="url(#approve-mask)"/>
+                <mask id="approve-mask">
+                  <rect x="0" y="0" width="24" height="24" fill="white"/>
+                  <path d="M7.5 12.5l2.8 2.8 6.2-6.6" stroke="black" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </mask>
+              </svg>
+            </span>
+            <span class="sidebar-label">Approve</span>
+          </a>
+          <a href="about.html" class="sidebar-link mobile-only-inline-flex">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" mask="url(#about-mask)"/>
+                <mask id="about-mask">
+                  <rect x="0" y="0" width="24" height="24" fill="white"/>
+                  <circle cx="12" cy="7.7" r="1.35" fill="black"/>
+                  <rect x="10.8" y="10.5" width="2.4" height="7" rx="1.2" fill="black"/>
+                </mask>
+              </svg>
+            </span>
+            <span class="sidebar-label">About</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="profile-row">
+          <div class="avatar">
+            TF
+            <span class="status-dot"></span>
+          </div>
+          <div class="profile-text profile-text-conditional">
+            <div class="profile-name">Tony Franks</div>
+            <div class="profile-status">Working!</div>
+          </div>
+          <button class="settings-icon profile-text-conditional" id="settingsBtn" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================ -->
+    <main class="content">
+
+      <div class="room-switcher mobile-only">
+        <button class="room-pill-floating" id="roomPillBtnMobile" aria-haspopup="true" aria-expanded="false">
+          <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar" data-room-avatar>
+          <span class="room-name" data-room-name>The Bozos</span>
+        </button>
+        <div class="room-dropdown" id="roomDropdownMobile" hidden>
+          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="" data-avatar-src="../assets/TheBozos_Logo.jpg">
+            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar">
+            The Bozos
+          </button>
+          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline" data-avatar-src="../assets/Auroninc_Logo.jpg">
+            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar room-avatar-outline">
+            Auron Inc.
+          </button>
+          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline" data-avatar-src="../assets/CYB201_Logo.jpg">
+            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar room-avatar-outline">
+            CYB201
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-todo tablet-only" id="newTodoBtnTablet">
+        <span class="plus">+</span> New TODO
+      </button>
+
+      <div class="page-header-row">
+        <div class="page-header">
+          <p class="page-eyebrow desktop-tablet-only">CALENDAR</p>
+          <h1 class="page-title desktop-tablet-only">What's Happening in The Bozos This Month?</h1>
+          <h1 class="page-title page-title-mobile mobile-only-inline">This Month</h1>
+          <p class="page-subtitle">Exams, quizzes, and deadlines — all in one view, color-coded by your liking</p>
+        </div>
+        <button class="btn-todo desktop-only" id="newTodoBtnDesktop">
+          <span class="plus">+</span> New TODO
+        </button>
+      </div>
+
+      <!-- ---------- CALENDAR CARD (month nav + grid, unified container) ---------- -->
+      <div class="cal-card">
+        <div class="cal-month-nav">
+          <h2 class="cal-month-title">August 2026</h2>
+          <div class="cal-nav-group">
+            <button class="cal-nav-btn" id="calPrevBtn" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="cal-nav-btn" id="calNextBtn" aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="cal-grid-wrap">
+        <div class="cal-dow-row">
+          <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+        </div>
+        <div class="cal-grid">
+
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell"><span class="cal-daynum">1</span></div>
+
+          <div class="cal-cell"><span class="cal-daynum">2</span></div>
+          <div class="cal-cell"><span class="cal-daynum">3</span></div>
+          <div class="cal-cell"><span class="cal-daynum">4</span></div>
+          <div class="cal-cell"><span class="cal-daynum">5</span></div>
+          <div class="cal-cell"><span class="cal-daynum">6</span></div>
+          <div class="cal-cell"><span class="cal-daynum">7</span></div>
+          <div class="cal-cell"><span class="cal-daynum">8</span></div>
+
+          <div class="cal-cell"><span class="cal-daynum">9</span></div>
+          <div class="cal-cell"><span class="cal-daynum">10</span></div>
+          <div class="cal-cell"><span class="cal-daynum">11</span></div>
+          <div class="cal-cell"><span class="cal-daynum">12</span></div>
+          <div class="cal-cell">
+            <span class="cal-daynum cal-daynum-today">13</span>
+            <span class="cal-chip cal-chip-seatwork">DSAL Seatwork</span>
+          </div>
+          <div class="cal-cell"><span class="cal-daynum">14</span></div>
+          <div class="cal-cell"><span class="cal-daynum">15</span></div>
+
+          <div class="cal-cell">
+            <span class="cal-daynum">16</span>
+            <span class="cal-chip cal-chip-assignment">DSAL Assignment</span>
+            <span class="cal-chip cal-chip-assignment">DSAL Assignment 2</span>
+          </div>
+          <div class="cal-cell">
+            <span class="cal-daynum">17</span>
+            <span class="cal-chip cal-chip-quiz">6IWEB Quiz</span>
+            <span class="cal-chip cal-chip-quiz">6DSAL Quiz</span>
+          </div>
+          <div class="cal-cell">
+            <span class="cal-daynum">18</span>
+            <span class="cal-chip cal-chip-activity">6OOP CodeChum Activity</span>
+            <span class="cal-chip cal-chip-assignment">+2 More</span>
+          </div>
+          <div class="cal-cell">
+            <span class="cal-daynum">19</span>
+            <span class="cal-chip cal-chip-quiz">6OOP Quiz</span>
+          </div>
+          <div class="cal-cell"><span class="cal-daynum">20</span></div>
+          <div class="cal-cell">
+            <span class="cal-daynum">21</span>
+            <span class="cal-chip cal-chip-quiz">6IWEB Case Study</span>
+          </div>
+          <div class="cal-cell"><span class="cal-daynum">22</span></div>
+
+          <div class="cal-cell"><span class="cal-daynum">23</span></div>
+          <div class="cal-cell"><span class="cal-daynum">24</span></div>
+          <div class="cal-cell"><span class="cal-daynum">25</span></div>
+          <div class="cal-cell cal-cell-exam">
+            <span class="cal-daynum">26</span>
+            <span class="cal-chip cal-chip-exam">2Ethics Exam</span>
+          </div>
+          <div class="cal-cell cal-cell-exam">
+            <span class="cal-daynum">27</span>
+            <span class="cal-chip cal-chip-exam">6OOP Exam</span>
+            <span class="cal-chip cal-chip-exam">2ConWorld Midterm Output</span>
+          </div>
+          <div class="cal-cell cal-cell-exam">
+            <span class="cal-daynum">28</span>
+            <span class="cal-chip cal-chip-exam">6DSAL Exam</span>
+            <span class="cal-chip cal-chip-exam">6ICYBER Exam</span>
+            <span class="cal-chip cal-chip-exam">6OPSYS Exam</span>
+          </div>
+          <div class="cal-cell">
+            <span class="cal-daynum">29</span>
+            <span class="cal-chip cal-chip-quiz">2CONWORLD Quiz</span>
+          </div>
+
+          <div class="cal-cell"><span class="cal-daynum">30</span></div>
+          <div class="cal-cell"><span class="cal-daynum">31</span></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+          <div class="cal-cell cal-cell-empty"></div>
+
+        </div>
+      </div>
+      </div>
+
+      <!-- Type color legend lives in the shared fixed footer bar sitewide — not duplicated inside this card -->
+      <div class="task-colors" aria-label="Task type color legend">
+        <span class="legend-item"><span class="legend-dot legend-dot-exam"></span>Exam</span>
+        <span class="legend-item"><span class="legend-dot legend-dot-quiz"></span>Quiz</span>
+        <span class="legend-item"><span class="legend-dot legend-dot-case-study"></span>Case Study</span>
+        <span class="legend-item"><span class="legend-dot legend-dot-activity"></span>Activity</span>
+        <span class="legend-item"><span class="legend-dot legend-dot-seatwork"></span>Seatwork</span>
+        <span class="legend-item"><span class="legend-dot legend-dot-assignment"></span>Assignment</span>
+      </div>
+
+      <!-- ---------- EXAMS DETAIL BOARD (desktop only) — reuses the exact .board/.day-card/.reminder-card pattern from Home ---------- -->
+      <div class="board-controls">
+        <div class="layout-toggle">
+          <button class="layout-btn layout-btn-active" data-view="grid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Grid
+          </button>
+          <button class="layout-btn" data-view="scroll">
+            ↕ Scroll
+          </button>
+        </div>
+      </div>
+
+      <section class="exams-section">
+        <h2 class="week-label"><span class="week-label-accent">EXAMS</span> <span class="bullet">•</span> <span class="week-date">Sept 1 – Sept 3</span></h2>
+
+        <div class="board board-grid">
+          <article class="day-card">
+            <div class="day-card-head">
+              <div class="day-card-title-group">
+                <h3 class="day-name">Tuesday</h3>
+                <p class="day-date-sub">Sep 1</p>
+              </div>
+              <span class="task-count">1</span>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6OOP</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+                <span class="subject-tag">MGN305</span>
+              </div>
+              <p class="reminder-time">3:15–5:15 PM</p>
+              <p class="exam-proctor">Proctor: Caro, Carisma A.</p>
+            </div>
+          </article>
+
+          <article class="day-card">
+            <div class="day-card-head">
+              <div class="day-card-title-group">
+                <h3 class="day-name">Wednesday</h3>
+                <p class="day-date-sub">Sep 2</p>
+              </div>
+              <span class="task-count">2</span>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6ICYBER</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+                <span class="subject-tag">SJH507</span>
+              </div>
+              <p class="reminder-time">1:00 to 2:00 PM</p>
+              <p class="exam-proctor">Proctor: Cabo, Juniel</p>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6OPSYSFUN</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+                <span class="subject-tag">SJH501</span>
+              </div>
+              <p class="reminder-time">2:10 to 3:40 PM</p>
+              <p class="exam-proctor">Proctor: Rabena, Mary Jane</p>
+            </div>
+          </article>
+
+          <article class="day-card">
+            <div class="day-card-head">
+              <div class="day-card-title-group">
+                <h3 class="day-name">Thursday</h3>
+                <p class="day-date-sub">Sep 3</p>
+              </div>
+              <span class="task-count">2</span>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6DSAL</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+                <span class="subject-tag">SJH505</span>
+              </div>
+              <p class="reminder-time">9:15 to 10:45 AM</p>
+              <p class="exam-proctor">Proctor: Yu, Kahil Makisig I</p>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">2ETHICS</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+                <span class="subject-tag">SJH502</span>
+              </div>
+              <p class="reminder-time">4:30 to 6:00 PM</p>
+              <p class="exam-proctor">Proctor: Baluyut, Miguel</p>
+            </div>
+          </article>
+
+          <article class="day-card">
+            <div class="day-card-head">
+              <div class="day-card-title-group">
+                <h3 class="day-name">TBA</h3>
+                <p class="day-date-sub">Date pending</p>
+              </div>
+              <span class="task-count">2</span>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6IWEB</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+              </div>
+              <p class="reminder-time">TBA</p>
+              <p class="exam-proctor">Proctor: Rivera, Raquel B.</p>
+            </div>
+            <div class="reminder-card">
+              <div class="reminder-top">
+                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
+                <p class="reminder-title">6DSAL Lab and Badging Exam</p>
+              </div>
+              <div class="reminder-tags">
+                <span class="type-badge type-exam">EXAM</span>
+              </div>
+              <p class="reminder-time">TBA</p>
+              <p class="exam-proctor">Proctor: Napalit, Arcely</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile-only floating action bar -->
+  <div class="mobile-fab-bar mobile-only">
+    <button class="fab-pill">TODAY</button>
+    <button class="fab-round" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+    </button>
+    <button class="fab-round fab-round-primary" aria-label="New TODO" id="newTodoBtnMobile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <script src="../js/rooms.js"></script>
+</body>
+</html>

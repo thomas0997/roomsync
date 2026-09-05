@@ -13,9 +13,10 @@
 <body class="settings-page">
 
   <!-- ============================================================
-       HEADER — simplified: no icon rail, no hamburger, no sidebar.
-       Same dark bar + logo + nav pattern as the main app, always
-       shown in full (this page has no mobile/tablet collapse).
+       HEADER — same nav system as the rest of RoomSync.
+       Desktop: text nav in the top bar, no sidebar.
+       Tablet: collapsed icon rail, click to expand.
+       Mobile: hamburger opens the same sidebar as a drawer.
   ============================================================ -->
   <header class="topbar">
     <div class="topbar-brand">
@@ -23,7 +24,7 @@
       <span class="brand-word"><span class="dim">room</span>sync</span>
     </div>
 
-    <nav class="topbar-nav settings-nav-always">
+    <nav class="topbar-nav settings-nav-desktop">
       <a href="home.html">Home</a>
       <a href="calendar.html">Calendar</a>
       <a href="notes.html">Notes</a>
@@ -31,7 +32,113 @@
       <a href="approve.html">Approve</a>
       <a href="about.html">About</a>
     </nav>
+
+    <div class="topbar-actions">
+      <!-- Mobile hamburger toggle -->
+      <button class="hamburger mobile-only" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
+        <!-- PLACEHOLDER ICON: hamburger menu icon -->
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
+
+  <div class="app-shell settings-app-shell">
+
+    <!-- Same sidebar component as home.html — tablet: collapsed icon rail,
+         click to expand. Mobile: hamburger drawer. Hidden entirely at desktop
+         (this page uses the plain top nav there instead). -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-logo-row">
+          <!-- PLACEHOLDER LOGO: replace this box with the real logo image -->
+          <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="rs-brand-logo">
+          <span class="brand-word brand-word-lg sidebar-wordmark"><span class="dim">room</span>sync</span>
+        </div>
+
+        <div class="sidebar-divider tablet-only-block"></div>
+
+        <nav class="sidebar-nav tablet-mobile-nav">
+          <a href="home.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.7c-.42 0-.83.16-1.15.46L2.9 10.1c-.4.37-.42 1-.05 1.4.37.4 1 .42 1.4.05l.4-.37V19.5c0 1.24 1.01 2.25 2.25 2.25H9.5a.75.75 0 0 0 .75-.75v-4.5c0-.83.67-1.5 1.5-1.5h.5c.83 0 1.5.67 1.5 1.5V21c0 .41.34.75.75.75h2.5c1.24 0 2.25-1.01 2.25-2.25v-8.32l.4.37c.4.37 1.03.35 1.4-.05.37-.4.35-1.03-.05-1.4l-7.95-6.94a1.7 1.7 0 0 0-1.15-.46z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Home</span>
+          </a>
+          <a href="calendar.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="4.5" width="18" height="16" rx="4"/>
+                <rect x="7" y="2" width="2.2" height="4.5" rx="1.1"/>
+                <rect x="14.8" y="2" width="2.2" height="4.5" rx="1.1"/>
+                <rect x="3" y="9" width="18" height="1.6" fill="#f5f5f7"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Calendar</span>
+          </a>
+          <a href="notes.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V9.24a3 3 0 0 0-.879-2.121l-4.24-4.24A3 3 0 0 0 11.76 2H8z"/>
+                <path d="M12 2.5v4.74a2 2 0 0 0 2 2h4.74z" fill="#f5f5f7"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Notes</span>
+          </a>
+          <a href="discussion.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.68 1.4 5.07 3.6 6.68-.14.98-.55 2.24-1.42 3.4a.5.5 0 0 0 .5.78c2.02-.4 3.6-1.2 4.66-1.9.86.2 1.76.32 2.66.32 5.52 0 10-3.94 10-8.8S17.52 2 12 2z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Discussion</span>
+          </a>
+          <a href="approve.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" mask="url(#approve-mask)"/>
+                <mask id="approve-mask">
+                  <rect x="0" y="0" width="24" height="24" fill="white"/>
+                  <path d="M7.5 12.5l2.8 2.8 6.2-6.6" stroke="black" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </mask>
+              </svg>
+            </span>
+            <span class="sidebar-label">Approve</span>
+          </a>
+          <a href="about.html" class="sidebar-link mobile-only-inline-flex">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" mask="url(#about-mask)"/>
+                <mask id="about-mask">
+                  <rect x="0" y="0" width="24" height="24" fill="white"/>
+                  <circle cx="12" cy="7.7" r="1.35" fill="black"/>
+                  <rect x="10.8" y="10.5" width="2.4" height="7" rx="1.2" fill="black"/>
+                </mask>
+              </svg>
+            </span>
+            <span class="sidebar-label">About</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="profile-row">
+          <!-- PLACEHOLDER IMAGE: replace with the user's real profile photo -->
+          <div class="avatar">
+            TF
+            <span class="status-dot"></span>
+          </div>
+          <div class="profile-text profile-text-conditional">
+            <div class="profile-name">Tony Franks</div>
+            <div class="profile-status">Working!</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay behind the expanded sidebar / mobile drawer -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="settings-main">
     <div class="settings-head-row">
@@ -142,6 +249,9 @@
     </form>
   </main>
 
+  </div>
+
+  <script src="../js/rooms.js"></script>
   <script src="../js/settings.js"></script>
 </body>
 </html>

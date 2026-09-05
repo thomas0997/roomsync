@@ -643,18 +643,12 @@ ul { list-style: none; }
 
 /* ============================================================
    SETTINGS PAGE
-   Standalone page — no sidebar, no app-shell, no icon rail.
-   Reuses .topbar/.topbar-brand/.topbar-nav from the main app for
-   visual consistency, but nav links always show (no hamburger).
+   Shares the exact same sidebar/hamburger system as home.html.
+   Desktop: sidebar hidden, plain text nav in the top bar instead.
+   Tablet/mobile: identical icon rail + drawer behavior as home.html.
    ============================================================ */
 
-.settings-nav-always { display: flex !important; margin-left: auto; }
-
-/* This page has no sidebar, so the shared tablet rule that hides .topbar-brand
-   on home.html (to avoid a duplicate logo next to the sidebar's own) doesn't
-   apply here — there's nothing to fall back on, so the logo would just vanish.
-   Force it back on at every width, specifically for this page. */
-.settings-page .topbar-brand { display: flex !important; }
+.settings-nav-desktop { display: none; }
 
 .settings-main {
   max-width: 720px;
@@ -786,6 +780,13 @@ ul { list-style: none; }
   margin-top: 8px;
 }
 .btn-save-changes:hover { background: #0064cc; }
+
+@media (min-width: 1200px) {
+  .settings-nav-desktop { display: flex !important; margin-left: auto; }
+  .settings-app-shell .sidebar,
+  .settings-app-shell .sidebar-overlay { display: none !important; }
+  .rs-brand-logo { margin-left: 0.4rem;}
+}
 
 @media (max-width: 640px) {
   .settings-main { padding: 32px 18px 80px; }

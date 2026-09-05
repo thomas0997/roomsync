@@ -47,4 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Hamburger/sidebar toggle is now handled by rooms.js (shared with home.html)
+
 });

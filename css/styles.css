@@ -807,13 +807,12 @@ ul { list-style: none; }
    fixed-pixel widths were why zooming out left dead space instead of
    the calendar growing to fill it. */
 .cal-card {
-  background: var(--gray-bg-2);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  padding: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
   margin-bottom: 24px;
-  margin-top: 2rem;
 }
 
 .cal-month-nav {
@@ -841,16 +840,18 @@ ul { list-style: none; }
 .cal-nav-btn:hover { background: var(--hairline); color: var(--near-black); }
 
 .cal-grid-wrap {
+  width: 100%;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   overflow: hidden;
-  width: 100%;
 }
 .cal-dow-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   background: var(--gray-bg);
 }
+.cal-dow-row-mobile { display: none; }
+.cal-dow-row-desktop { display: grid; }
 .cal-dow-row div {
   text-align: center;
   font-size: 8px;
@@ -876,6 +877,7 @@ ul { list-style: none; }
 .cal-cell-empty { background: var(--gray-bg-2); }
 .cal-cell-exam { background: rgba(223,0,0,0.06); }
 .cal-daynum { font-size: 8px; font-weight: 600; color: #8d8d95; align-self: flex-start; }
+.cal-daynum.cal-daynum-today { color: #fff; }
 .cal-daynum-today {
   background: var(--blue);
   color: #fff;
@@ -907,14 +909,21 @@ ul { list-style: none; }
 .cal-chip-assignment { background: var(--assignment); }
 
 .exams-section { margin-top: 8px; }
-.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; padding-top: 0.5rem;}
+.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; }
 
 
 /* ============================================================
    CALENDAR — TABLET (matches Home's 768px breakpoint)
    ============================================================ */
 @media (min-width: 768px) {
-  .cal-card { padding: 24px; }
+  .cal-card {
+    padding: 24px;
+    background: var(--gray-bg-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
   .cal-month-title { font-size: 20px; }
   .cal-cell { min-height: 64px; padding: 4px; }
   .cal-daynum { font-size: 9px; }
@@ -928,7 +937,7 @@ ul { list-style: none; }
    CALENDAR — DESKTOP (matches Home's 1200px breakpoint)
    ============================================================ */
 @media (min-width: 1200px) {
-  .cal-card { padding: 28px 30px; }
+  .cal-card { padding: 28px 30px; margin-top: 2rem; }
   .cal-month-title { font-size: 20px; }
   .cal-cell { min-height: 80px; padding: 6px; }
   .cal-daynum { font-size: 10px; }
@@ -936,4 +945,5 @@ ul { list-style: none; }
   .cal-chip { font-size: 7.5px; padding: 2px 6px; }
   .cal-dow-row div { font-size: 11px; padding: 9px 0; }
   .exam-proctor { font-size: 10px; margin-top: -6px; }
+  
 }

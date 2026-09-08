@@ -356,6 +356,9 @@ ul { list-style: none; }
 .empty-week-note { font-size: 12px; color: var(--gray-text); padding: 8px 0 20px; }
 
 .board { display: flex; flex-direction: column; gap: 12px; }
+.board.view-scroll { display: flex; flex-direction: column; }
+.board.view-scroll .day-card,
+.board.view-scroll .notes-file-card { flex: none; width: 100%; max-width: none; }
 
 .day-card {
   background: var(--gray-bg-2);
@@ -457,6 +460,15 @@ ul { list-style: none; }
 /* Mobile: hide desktop-only room button list, layout toggle, room-buttons row */
 .room-buttons { display: none; }
 .board-controls { display: none; }
+.layout-toggle {
+  display: inline-flex; gap: 5px; background: var(--gray-bg); border-radius: 8px; padding: 3px;
+}
+.layout-btn {
+  display: flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 500; color: var(--gray-text-2);
+  padding: 5px 8px; border-radius: 6px;
+}
+.layout-btn-active { background: #fff; color: var(--near-black); box-shadow: 0 0 1px rgba(115,115,115,0.4); }
+.layout-btn svg { width: 8px; height: 8px; }
 .task-colors {
   display: none;
 }
@@ -1195,4 +1207,119 @@ ul { list-style: none; }
   .profile-photo-wrap { width: 90px; height: 90px; }
   .profile-room-grid { grid-template-columns: repeat(2, 1fr); }
   .profile-stat-num { font-size: 50px; }
+}
+
+/* ============================================================
+   NOTES PAGE
+   Reuses the shared topbar/sidebar/room-switcher/FAB-bar exactly
+   as Home does. Only the quick-action cards, filter pills, and
+   file grid below are new to this page.
+   ============================================================ */
+
+.notes-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.notes-quick-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  text-align: left;
+}
+.notes-quick-card:hover { border-color: #b8b8bd; }
+
+.notes-quick-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+}
+.notes-icon-doc { background: #009cdf; }
+.notes-icon-sheet { background: #00ca48; color: #fff; }
+.notes-icon-generic { background: #8e8e95; font-size: 9px; }
+.notes-icon-generic svg { width: 16px; height: 16px; stroke: #fff; }
+
+.notes-quick-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.notes-quick-title { font-size: 13px; font-weight: 700; letter-spacing: -0.3px; color: var(--near-black); }
+.notes-quick-sub { font-size: 10px; color: var(--gray-text-2); }
+
+/* ---------- Filter pills ---------- */
+.notes-filter-row { display: flex; gap: 8px; margin: 16px 0 18px; }
+.notes-filter-pill {
+  height: 24px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--gray-text-2);
+  font-size: 10px;
+  font-weight: 590;
+}
+.notes-filter-active { background: #333; color: #fff; }
+.notes-filter-pill:not(.notes-filter-active):hover { background: var(--gray-bg); }
+
+/* ---------- File grid ---------- */
+.notes-file-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding-bottom: 24px;
+}
+.notes-file-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  text-align: left;
+}
+.notes-file-card:hover { border-color: #b8b8bd; }
+.notes-file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: #fff;
+}
+.notes-file-name { font-size: 12px; font-weight: 700; color: var(--gray-text-2); letter-spacing: -0.3px; }
+.notes-file-meta { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--gray-text-2); }
+.notes-file-dot { width: 4px; height: 4px; border-radius: 50%; background: #34c759; flex-shrink: 0; }
+
+/* This page's Grid/Scroll toggle is visible at every breakpoint, including mobile —
+   unlike Home/Calendar where .board-controls is tablet+ only. Scoped to this page's
+   own class so Home/Calendar's existing behavior isn't affected. */
+.notes-board-controls { display: flex !important; margin-bottom: 14px; }
+
+
+@media (min-width: 768px) {
+  .notes-quick-actions { flex-direction: row; }
+  .notes-quick-card { flex: 1; }
+  .notes-file-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1200px) {
+  .notes-quick-card { flex: 1; max-width: 225px; }
+  .notes-file-grid { grid-template-columns: repeat(4, 1fr); }
+  .notes-file-name { font-size: 12px; }
 }

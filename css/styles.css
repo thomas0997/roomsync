@@ -178,8 +178,11 @@ ul { list-style: none; }
 }
 .sidebar-link.active { color: var(--near-black); font-weight: 700; }
 .sidebar-link:hover { background: rgba(0,0,0,0.04); }
-.sidebar-icon { width: 22px; height: 22px; flex-shrink: 0; }
+.sidebar-icon { width: 22px; height: 22px; flex-shrink: 0; position: relative; }
 .sidebar-icon svg { width: 100%; height: 100%; }
+.sidebar-icon .icon-filled { display: none; }
+.sidebar-link.active .sidebar-icon .icon-outline { display: none; }
+.sidebar-link.active .sidebar-icon .icon-filled { display: block; }
 .sidebar-icon.icon-placeholder {
   border-radius: 6px;
   background: repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 4px, #ececec 4px, #ececec 8px);
@@ -495,33 +498,34 @@ ul { list-style: none; }
     top: 62px;
     height: calc(100vh - 62px);
     transform: none;
-    width: 84px;
-    max-width: 84px;
-    transition: width 220ms ease;
+    width: 84px !important;
+    max-width: none;
+    transition: width 220ms ease !important;
     z-index: 20;
     padding-top: 20px;
+    overflow-y: visible;
   }
-  .sidebar.expanded { width: 300px; max-width: 300px; z-index: 46; box-shadow: 0 0 24px rgba(0,0,0,0.15); }
+  .sidebar.expanded, .sidebar:hover { width: 300px !important; z-index: 46; box-shadow: 0 0 24px rgba(0,0,0,0.15); }
 
   .sidebar-top { padding: 0 16px; display: flex; flex-direction: column; align-items: center; }
-  .sidebar.expanded .sidebar-top { align-items: stretch; }
+  .sidebar.expanded .sidebar-top, .sidebar:hover .sidebar-top { align-items: stretch; }
 
   .desktop-tablet-only { display: block !important; }
   .sidebar-logo-row { display: flex !important; margin-bottom: 24px; }
-  .sidebar.expanded .sidebar-logo-row { justify-content: flex-start; }
-  .sidebar:not(.expanded) .sidebar-wordmark { display: none; }
+  .sidebar.expanded .sidebar-logo-row, .sidebar:hover .sidebar-logo-row { justify-content: flex-start; }
+  .sidebar:not(.expanded):not(:hover) .sidebar-wordmark { display: none; }
 
-  .sidebar:not(.expanded) .sidebar-divider { width: 60%; }
+  .sidebar:not(.expanded):not(:hover) .sidebar-divider { width: 60%; }
   .sidebar-nav { width: 100%; align-items: center; } /* collapsed rail: center icons */
-  .sidebar.expanded .sidebar-nav { align-items: stretch; } /* expanded: links stretch full width so text left-aligns */
-  .sidebar.expanded .sidebar-link { width: 100%; justify-content: flex-start; }
-  .sidebar:not(.expanded) .sidebar-link { justify-content: center; padding: 12px; }
-  .sidebar:not(.expanded) .sidebar-label { display: none; }
+  .sidebar.expanded .sidebar-nav, .sidebar:hover .sidebar-nav { align-items: stretch; } /* expanded: links stretch full width so text left-aligns */
+  .sidebar.expanded .sidebar-link, .sidebar:hover .sidebar-link { width: 100%; justify-content: flex-start; }
+  .sidebar:not(.expanded):not(:hover) .sidebar-link { justify-content: center; padding: 12px; }
+  .sidebar:not(.expanded):not(:hover) .sidebar-label { display: none; }
 
   .profile-row { border-radius: 0; justify-content: center; }
-  .sidebar:not(.expanded) .profile-text-conditional { display: none; }
-  .sidebar.expanded .profile-text-conditional { display: flex; }
-  .sidebar.expanded .profile-row { justify-content: flex-start; }
+  .sidebar:not(.expanded):not(:hover) .profile-text-conditional { display: none; }
+  .sidebar.expanded .profile-text-conditional, .sidebar:hover .profile-text-conditional { display: flex; }
+  .sidebar.expanded .profile-row, .sidebar:hover .profile-row { justify-content: flex-start; }
 
   .content { padding: 24px 24px 76px; }
 
@@ -588,15 +592,17 @@ ul { list-style: none; }
   .sidebar {
     position: sticky;
     top: 62px;
-    width: 300px;
-    max-width: 300px;
+    width: 300px !important;
+    max-width: 300px !important;
     height: calc(100vh - 62px);
     transform: none;
+    transition: none !important;
     z-index: 5;
     box-shadow: none;
     padding-top: 0;
   }
-  .sidebar.expanded { width: 300px; }
+  .sidebar.expanded { width: 300px !important; }
+  .sidebar:hover { box-shadow: none !important; z-index: 5 !important; }
   .sidebar-top { align-items: stretch; padding: 24px 0 0; }
   .sidebar-logo-row { display: none !important; } /* desktop shows logo/wordmark in the top bar instead */
   .sidebar-divider { display: none; }

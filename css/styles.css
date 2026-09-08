@@ -935,7 +935,7 @@ ul { list-style: none; }
 .cal-chip-assignment { background: var(--assignment); }
 
 .exams-section { margin-top: 8px; }
-.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; }
+.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; padding-top: 10px; }
 
 
 /* ============================================================

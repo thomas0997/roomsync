@@ -179,6 +179,13 @@
             <span class="sidebar-label">About</span>
           </a>
         </nav>
+
+        <div class="sidebar-divider tablet-only-block"></div>
+
+        <div class="online-users profile-text-conditional">
+          <p class="online-users-title">Online in this room</p>
+          <ul class="online-users-list" id="onlineUsersList"></ul>
+        </div>
       </div>
 
       <div class="sidebar-footer">
@@ -238,7 +245,7 @@
           <p class="page-eyebrow desktop-tablet-only">CALENDAR</p>
           <h1 class="page-title desktop-tablet-only">What's Happening in The Bozos This Month?</h1>
           <h1 class="page-title page-title-mobile mobile-only-inline">This Month</h1>
-          <p class="page-subtitle">Exams, quizzes, and deadlines — all in one view, color-coded by your liking</p>
+          <p class="page-subtitle">Exams, quizzes, and deadlines, all in one view, color-coded by your liking</p>
         </div>
         <button class="btn-todo desktop-only" id="newTodoBtnDesktop">
           <span class="plus">+</span> New TODO
@@ -380,7 +387,7 @@
       </div>
 
       <section class="exams-section">
-        <h2 class="week-label"><span class="week-label-accent">EXAMS</span> <span class="bullet">•</span> <span class="week-date">Sept 1 – Sept 3</span></h2>
+        <h2 class="week-label"><span class="week-label-accent">EXAMS</span> <span class="bullet">•</span> <span class="week-date">Sept 1 to Sept 3</span></h2>
 
         <div class="board board-grid">
           <article class="day-card">
@@ -519,6 +526,56 @@
     <button class="fab-round fab-round-primary" aria-label="New TODO" id="newTodoBtnMobile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
     </button>
+  </div>
+
+  <!-- ---------- NEW TODO MODAL (shared) ---------- -->
+  <div class="todo-modal-overlay" id="todoModalOverlay" hidden>
+    <div class="todo-modal abt-form-card">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title">New TODO</h2>
+        <button type="button" class="todo-modal-close" id="todoModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form id="todoModalForm">
+        <label class="abt-field">
+          <span class="abt-field-label">Title</span>
+          <input type="text" placeholder="e.g. Linked List Partner Activity 2" required>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Type</span>
+          <select required>
+            <option value="">Select a type</option>
+            <option>Exam</option>
+            <option>Quiz</option>
+            <option>Case Study</option>
+            <option>Activity</option>
+            <option>Seatwork</option>
+            <option>Assignment</option>
+          </select>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Due Date</span>
+          <input type="date">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Time</span>
+          <input type="time">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Room</span>
+          <select id="todoModalRoom">
+            <option>The Bozos</option>
+            <option>Auron Inc.</option>
+            <option>CYB201</option>
+          </select>
+        </label>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit">Create</button>
+          <button type="button" class="abt-btn-reset" id="todoModalCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="../js/rooms.js"></script>

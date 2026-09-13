@@ -194,6 +194,13 @@
             <span class="sidebar-label">About</span>
           </a>
         </nav>
+
+        <div class="sidebar-divider tablet-only-block"></div>
+
+        <div class="online-users profile-text-conditional">
+          <p class="online-users-title">Online in this room</p>
+          <ul class="online-users-list" id="onlineUsersList"></ul>
+        </div>
       </div>
 
       <div class="sidebar-footer">
@@ -282,7 +289,7 @@
            THIS WEEK
       ============================================================ -->
       <section class="week-section" aria-labelledby="thisWeekLabel">
-        <h2 class="week-label" id="thisWeekLabel"><span class="week-label-accent">THIS WEEK</span> <span class="bullet">•</span> August 9 – 15</h2>
+        <h2 class="week-label" id="thisWeekLabel"><span class="week-label-accent">THIS WEEK</span> <span class="bullet">•</span> August 9 to 15</h2>
 
         <div class="board board-grid" id="board-thisweek">
           <article class="day-card day-card-today">
@@ -319,7 +326,7 @@
            NEXT WEEK
       ============================================================ -->
       <section class="week-section" aria-labelledby="nextWeekLabel">
-        <h2 class="week-label week-label-muted" id="nextWeekLabel"><span class="week-label-accent-muted">NEXT WEEK</span> <span class="bullet">•</span> August 16 – 22</h2>
+        <h2 class="week-label week-label-muted" id="nextWeekLabel"><span class="week-label-accent-muted">NEXT WEEK</span> <span class="bullet">•</span> August 16 to 22</h2>
 
         <div class="board board-grid" id="board-nextweek">
 
@@ -369,7 +376,7 @@
             <div class="reminder-card">
               <div class="reminder-top">
                 <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">Lecture Quiz – Module 7 to 8</p>
+                <p class="reminder-title">Lecture Quiz - Module 7 to 8</p>
               </div>
               <div class="reminder-tags">
                 <span class="type-badge type-quiz">QUIZ</span>
@@ -381,7 +388,7 @@
             <div class="reminder-card">
               <div class="reminder-top">
                 <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">Lecture Quiz – Queues &amp; Linked Lists</p>
+                <p class="reminder-title">Lecture Quiz - Queues &amp; Linked Lists</p>
               </div>
               <div class="reminder-tags">
                 <span class="type-badge type-quiz">QUIZ</span>
@@ -403,7 +410,7 @@
             <div class="reminder-card">
               <div class="reminder-top">
                 <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">Codechum – Inheritance with Polymorphism</p>
+                <p class="reminder-title">Codechum - Inheritance with Polymorphism</p>
               </div>
               <div class="reminder-tags">
                 <span class="type-badge type-activity">ACTIVITY</span>
@@ -449,7 +456,7 @@
             <div class="reminder-card">
               <div class="reminder-top">
                 <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">Lecture Quiz – Try Except to Basic Inheritance</p>
+                <p class="reminder-title">Lecture Quiz - Try Except to Basic Inheritance</p>
               </div>
               <div class="reminder-tags">
                 <span class="type-badge type-quiz">QUIZ</span>
@@ -471,7 +478,7 @@
             <div class="reminder-card">
               <div class="reminder-top">
                 <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">Module 7 – 8 Case Study</p>
+                <p class="reminder-title">Module 7 - 8 Case Study</p>
               </div>
               <div class="reminder-tags">
                 <span class="type-badge type-case-study">CASE STUDY</span>
@@ -490,7 +497,7 @@
            WEEK AFTER
       ============================================================ -->
       <section class="week-section" aria-labelledby="weekAfterLabel">
-        <h2 class="week-label week-label-muted" id="weekAfterLabel"><span class="week-label-accent-muted">WEEK AFTER</span> <span class="bullet">•</span> August 23 – 29</h2>
+        <h2 class="week-label week-label-muted" id="weekAfterLabel"><span class="week-label-accent-muted">WEEK AFTER</span> <span class="bullet">•</span> August 23 to 29</h2>
         <p class="empty-week-note">Nothing scheduled yet.</p>
       </section>
 
@@ -518,6 +525,56 @@
     <button class="fab-round fab-round-primary" aria-label="New TODO" id="newTodoBtnMobile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
     </button>
+  </div>
+
+  <!-- ---------- NEW TODO MODAL (shared) ---------- -->
+  <div class="todo-modal-overlay" id="todoModalOverlay" hidden>
+    <div class="todo-modal abt-form-card">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title">New TODO</h2>
+        <button type="button" class="todo-modal-close" id="todoModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form id="todoModalForm">
+        <label class="abt-field">
+          <span class="abt-field-label">Title</span>
+          <input type="text" placeholder="e.g. Linked List Partner Activity 2" required>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Type</span>
+          <select required>
+            <option value="">Select a type</option>
+            <option>Exam</option>
+            <option>Quiz</option>
+            <option>Case Study</option>
+            <option>Activity</option>
+            <option>Seatwork</option>
+            <option>Assignment</option>
+          </select>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Due Date</span>
+          <input type="date">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Time</span>
+          <input type="time">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Room</span>
+          <select id="todoModalRoom">
+            <option>The Bozos</option>
+            <option>Auron Inc.</option>
+            <option>CYB201</option>
+          </select>
+        </label>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit">Create</button>
+          <button type="button" class="abt-btn-reset" id="todoModalCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="../js/rooms.js"></script>

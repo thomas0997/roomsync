@@ -66,6 +66,8 @@ document.addEventListener('DOMContentLoaded', function () {
           '</div>';
       }
 
+      var bubbleHtml = '<button class="disc-bubble" type="button" data-reply-name="Thomas Franco" data-reply-text="' + text.replace(/"/g, '&quot;') + '">' + text + '</button>';
+
       group.innerHTML =
         '<div class="disc-msg-meta">' +
         '<span class="disc-name">Thomas Franco</span>' +
@@ -73,10 +75,10 @@ document.addEventListener('DOMContentLoaded', function () {
         '<span class="disc-avatar">TF</span>' +
         '</div>' +
         '<div class="disc-bubble-row">' +
-        '<div class="disc-bubble-stack">' +
-        '<button class="disc-bubble" type="button" data-reply-name="Thomas Franco" data-reply-text="' + text.replace(/"/g, '&quot;') + '">' + text + '</button>' +
-        replyHtml +
-        '</div>' +
+        (activeReplyName
+          ? '<div class="disc-bubble-stack">' + bubbleHtml + replyHtml + '</div>'
+          : bubbleHtml
+        ) +
         '</div>';
 
       // Insert before the typing indicator / seen-by line, so new messages land above them

@@ -106,6 +106,81 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  /* ---------- Online users list + empty-state (per room) ---------- */
+  var roomMembers = {
+    'The Bozos': [
+      { name: 'Thomas Franco', initials: 'TF', online: true },
+      { name: 'Mary Rose Bayani', initials: 'MB', online: true },
+      { name: 'Daniel Rodriguez', initials: 'DR', online: false },
+      { name: 'Sean Dayrit', initials: 'SD', online: true },
+      { name: 'Charlie Kim', initials: 'CK', online: false },
+      { name: 'Hans Santos', initials: 'HS', online: true },
+      { name: 'Phem Cruz', initials: 'PC', online: false }
+    ],
+    'Auron Inc.': [
+      { name: 'Julia Santos', initials: 'JS', online: true },
+      { name: 'Marco Reyes', initials: 'MR', online: false }
+    ],
+    'CYB201': [
+      { name: 'Kevin Tan', initials: 'KT', online: true },
+      { name: 'Bea Fernandez', initials: 'BF', online: true },
+      { name: 'Miguel Cruz', initials: 'MC', online: false }
+    ]
+  };
+
+  var ONLINE_USERS_MAX = 5;
+
+  function renderOnlineUsers(roomName) {
+    var list = document.getElementById('onlineUsersList');
+    if (!list) return;
+    var members = roomMembers[roomName] || [];
+    var visible = members.slice(0, ONLINE_USERS_MAX);
+    var overflowCount = members.length - visible.length;
+
+    var html = visible.map(function (m) {
+      return '<li class="online-user">' +
+        '<span class="online-user-avatar">' + m.initials +
+        '<span class="online-dot' + (m.online ? ' online-dot-active' : '') + '"></span>' +
+        '</span>' +
+        '<span class="online-user-name">' + m.name + '</span>' +
+        '</li>';
+    }).join('');
+
+    if (overflowCount > 0) {
+      html += '<li class="online-user-more">+' + overflowCount + ' other' + (overflowCount === 1 ? '' : 's') + '</li>';
+    }
+
+    list.innerHTML = html;
+  }
+
+  function updateRoomEmptyState(roomName) {
+    // Structure (headers, controls, dates, legend, input bar) always stays visible —
+    // this just flags the room on <body> so CSS can hide the actual data items
+    // (task cards, chips, files, messages, submissions) when the room isn't The Bozos.
+    document.body.setAttribute('data-current-room', roomName);
+  }
+
+  function switchRoom(roomName) {
+    renderOnlineUsers(roomName);
+    updateRoomEmptyState(roomName);
+  }
+
+  // Set the default room's state on load
+  updateRoomEmptyState('The Bozos');
+  renderOnlineUsers('The Bozos');
+
+  // Desktop's persistent room list (sidebar) didn't have a click handler before — add one
+  document.querySelectorAll('.room-buttons .room-pill').forEach(function (pill) {
+    pill.addEventListener('click', function () {
+      var roomName = pill.querySelector('.room-name').textContent.trim();
+      document.querySelectorAll('.room-buttons .room-pill').forEach(function (p) {
+        p.classList.toggle('room-pill-active', p === pill);
+      });
+      document.querySelectorAll('[data-room-name]').forEach(function (el) { el.textContent = roomName; });
+      switchRoom(roomName);
+    });
+  });
+
   /* ---------- Room switcher (mobile + tablet pill) ---------- */
   var roomPillButtons = [
     document.getElementById('roomPillBtnMobile'),
@@ -154,7 +229,12 @@ document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('.room-dropdown-item').forEach(function (el) {
         el.classList.toggle('active', el.dataset.room === roomName);
       });
+      document.querySelectorAll('.room-buttons .room-pill').forEach(function (pill) {
+        var pillName = pill.querySelector('.room-name').textContent.trim();
+        pill.classList.toggle('room-pill-active', pillName === roomName);
+      });
 
+      switchRoom(roomName);
       closeAllRoomDropdowns();
     });
   });
@@ -166,20 +246,66 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.key === 'Escape') closeAllRoomDropdowns();
   });
 
-  /* ---------- New TODO buttons (all three breakpoints) — placeholder handler ---------- */
+  /* ---------- New TODO buttons — opens the shared modal ---------- */
   var todoButtons = [
     document.getElementById('newTodoBtnDesktop'),
     document.getElementById('newTodoBtnTablet'),
     document.getElementById('newTodoBtnMobile')
   ];
-  todoButtons.forEach(function (btn) {
-    if (btn) {
-      btn.addEventListener('click', function () {
-        // TODO: replace with the real "new TODO" modal/form once built
-        console.log('New TODO clicked — hook up the create-TODO modal here.');
-      });
+  var todoModalOverlay = document.getElementById('todoModalOverlay');
+  var todoModalForm = document.getElementById('todoModalForm');
+  var todoModalRoom = document.getElementById('todoModalRoom');
+  var todoModalClose = document.getElementById('todoModalClose');
+  var todoModalCancel = document.getElementById('todoModalCancel');
+
+  function showToast(message) {
+    var toast = document.createElement('div');
+    toast.className = 'abt-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function () { toast.classList.add('abt-toast-show'); });
+    setTimeout(function () {
+      toast.classList.remove('abt-toast-show');
+      setTimeout(function () { toast.remove(); }, 250);
+    }, 2200);
+  }
+
+  function openTodoModal() {
+    if (!todoModalOverlay) return;
+    if (todoModalRoom) {
+      var currentRoom = document.querySelector('[data-room-name]');
+      if (currentRoom) todoModalRoom.value = currentRoom.textContent.trim();
     }
+    todoModalOverlay.hidden = false;
+  }
+  function closeTodoModal() {
+    if (!todoModalOverlay) return;
+    todoModalOverlay.hidden = true;
+  }
+
+  todoButtons.forEach(function (btn) {
+    if (btn) btn.addEventListener('click', openTodoModal);
   });
+  if (todoModalClose) todoModalClose.addEventListener('click', closeTodoModal);
+  if (todoModalCancel) todoModalCancel.addEventListener('click', closeTodoModal);
+  if (todoModalOverlay) {
+    todoModalOverlay.addEventListener('click', function (e) {
+      if (e.target === todoModalOverlay) closeTodoModal();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && todoModalOverlay && !todoModalOverlay.hidden) closeTodoModal();
+  });
+  if (todoModalForm) {
+    todoModalForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // TODO: actually create the TODO once there's a backend — for now just confirm and close
+      console.log('New TODO submitted (not persisted anywhere yet).');
+      closeTodoModal();
+      showToast('TODO created!');
+      todoModalForm.reset();
+    });
+  }
 
   /* ---------- Settings button — routes to settings.html ---------- */
   var settingsBtn = document.getElementById('settingsBtn');

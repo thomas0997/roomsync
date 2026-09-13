@@ -570,6 +570,7 @@ ul { list-style: none; }
 
   .sidebar-overlay { z-index: 21; }
   .sidebar-overlay.open { display: block; inset: 0; }
+  #sidebar:hover ~ #sidebarOverlay { display: block; inset: 0; }
 }
 
 
@@ -1784,3 +1785,72 @@ ul { list-style: none; }
   .appr-list { max-width: 1082px; }
   .appr-card-title { font-size: 17px; }
 }
+
+/* ============================================================
+   ONLINE USERS LIST (sidebar) — repopulated per room by rooms.js
+   ============================================================ */
+.online-users { padding: 0 20px 16px; }
+.online-users.profile-text-conditional { flex-direction: column !important; align-items: flex-start !important; }
+.online-users-title { font-size: 10px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.online-users-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.online-user-more { font-size: 11px; color: var(--gray-text-2); font-weight: 590; padding-left: 34px; }
+.online-user { display: flex; align-items: center; gap: 8px; }
+.online-user-avatar {
+  position: relative;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #1d1d1f; color: #fff;
+  font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.online-dot {
+  position: absolute; bottom: -1px; right: -1px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #b6b6ba; border: 1.5px solid #fff;
+}
+.online-dot-active { background: #34c759; }
+.online-user-name { font-size: 12px; font-weight: 590; color: var(--near-black); }
+
+/* When switched to a room with no real data yet, the page structure
+   (headers, controls, calendar dates, quick-actions, legend, input bar)
+   stays fully visible — only the actual data items disappear. */
+body[data-current-room]:not([data-current-room="The Bozos"]) .reminder-card,
+body[data-current-room]:not([data-current-room="The Bozos"]) .cal-chip,
+body[data-current-room]:not([data-current-room="The Bozos"]) .notes-file-card,
+body[data-current-room]:not([data-current-room="The Bozos"]) .disc-msg-group,
+body[data-current-room]:not([data-current-room="The Bozos"]) .appr-card,
+body[data-current-room]:not([data-current-room="The Bozos"]) .disc-typing,
+body[data-current-room]:not([data-current-room="The Bozos"]) .disc-seenby,
+body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
+  display: none !important;
+}
+
+
+/* ============================================================
+   NEW TODO MODAL — shared across every page with a New TODO button.
+   Reuses .abt-field/.abt-form-card/.abt-btn-submit for form styling.
+   ============================================================ */
+.todo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 300;
+}
+.todo-modal-overlay[hidden] { display: none; }
+.todo-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.todo-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.todo-modal-close {
+  width: 26px; height: 26px; border-radius: 50%;
+  color: var(--gray-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.todo-modal-close svg { width: 16px; height: 16px; }
+.todo-modal-close:hover { background: var(--gray-bg); color: var(--near-black); }

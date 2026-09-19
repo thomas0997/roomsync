@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" href="../assets/roomsync_logo.png">
 <meta charset="UTF-8">
 <title>RoomSync — Approve</title>
 <meta name="description" content="RoomSync approve — keep the deadlines and TODOs trustworthy.">
@@ -353,6 +354,48 @@
       <p class="appr-empty" id="apprEmpty" hidden>Nothing left to review — all caught up.</p>
 
       <!-- Type color legend — same component/colors as the rest of the site -->
+      <h2 class="week-label" style="margin-top: 8px;"><span class="week-label-accent">HISTORY</span> <span class="bullet">•</span> <span class="week-date">Recent decisions</span></h2>
+
+      <div class="profile-history-table" style="margin-bottom: 32px;">
+        <div class="profile-history-head">
+          <span>Submitted by</span>
+          <span>Room</span>
+          <span>Activity</span>
+          <span>Status</span>
+        </div>
+
+        <div class="profile-history-row">
+          <span data-label="Submitted by">Mary Rose Bayani</span>
+          <span data-label="Room">The Bozos</span>
+          <span data-label="Activity">Midterms IWEB</span>
+          <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
+        </div>
+        <div class="profile-history-row">
+          <span data-label="Submitted by">Daniel Rodriguez</span>
+          <span data-label="Room">The Bozos</span>
+          <span data-label="Activity">Meeting Recap</span>
+          <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
+        </div>
+        <div class="profile-history-row">
+          <span data-label="Submitted by">Sean Dayrit</span>
+          <span data-label="Room">The Bozos</span>
+          <span data-label="Activity">BeatFood Proposal</span>
+          <span data-label="Status"><span class="history-status history-status-rejected">REJECTED</span></span>
+        </div>
+        <div class="profile-history-row">
+          <span data-label="Submitted by">Charlie Kim</span>
+          <span data-label="Room">The Bozos</span>
+          <span data-label="Activity">Midterms DSAL</span>
+          <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
+        </div>
+        <div class="profile-history-row profile-history-row-last">
+          <span data-label="Submitted by">Hans Santos</span>
+          <span data-label="Room">The Bozos</span>
+          <span data-label="Activity">Month Recap</span>
+          <span data-label="Status"><span class="history-status history-status-rejected">REJECTED</span></span>
+        </div>
+      </div>
+
       <div class="task-colors" aria-label="Task type color legend">
         <span class="legend-item"><span class="legend-dot legend-dot-exam"></span>Exam</span>
         <span class="legend-item"><span class="legend-dot legend-dot-quiz"></span>Quiz</span>

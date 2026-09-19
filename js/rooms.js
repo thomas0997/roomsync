@@ -95,14 +95,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /* ---------- Task complete toggle (click the circle to strike through) ---------- */
-  var reminderBullets = document.querySelectorAll('.reminder-bullet');
-  reminderBullets.forEach(function (bullet) {
-    bullet.addEventListener('click', function () {
-      var card = bullet.closest('.reminder-card');
-      var nowComplete = bullet.classList.toggle('is-complete');
-      if (card) card.classList.toggle('is-complete', nowComplete);
-      bullet.setAttribute('aria-pressed', nowComplete ? 'true' : 'false');
+  /* ---------- Task complete toggle (click anywhere on the task bar to strike through) ---------- */
+  var reminderCards = document.querySelectorAll('.reminder-card');
+  reminderCards.forEach(function (card) {
+    var bullet = card.querySelector('.reminder-bullet');
+    card.addEventListener('click', function () {
+      var nowComplete = card.classList.toggle('is-complete');
+      if (bullet) {
+        bullet.classList.toggle('is-complete', nowComplete);
+        bullet.setAttribute('aria-pressed', nowComplete ? 'true' : 'false');
+      }
     });
   });
 
@@ -130,11 +132,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var ONLINE_USERS_MAX = 5;
 
-  function renderOnlineUsers(roomName) {
+  function renderOnlineUsers(roomName, expanded) {
     var list = document.getElementById('onlineUsersList');
     if (!list) return;
     var members = roomMembers[roomName] || [];
-    var visible = members.slice(0, ONLINE_USERS_MAX);
+    var visible = expanded ? members : members.slice(0, ONLINE_USERS_MAX);
     var overflowCount = members.length - visible.length;
 
     var html = visible.map(function (m) {
@@ -147,10 +149,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }).join('');
 
     if (overflowCount > 0) {
-      html += '<li class="online-user-more">+' + overflowCount + ' other' + (overflowCount === 1 ? '' : 's') + '</li>';
+      html += '<li><button type="button" class="online-user-more" data-room="' + roomName + '">+' + overflowCount + ' other' + (overflowCount === 1 ? '' : 's') + '</button></li>';
+    } else if (expanded && members.length > ONLINE_USERS_MAX) {
+      html += '<li><button type="button" class="online-user-more" data-room="' + roomName + '" data-collapse="true">Show less</button></li>';
     }
 
     list.innerHTML = html;
+
+    var moreBtn = list.querySelector('.online-user-more');
+    if (moreBtn) {
+      moreBtn.addEventListener('click', function () {
+        renderOnlineUsers(moreBtn.dataset.room, moreBtn.dataset.collapse !== 'true');
+      });
+    }
   }
 
   function updateRoomEmptyState(roomName) {
@@ -314,5 +325,19 @@ document.addEventListener('DOMContentLoaded', function () {
       window.location.href = 'settings.html';
     });
   }
+
+  /* ---------- Calendar "+N More" popover ---------- */
+  document.querySelectorAll('.cal-chip-more').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var popover = btn.nextElementSibling;
+      var isOpen = !popover.hidden;
+      document.querySelectorAll('.cal-more-popover').forEach(function (p) { p.hidden = true; });
+      if (popover) popover.hidden = isOpen;
+    });
+  });
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.cal-more-popover').forEach(function (p) { p.hidden = true; });
+  });
 
 });

@@ -48,4 +48,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+
+  var filterPills = document.querySelectorAll('.notes-filter-pill');
+  var apprCards = document.querySelectorAll('.appr-card');
+  filterPills.forEach(function (pill) {
+    pill.addEventListener('click', function () {
+      var filter = pill.dataset.filter;
+      filterPills.forEach(function (p) { p.classList.remove('notes-filter-active'); });
+      pill.classList.add('notes-filter-active');
+      apprCards.forEach(function (card) {
+        var show = filter === 'all' || card.dataset.type === filter;
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
+
 });

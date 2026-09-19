@@ -73,6 +73,10 @@
             <span class="room-dot"></span>
             <span class="room-count">9</span>
           </button>
+          <button class="room-pill room-pill-new" id="newRoomBtnDesktop">
+            <span class="room-pill-new-icon">+</span>
+            <span class="room-name">New Room</span>
+          </button>
         </div>
 
         <div class="sidebar-divider tablet-only-block"></div>
@@ -303,6 +307,54 @@
     </form>
   </main>
 
+  </div>
+
+  <!-- ---------- NEW ROOM MODAL (shared) ---------- -->
+  <div class="todo-modal-overlay" id="newRoomModalOverlay" hidden>
+    <div class="todo-modal abt-form-card">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title" id="newRoomModalTitle">Join a Room</h2>
+        <button type="button" class="todo-modal-close" id="newRoomModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="abt-tabs" role="tablist" style="margin: 0 0 4px;">
+        <button type="button" class="abt-tab abt-tab-active" data-room-tab="join">Join a Room</button>
+        <button type="button" class="abt-tab" data-room-tab="create">Create a Room</button>
+      </div>
+
+      <form id="joinRoomForm" class="abt-panel abt-panel-active" data-room-panel="join" style="display:flex; flex-direction:column; gap:16px;">
+        <label class="abt-field">
+          <span class="abt-field-label">Invite Code</span>
+          <input type="text" placeholder="e.g. BOZO-2026" required>
+        </label>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit">Join Room</button>
+          <button type="button" class="abt-btn-reset" data-room-cancel>Cancel</button>
+        </div>
+      </form>
+
+      <form id="createRoomForm" class="abt-panel" data-room-panel="create" hidden style="flex-direction:column; gap:16px;">
+        <label class="abt-field">
+          <span class="abt-field-label">Room Name</span>
+          <input type="text" placeholder="e.g. Study Group 4" required>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Room Type</span>
+          <select>
+            <option>Classroom</option>
+            <option>Study Group</option>
+            <option>Team / Org</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit">Create Room</button>
+          <button type="button" class="abt-btn-reset" data-room-cancel>Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="../js/rooms.js"></script>

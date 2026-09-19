@@ -154,7 +154,6 @@ ul { list-style: none; }
   z-index: 45;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   transform: translateX(-100%);
   transition: transform 250ms ease;
   overflow-y: auto;
@@ -189,7 +188,7 @@ ul { list-style: none; }
   border: 1px dashed #b8b8b8;
 }
 
-.sidebar-footer { padding: 0; }
+.sidebar-footer { padding: 0; margin-top: auto; flex-shrink: 0; }
 .profile-row {
   width: 100%;
   background: #333333;
@@ -492,18 +491,19 @@ ul { list-style: none; }
   .topbar-brand { display: none; } /* avoid duplicating the logo already shown in the sidebar rail */
 
   .app-shell { min-height: 100vh; }
+  .content { margin-left: 84px; }
 
   .sidebar {
-    position: sticky;
+    position: fixed;
     top: 62px;
-    height: calc(100vh - 62px);
+    bottom: 0;
     transform: none;
     width: 84px !important;
     max-width: none;
     transition: width 220ms ease !important;
     z-index: 20;
     padding-top: 20px;
-    overflow-y: visible;
+    overflow-y: auto;
   }
   .sidebar.expanded, .sidebar:hover { width: 300px !important; z-index: 46; box-shadow: 0 0 24px rgba(0,0,0,0.15); }
 
@@ -602,6 +602,7 @@ ul { list-style: none; }
     box-shadow: none;
     padding-top: 0;
   }
+  .content { margin-left: 0; }
   .sidebar.expanded { width: 300px !important; }
   .sidebar:hover { box-shadow: none !important; z-index: 5 !important; }
   .sidebar-top { align-items: stretch; padding: 24px 0 0; }

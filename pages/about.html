@@ -526,6 +526,25 @@
     </div>
   </div>
 
+  <!-- ---------- PERSON MODAL (shared) — click a name in "Online in this room" ---------- -->
+  <div class="todo-modal-overlay" id="personModalOverlay" hidden>
+    <div class="todo-modal abt-form-card" style="text-align:center; align-items:center;">
+      <div class="todo-modal-head" style="width:100%;">
+        <span></span>
+        <button type="button" class="todo-modal-close" id="personModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <span class="online-user-avatar" id="personModalAvatar" style="width:64px; height:64px; font-size:20px; margin-bottom:12px;"></span>
+      <h2 class="abt-form-title" id="personModalName" style="margin-bottom:2px;"></h2>
+      <p id="personModalStatus" style="font-size:12px; color:var(--gray-text-2); margin-bottom:20px;"></p>
+      <div class="abt-form-actions" style="width:100%; justify-content:center;">
+        <a href="discussion.html" class="abt-btn-submit" id="personModalMessage" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Message</a>
+        <a href="profile.html" class="abt-btn-reset" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">View Profile</a>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/rooms.js"></script>
   <script src="../js/about.js"></script>
 </body>

@@ -299,7 +299,7 @@
       <!-- ---------- ROOMS ---------- -->
       <section class="profile-section">
         <h2 class="profile-section-title">Rooms</h2>
-        <div class="profile-room-grid">
+        <div class="profile-room-grid" id="profileRoomGrid">
           <div class="profile-room-card">
             <div>
               <div class="profile-room-name">CYB201</div>
@@ -321,6 +321,26 @@
             </div>
             <span class="profile-room-dot" style="background:#f2b84b"></span>
           </div>
+          <div class="profile-room-card">
+            <div>
+              <div class="profile-room-name">The Avengers</div>
+              <div class="profile-room-role">Member</div>
+            </div>
+            <span class="profile-room-dot" style="background:#0073ec"></span>
+          </div>
+          <div class="profile-room-card profile-room-overflow-item" hidden>
+            <div>
+              <div class="profile-room-name">Goats</div>
+              <div class="profile-room-role">Member</div>
+            </div>
+            <span class="profile-room-dot" style="background:#c79adb"></span>
+          </div>
+          <button type="button" class="profile-room-card profile-room-more" id="profileRoomMore">
+            <div>
+              <div class="profile-room-name">+1 more</div>
+              <div class="profile-room-role">Show all rooms</div>
+            </div>
+          </button>
         </div>
       </section>
 
@@ -447,6 +467,25 @@
           <button type="button" class="abt-btn-reset" data-room-cancel>Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ---------- PERSON MODAL (shared) — click a name in "Online in this room" ---------- -->
+  <div class="todo-modal-overlay" id="personModalOverlay" hidden>
+    <div class="todo-modal abt-form-card" style="text-align:center; align-items:center;">
+      <div class="todo-modal-head" style="width:100%;">
+        <span></span>
+        <button type="button" class="todo-modal-close" id="personModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <span class="online-user-avatar" id="personModalAvatar" style="width:64px; height:64px; font-size:20px; margin-bottom:12px;"></span>
+      <h2 class="abt-form-title" id="personModalName" style="margin-bottom:2px;"></h2>
+      <p id="personModalStatus" style="font-size:12px; color:var(--gray-text-2); margin-bottom:20px;"></p>
+      <div class="abt-form-actions" style="width:100%; justify-content:center;">
+        <a href="discussion.html" class="abt-btn-submit" id="personModalMessage" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Message</a>
+        <a href="profile.html" class="abt-btn-reset" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">View Profile</a>
+      </div>
     </div>
   </div>
 

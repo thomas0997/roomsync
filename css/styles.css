@@ -1883,10 +1883,18 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 /* ---------- New Room button (desktop pill + dropdown item) ---------- */
 .room-pill-new, .room-dropdown-item-new { color: var(--gray-text-2); }
 .room-pill-new-icon {
-  width: 25px; height: 25px; border-radius: 50%;
+  width: 20px; height: 20px; border-radius: 50%;
   background: var(--gray-bg); color: var(--near-black);
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 700; flex-shrink: 0;
 }
 .room-pill-new:hover .room-pill-new-icon,
 .room-dropdown-item-new:hover .room-pill-new-icon { background: var(--blue); color: #fff; }
+
+/* ---------- Profile rooms — max 4 visible, "+N more" expands to show the rest ---------- */
+.profile-room-more { background: var(--gray-bg); border-style: dashed; cursor: pointer; width: 100%; text-align: left; font-family: inherit; }
+.profile-room-more .profile-room-name { color: var(--blue); }
+.profile-room-more:hover { background: var(--hairline); }
+
+.online-user-clickable { cursor: pointer; border-radius: 8px; padding: 2px 4px; margin: -2px -4px; }
+.online-user-clickable:hover { background: var(--gray-bg); }

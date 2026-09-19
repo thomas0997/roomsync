@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var overflowCount = members.length - visible.length;
 
     var html = visible.map(function (m) {
-      return '<li class="online-user">' +
+      return '<li class="online-user online-user-clickable" data-name="' + m.name + '" data-initials="' + m.initials + '" data-online="' + m.online + '">' +
         '<span class="online-user-avatar">' + m.initials +
         '<span class="online-dot' + (m.online ? ' online-dot-active' : '') + '"></span>' +
         '</span>' +
@@ -408,5 +408,38 @@ document.addEventListener('DOMContentLoaded', function () {
       createRoomForm.reset();
     });
   }
+
+  /* ---------- Person modal — click a name in "Online in this room" ---------- */
+  var personModalOverlay = document.getElementById('personModalOverlay');
+  var personModalClose = document.getElementById('personModalClose');
+  var onlineUsersListEl = document.getElementById('onlineUsersList');
+
+  function openPersonModal(name, initials, online) {
+    if (!personModalOverlay) return;
+    document.getElementById('personModalAvatar').textContent = initials;
+    document.getElementById('personModalName').textContent = name;
+    document.getElementById('personModalStatus').textContent = online === 'true' ? 'Online now' : 'Offline';
+    personModalOverlay.hidden = false;
+  }
+  function closePersonModal() {
+    if (personModalOverlay) personModalOverlay.hidden = true;
+  }
+
+  if (onlineUsersListEl) {
+    onlineUsersListEl.addEventListener('click', function (e) {
+      var item = e.target.closest('.online-user-clickable');
+      if (!item) return;
+      openPersonModal(item.dataset.name, item.dataset.initials, item.dataset.online);
+    });
+  }
+  if (personModalClose) personModalClose.addEventListener('click', closePersonModal);
+  if (personModalOverlay) {
+    personModalOverlay.addEventListener('click', function (e) {
+      if (e.target === personModalOverlay) closePersonModal();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && personModalOverlay && !personModalOverlay.hidden) closePersonModal();
+  });
 
 });

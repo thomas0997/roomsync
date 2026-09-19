@@ -49,4 +49,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ---------- Rooms list: "+N more" expands, then collapses back ---------- */
+  var moreRoomsBtn = document.getElementById('profileRoomMore');
+  if (moreRoomsBtn) {
+    var overflowItems = document.querySelectorAll('.profile-room-overflow-item');
+    var overflowCount = overflowItems.length;
+    var expanded = false;
+    moreRoomsBtn.addEventListener('click', function () {
+      expanded = !expanded;
+      overflowItems.forEach(function (item) { item.hidden = !expanded; });
+      var nameEl = moreRoomsBtn.querySelector('.profile-room-name');
+      var roleEl = moreRoomsBtn.querySelector('.profile-room-role');
+      if (expanded) {
+        nameEl.textContent = 'Show less';
+        roleEl.textContent = 'Hide extra rooms';
+      } else {
+        nameEl.textContent = '+' + overflowCount + ' more';
+        roleEl.textContent = 'Show all rooms';
+      }
+    });
+  }
+
 });

@@ -246,10 +246,17 @@
 
       <hr class="section-rule desktop-tablet-only">
 
+      <div class="notes-filter-row">
+        <button class="notes-filter-pill notes-filter-active" data-filter="all">All</button>
+        <button class="notes-filter-pill" data-filter="activity">Activity</button>
+        <button class="notes-filter-pill" data-filter="quiz">Quiz</button>
+        <button class="notes-filter-pill" data-filter="case-study">Case Study</button>
+      </div>
+
       <!-- ---------- SUBMISSION CARDS ---------- -->
       <div class="appr-list" id="apprList">
 
-        <article class="appr-card" data-status="pending">
+        <article class="appr-card" data-status="pending" data-type="activity">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">Data Structures - Linked List</h3>
@@ -269,7 +276,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending">
+        <article class="appr-card" data-status="pending" data-type="quiz">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6OOP Lab Quiz</h3>
@@ -289,7 +296,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending">
+        <article class="appr-card" data-status="pending" data-type="activity">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6IWEB Badging Activity</h3>
@@ -309,7 +316,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending">
+        <article class="appr-card" data-status="pending" data-type="case-study">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6IWEB Module 9 Case Study</h3>

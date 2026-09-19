@@ -386,7 +386,9 @@ ul { list-style: none; }
   border-radius: var(--radius-sm);
   padding: 10px 11px;
   margin-top: 10px;
+  cursor: pointer;
 }
+.reminder-card:hover { border-color: var(--blue); }
 .reminder-card:first-of-type { margin-top: 0; }
 .reminder-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
 .reminder-bullet {
@@ -1794,7 +1796,8 @@ ul { list-style: none; }
 .online-users.profile-text-conditional { flex-direction: column !important; align-items: flex-start !important; }
 .online-users-title { font-size: 10px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
 .online-users-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.online-user-more { font-size: 11px; color: var(--gray-text-2); font-weight: 590; padding-left: 34px; }
+.online-user-more { font-size: 11px; color: var(--gray-text-2); font-weight: 590; padding-left: 34px; background: none; border: none; cursor: pointer; text-align: left; }
+.online-user-more:hover { color: var(--blue); text-decoration: underline; }
 .online-user { display: flex; align-items: center; gap: 8px; }
 .online-user-avatar {
   position: relative;
@@ -1855,3 +1858,24 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 }
 .todo-modal-close svg { width: 16px; height: 16px; }
 .todo-modal-close:hover { background: var(--gray-bg); color: var(--near-black); }
+/* ---------- Calendar "+N More" expandable popover ---------- */
+.cal-cell-has-more { position: relative; overflow: visible !important; }
+.cal-chip-more { border: none; cursor: pointer; font-family: inherit; }
+.cal-chip-more:hover { filter: brightness(0.9); }
+.cal-more-popover[hidden] { display: none; }
+.cal-more-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 30;
+  background: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 110px;
+}
+.cal-more-popover .cal-chip { font-size: 8px; white-space: normal; }

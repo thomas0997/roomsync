@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
   renderOnlineUsers('The Bozos');
 
   // Desktop's persistent room list (sidebar) didn't have a click handler before — add one
-  document.querySelectorAll('.room-buttons .room-pill').forEach(function (pill) {
+  document.querySelectorAll('.room-buttons .room-pill:not(.room-pill-new)').forEach(function (pill) {
     pill.addEventListener('click', function () {
       var roomName = pill.querySelector('.room-name').textContent.trim();
       document.querySelectorAll('.room-buttons .room-pill').forEach(function (p) {
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Selecting a room updates both pill instances (mobile + tablet) so they stay in sync,
   // and marks the chosen room active in whichever dropdown was used.
-  document.querySelectorAll('.room-dropdown-item').forEach(function (item) {
+  document.querySelectorAll('.room-dropdown-item:not(.room-dropdown-item-new)').forEach(function (item) {
     item.addEventListener('click', function () {
       var roomName = item.dataset.room;
       var avatarClass = item.dataset.avatarClass || '';
@@ -339,5 +339,74 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('click', function () {
     document.querySelectorAll('.cal-more-popover').forEach(function (p) { p.hidden = true; });
   });
+
+  /* ---------- New Room modal (join or create) ---------- */
+  var newRoomOverlay = document.getElementById('newRoomModalOverlay');
+  var newRoomTitle = document.getElementById('newRoomModalTitle');
+  var newRoomTabs = document.querySelectorAll('[data-room-tab]');
+  var newRoomPanels = document.querySelectorAll('[data-room-panel]');
+  var newRoomOpenBtns = document.querySelectorAll(
+    '#newRoomBtnDesktop, [id^="newRoomBtn_roomDropdownMobile"], [id^="newRoomBtn_roomDropdownTablet"]'
+  );
+
+  function openNewRoomModal() {
+    if (newRoomOverlay) newRoomOverlay.hidden = false;
+  }
+  function closeNewRoomModal() {
+    if (newRoomOverlay) newRoomOverlay.hidden = true;
+  }
+
+  newRoomOpenBtns.forEach(function (btn) { btn.addEventListener('click', openNewRoomModal); });
+
+  var newRoomCloseBtn = document.getElementById('newRoomModalClose');
+  if (newRoomCloseBtn) newRoomCloseBtn.addEventListener('click', closeNewRoomModal);
+  document.querySelectorAll('[data-room-cancel]').forEach(function (btn) {
+    btn.addEventListener('click', closeNewRoomModal);
+  });
+  if (newRoomOverlay) {
+    newRoomOverlay.addEventListener('click', function (e) {
+      if (e.target === newRoomOverlay) closeNewRoomModal();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && newRoomOverlay && !newRoomOverlay.hidden) closeNewRoomModal();
+  });
+
+  newRoomTabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.dataset.roomTab;
+      newRoomTabs.forEach(function (t) { t.classList.toggle('abt-tab-active', t === tab); });
+      newRoomPanels.forEach(function (p) {
+        var match = p.dataset.roomPanel === target;
+        p.hidden = !match;
+        p.classList.toggle('abt-panel-active', match);
+      });
+      if (newRoomTitle) newRoomTitle.textContent = target === 'join' ? 'Join a Room' : 'Create a Room';
+    });
+  });
+
+  var joinRoomForm = document.getElementById('joinRoomForm');
+  if (joinRoomForm) {
+    joinRoomForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // TODO: send the real invite code to a backend once one exists
+      console.log('Join room submitted (not actually joined yet).');
+      closeNewRoomModal();
+      showToast('Join request sent!');
+      joinRoomForm.reset();
+    });
+  }
+
+  var createRoomForm = document.getElementById('createRoomForm');
+  if (createRoomForm) {
+    createRoomForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // TODO: actually create the room once there's a backend
+      console.log('Create room submitted (not actually created yet).');
+      closeNewRoomModal();
+      showToast('Room created!');
+      createRoomForm.reset();
+    });
+  }
 
 });

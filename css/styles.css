@@ -1879,3 +1879,14 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
   min-width: 110px;
 }
 .cal-more-popover .cal-chip { font-size: 8px; white-space: normal; }
+
+/* ---------- New Room button (desktop pill + dropdown item) ---------- */
+.room-pill-new, .room-dropdown-item-new { color: var(--gray-text-2); }
+.room-pill-new-icon {
+  width: 25px; height: 25px; border-radius: 50%;
+  background: var(--gray-bg); color: var(--near-black);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.room-pill-new:hover .room-pill-new-icon,
+.room-dropdown-item-new:hover .room-pill-new-icon { background: var(--blue); color: #fff; }

@@ -174,6 +174,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function switchRoom(roomName) {
     renderOnlineUsers(roomName);
     updateRoomEmptyState(roomName);
+    var discInput = document.getElementById('discMessageInput');
+    if (discInput) discInput.placeholder = 'Message ' + roomName + '...';
   }
 
   // Set the default room's state on load

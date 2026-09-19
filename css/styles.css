@@ -906,6 +906,7 @@ ul { list-style: none; }
 }
 .cal-cell-empty { background: var(--gray-bg-2); }
 .cal-cell-exam { background: rgba(223,0,0,0.06); }
+body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { background: #fff; }
 .cal-daynum { font-size: 8px; font-weight: 600; color: #8d8d95; align-self: flex-start; }
 .cal-daynum.cal-daynum-today { color: #fff; }
 .cal-daynum-today {

@@ -321,10 +321,12 @@ ul { list-style: none; }
   left: 0;
   right: 0;
   padding: 0 24px;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 30;
 }
+.fab-right-group { display: flex; align-items: center; gap: 12px; }
 .fab-pill {
   background: rgba(211,211,211,0.9);
   color: #fff;
@@ -1232,6 +1234,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
+    margin-top: 1rem;
+
 }
 .notes-quick-card {
   display: flex;
@@ -1565,6 +1569,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 .abt-panel { display: none; }
 .abt-panel-active { display: block; }
+[data-room-panel].abt-panel-active { display: flex; }
 
 /* ---------- Team cards ---------- */
 .abt-team-grid { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
@@ -1884,7 +1889,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 /* ---------- New Room button (desktop pill + dropdown item) ---------- */
 .room-pill-new, .room-dropdown-item-new { color: var(--gray-text-2); }
 .room-pill-new-icon {
-  width: 20px; height: 20px; border-radius: 50%;
+  width: 25px; height: 25px; border-radius: 50%;
   background: var(--gray-bg); color: var(--near-black);
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 700; flex-shrink: 0;

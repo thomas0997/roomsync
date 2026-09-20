@@ -276,9 +276,9 @@
       <div class="page-header-row">
         <div class="page-header">
           <p class="page-eyebrow desktop-tablet-only">BOARD</p>
-          <h1 class="page-title desktop-tablet-only">What's Happening in The Bozos This Week?</h1>
+          <h1 class="page-title desktop-tablet-only">What's Happening in <span data-room-title-name>The Bozos</span> This Week?</h1>
           <h1 class="page-title page-title-mobile mobile-only-inline">This week</h1>
-          <p class="page-subtitle">Every deadline for The Bozos, laid out day by day.</p>
+          <p class="page-subtitle">Every deadline for <span data-room-title-name>The Bozos</span>, laid out day by day.</p>
         </div>
         <button class="btn-todo desktop-only" id="newTodoBtnDesktop">
           <span class="plus">+</span> New TODO
@@ -533,14 +533,16 @@
   <!-- Mobile-only floating action bar (Today filter / search / add) -->
   <div class="mobile-fab-bar mobile-only">
     <button class="fab-pill">TODAY</button>
-    <!-- PLACEHOLDER ICON: search icon -->
+    <div class="fab-right-group">
+      <!-- PLACEHOLDER ICON: search icon -->
     <button class="fab-round" aria-label="Search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
     </button>
-    <!-- PLACEHOLDER ICON: add / new TODO icon -->
+      <!-- PLACEHOLDER ICON: add / new TODO icon -->
     <button class="fab-round fab-round-primary" aria-label="New TODO" id="newTodoBtnMobile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
     </button>
+    </div>
   </div>
 
   <!-- ---------- NEW TODO MODAL (shared) ---------- -->
@@ -608,7 +610,7 @@
         <button type="button" class="abt-tab" data-room-tab="create">Create a Room</button>
       </div>
 
-      <form id="joinRoomForm" class="abt-panel abt-panel-active" data-room-panel="join" style="display:flex; flex-direction:column; gap:16px;">
+      <form id="joinRoomForm" class="abt-panel abt-panel-active" data-room-panel="join" style="flex-direction:column; gap:16px;">
         <label class="abt-field">
           <span class="abt-field-label">Invite Code</span>
           <input type="text" placeholder="e.g. BOZO-2026" required>

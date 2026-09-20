@@ -176,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function () {
     updateRoomEmptyState(roomName);
     var discInput = document.getElementById('discMessageInput');
     if (discInput) discInput.placeholder = 'Message ' + roomName + '...';
+    document.querySelectorAll('[data-room-title-name]').forEach(function (el) {
+      el.textContent = roomName;
+    });
   }
 
   // Set the default room's state on load

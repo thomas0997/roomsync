@@ -115,18 +115,30 @@ document.addEventListener('DOMContentLoaded', function () {
       { name: 'Mary Rose Bayani', initials: 'MB', online: true },
       { name: 'Daniel Rodriguez', initials: 'DR', online: false },
       { name: 'Sean Dayrit', initials: 'SD', online: true },
-      { name: 'Charlie Kim', initials: 'CK', online: false },
+      { name: 'Jarod Goodman', initials: 'JG', online: false },
       { name: 'Hans Santos', initials: 'HS', online: true },
-      { name: 'Phem Cruz', initials: 'PC', online: false }
+      { name: 'Phem Dela Cruz', initials: 'PDC', online: false },
+      { name: 'Jen Nomo', initials: 'JN', online: false },
+      { name: 'Nikka Bernal', initials: 'NB', online: false },
     ],
     'Auron Inc.': [
-      { name: 'Julia Santos', initials: 'JS', online: true },
-      { name: 'Marco Reyes', initials: 'MR', online: false }
+      { name: 'Princess Liwag', initials: 'PL', online: true },
+      { name: 'Jhal "GOAT" Berioso', initials: 'JB', online: true},
+      { name: 'Jeshua Castaneda', initials: 'JC', online: true},
+      { name: 'Euri Ciriaco', initials: 'EC', online: true},
+      { name: 'Bok Allyson', initials: 'BA', online: false},
+      { name: 'Yondi Paul', initials: 'YP', online: true},
+      { name: 'Xy Dayne', initials: 'XD', online: false },
+
     ],
     'CYB201': [
-      { name: 'Kevin Tan', initials: 'KT', online: true },
-      { name: 'Bea Fernandez', initials: 'BF', online: true },
-      { name: 'Miguel Cruz', initials: 'MC', online: false }
+      { name: 'Keane Gloriani', initials: 'KG', online: false },
+      { name: 'Charles Kirk', initials: 'CK', online: true },
+      { name: 'Rhys Gozum', initials: 'RG', online: true },
+      { name: 'Lance Efondo', initials: 'LE', online: false },
+      { name: 'Neo Abe', initials: 'NA', online: true},
+      { name: 'Alsean Zablan', initials: 'AZ', online: false },
+      { name: 'Arjuna Capushort', initials: 'AC', online: false },
     ]
   };
 
@@ -446,5 +458,35 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && personModalOverlay && !personModalOverlay.hidden) closePersonModal();
   });
+
+  /* ---------- Sort dropdown (Notes files, Approve submissions) ---------- */
+  function initSort(selectId, containerSelector, itemSelector, nameSelector) {
+    var select = document.getElementById(selectId);
+    var container = document.querySelector(containerSelector);
+    if (!select || !container) return;
+
+    select.addEventListener('change', function () {
+      var items = Array.prototype.slice.call(container.querySelectorAll(itemSelector));
+      var mode = select.value;
+
+      items.sort(function (a, b) {
+        if (mode === 'az' || mode === 'za') {
+          var nameA = a.querySelector(nameSelector).textContent.trim().toLowerCase();
+          var nameB = b.querySelector(nameSelector).textContent.trim().toLowerCase();
+          var cmp = nameA.localeCompare(nameB);
+          return mode === 'az' ? cmp : -cmp;
+        }
+        // date-added / date-modified: lower "hours ago" (or lower due-date number) sorts first (most recent/soonest)
+        var valA = parseFloat(a.dataset[mode === 'date-added' ? 'added' : 'modified']) || 0;
+        var valB = parseFloat(b.dataset[mode === 'date-added' ? 'added' : 'modified']) || 0;
+        return valA - valB;
+      });
+
+      items.forEach(function (item) { container.appendChild(item); });
+    });
+  }
+
+  initSort('notesSortSelect', '.notes-file-grid', '.notes-file-card', '.notes-file-name');
+  initSort('approveSortSelect', '#apprList', '.appr-card', '.appr-card-title');
 
 });

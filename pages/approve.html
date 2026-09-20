@@ -264,12 +264,18 @@
         <button class="notes-filter-pill" data-filter="activity">Activity</button>
         <button class="notes-filter-pill" data-filter="quiz">Quiz</button>
         <button class="notes-filter-pill" data-filter="case-study">Case Study</button>
+        <select class="sort-select" id="approveSortSelect" aria-label="Sort submissions">
+          <option value="date-added">Date Submitted</option>
+          <option value="date-modified">Due Date</option>
+          <option value="az">Name (A-Z)</option>
+          <option value="za">Name (Z-A)</option>
+        </select>
       </div>
 
       <!-- ---------- SUBMISSION CARDS ---------- -->
       <div class="appr-list" id="apprList">
 
-        <article class="appr-card" data-status="pending" data-type="activity">
+        <article class="appr-card" data-status="pending" data-type="activity" data-added="2" data-modified="827">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">Data Structures - Linked List</h3>
@@ -289,7 +295,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending" data-type="quiz">
+        <article class="appr-card" data-status="pending" data-type="quiz" data-added="24" data-modified="823">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6OOP Lab Quiz</h3>
@@ -309,7 +315,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending" data-type="activity">
+        <article class="appr-card" data-status="pending" data-type="activity" data-added="48" data-modified="904">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6IWEB Badging Activity</h3>
@@ -329,7 +335,7 @@
           </div>
         </article>
 
-        <article class="appr-card" data-status="pending" data-type="case-study">
+        <article class="appr-card" data-status="pending" data-type="case-study" data-added="96" data-modified="825">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6IWEB Module 9 Case Study</h3>

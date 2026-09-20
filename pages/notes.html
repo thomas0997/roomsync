@@ -294,6 +294,12 @@
         <button class="notes-filter-pill" data-filter="docs">Docs</button>
         <button class="notes-filter-pill" data-filter="sheets">Sheets</button>
         <button class="notes-filter-pill" data-filter="files">Files</button>
+        <select class="sort-select" id="notesSortSelect" aria-label="Sort files">
+          <option value="date-modified">Date Modified</option>
+          <option value="date-added">Date Added</option>
+          <option value="az">Name (A-Z)</option>
+          <option value="za">Name (Z-A)</option>
+        </select>
       </div>
 
       <!-- Grid/Scroll toggle — reuses the exact mechanism from Home/Calendar (rooms.js targets
@@ -312,67 +318,67 @@
 
       <!-- ---------- FILE GRID ---------- -->
       <div class="notes-file-grid board">
-        <button class="notes-file-card" data-type="docs">
+        <button class="notes-file-card" data-type="docs" data-modified="0" data-added="240">
           <span class="notes-file-icon notes-icon-doc">D</span>
           <span class="notes-file-name">6ICYBER Midterm Reviewer</span>
           <span class="notes-file-meta"><span class="notes-file-dot"></span>Bayani is editing</span>
         </button>
-        <button class="notes-file-card" data-type="docs">
+        <button class="notes-file-card" data-type="docs" data-modified="3" data-added="200">
           <span class="notes-file-icon notes-icon-doc">D</span>
           <span class="notes-file-name">Midterm IWEB Reviewer</span>
           <span class="notes-file-meta">Thomas Franco • edited 3 hours ago</span>
         </button>
-        <button class="notes-file-card" data-type="sheets">
+        <button class="notes-file-card" data-type="sheets" data-modified="9" data-added="300">
           <span class="notes-file-icon notes-icon-sheet">S</span>
           <span class="notes-file-name">CYB201 Expenses</span>
           <span class="notes-file-meta">Daniel Rodriguez • edited 9 hours ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="12" data-added="150">
           <span class="notes-file-icon notes-icon-generic">PY</span>
           <span class="notes-file-name">Nodes.py</span>
           <span class="notes-file-meta">Sean Dayrit • edited 12 hours ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="24" data-added="150">
           <span class="notes-file-icon notes-icon-generic">PY</span>
           <span class="notes-file-name">LinkedList.py</span>
           <span class="notes-file-meta">Thomas Franco • edited a day ago</span>
         </button>
-        <button class="notes-file-card" data-type="docs">
+        <button class="notes-file-card" data-type="docs" data-modified="48" data-added="100">
           <span class="notes-file-icon notes-icon-doc">D</span>
           <span class="notes-file-name">ETHICS Answer Sheet</span>
           <span class="notes-file-meta">Thomas Franco • edited 2 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="docs">
+        <button class="notes-file-card" data-type="docs" data-modified="48" data-added="260">
           <span class="notes-file-icon notes-icon-doc">D</span>
           <span class="notes-file-name">CONWORLD Arguments</span>
           <span class="notes-file-meta">Mary Rose Bayani • edited 2 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="sheets">
+        <button class="notes-file-card" data-type="sheets" data-modified="72" data-added="320">
           <span class="notes-file-icon notes-icon-sheet">S</span>
           <span class="notes-file-name">Grades</span>
           <span class="notes-file-meta">Daniel Rodriguez • edited 3 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="docs">
+        <button class="notes-file-card" data-type="docs" data-modified="72" data-added="90">
           <span class="notes-file-icon notes-icon-doc">D</span>
           <span class="notes-file-name">Calculus Notes</span>
           <span class="notes-file-meta">Bayani • edited 3 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="96" data-added="96">
           <span class="notes-file-icon notes-icon-generic">PDF</span>
           <span class="notes-file-name">Reviewers.pdf</span>
           <span class="notes-file-meta">Auron • edited 4 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="120" data-added="130">
           <span class="notes-file-icon notes-icon-generic">JAVA</span>
           <span class="notes-file-name">main.java</span>
           <span class="notes-file-meta">Hans • edited 5 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="120" data-added="125">
           <span class="notes-file-icon notes-icon-generic">JAVA</span>
           <span class="notes-file-name">NameException.java</span>
           <span class="notes-file-meta">Hans • edited 5 days ago</span>
         </button>
-        <button class="notes-file-card" data-type="files">
+        <button class="notes-file-card" data-type="files" data-modified="120" data-added="120">
           <span class="notes-file-icon notes-icon-generic">JAVA</span>
           <span class="notes-file-name">Student.java</span>
           <span class="notes-file-meta">Hans • edited 5 days ago</span>

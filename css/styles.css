@@ -1272,7 +1272,21 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .notes-quick-sub { font-size: 10px; color: var(--gray-text-2); }
 
 /* ---------- Filter pills ---------- */
-.notes-filter-row { display: flex; gap: 8px; margin: 16px 0 18px; }
+.notes-filter-row { display: flex; gap: 8px; margin: 16px 0 18px; align-items: center; flex-wrap: wrap; }
+.sort-select {
+  margin-left: auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--gray-text-2);
+  font-size: 10px;
+  font-weight: 590;
+  font-family: inherit;
+  cursor: pointer;
+}
+.sort-select:focus { outline: none; border-color: var(--blue); }
 .notes-filter-pill {
   height: 24px;
   padding: 0 12px;

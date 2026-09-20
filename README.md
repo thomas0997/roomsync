@@ -1,63 +1,79 @@
-# roomsync
+# RoomSync
 
-Peer-driven deadline tracker for classroom rooms. Frontend-only build for Intro to Web Programming: rooms, TODOs with type-based priority (Exam, Quiz, Case Study, Activity, Seatwork, Assignment), calendar, notes, and admin approval workflow. HTML, CSS, JavaScript — no framework, no build step.
+A peer-approval-gated deadline tracker, built around rooms instead of classrooms.
 
-Backend/database is a separate personal project, not part of this class scope.
+RoomSync organizes deadlines the way students actually work: not one calendar per class, but "rooms" that map to whoever a person actually coordinates with (a friend group, a study team, an org). Every task carries a type (Exam, Quiz, Case Study, Activity, Seatwork, Assignment) with type-weighted priority, and nothing gets accepted into the room without a peer approving it first.
 
-## Structure
+> Status: Frontend complete. This repository is currently a fully responsive, fully interactive HTML, CSS, and JavaScript frontend with no backend. A backend (authentication, persistence, real multi-user sync) is planned as an ongoing side project beyond the original course scope. See Roadmap below.
+
+## Features
+
+- Home: a week-by-week task board ("This Week," "Next Week," "Week After"), grouped by day and color-coded by task type
+- Calendar: full month grid with color-coded event chips, an expandable "+N More" popover per day, and a dedicated exam schedule board
+- Notes: a shared file space with Docs, Sheets, and Files, sortable filters, and a Grid/Scroll layout toggle
+- Discussion: a per-room chat thread with reply-to-message threading and a live typing indicator
+- Approve: the peer-approval queue for accepting or rejecting pending submissions, filterable by type, with a decision history log
+- Profile and Settings: account details, room memberships, activity stats, notification preferences, and a customizable status
+- About: team info, platform stats, and a feedback and contact form
+- Room switching: every page reflects whichever room is active, including a live "online now" member list with click-to-view profile
+- Fully responsive across mobile, tablet, and desktop, with breakpoint-specific navigation (bottom action bar, collapsible icon rail, persistent sidebar)
+
+## Tech Stack
+
+Vanilla HTML5, CSS3, and JavaScript (ES5+). No frameworks, no build step, no dependencies. Every interaction (task completion, room switching, modals, filtering, form validation) is hand-written DOM manipulation, by design, to keep the project framework-agnostic and easy to hand off to a future backend of any stack.
+
+## Project Structure
 
 ```
-index.html            entry point — hardcoded login page
-pages/
-  login.html           log in card, quick login + OAuth buttons (visual only)
-  home.html            room feed — Board view, responsive sidebar/nav, task legend
-css/
-  styles.css           main stylesheet (mobile-first, tablet 768px+, desktop 1200px+)
-  styles_login.css      login page only
-js/
-  rooms.js             sidebar/hamburger toggle, Grid/Scroll view toggle, task-complete toggle
-assets/
-  roomsync_logo.png     brand logo
-  TheBozos_Logo.jpg     room icon
-  Auroninc_Logo.jpg     room icon
-  CYB201_Logo.jpg       room icon
-  IMG_1783.jpg
+roomsync/
+├── pages/          home, calendar, notes, discussion, approve, profile, settings, about, login
+├── css/            styles.css (shared design system), styles_login.css
+├── js/             one script per page, plus rooms.js (shared: sidebar, room switching, modals)
+├── assets/         logos, avatars, icons
+└── README.md
 ```
 
-## Responsive behavior
+## Design System
 
-Three distinct layouts driven by the same markup:
+A single locked token set drives every page. Colors, spacing, radii, and typography are centralized in css/styles.css, so the whole app reads as one consistent product rather than a set of separate pages. Task-type colors are fixed by design decision and used consistently across the board view, calendar, and approval queue.
 
-- **Mobile (< 768px):** black top bar with hamburger menu -> slide-in drawer nav. Floating room pill, bottom action bar (Today / Search / New TODO).
-- **Tablet (768-1199px):** collapsed icon-only sidebar rail; click it to expand into full labeled nav (overlay). Room switcher as a floating pill.
-- **Desktop (>= 1200px):** persistent full-width sidebar (logo, room list; nav removed here since the top bar carries nav links instead), black top bar with text nav right-aligned, New TODO button beside the page title.
+| Type | Color |
+|---|---|
+| Exam | #DF0000 |
+| Quiz | #F2B84B |
+| Case Study | #C79ADB |
+| Activity | #F2795A |
+| Seatwork | #009CDF |
+| Assignment | #8F8F97 |
 
-Task-priority colors (Exam, Quiz, Case Study, Activity, Seatwork, Assignment) are defined once as CSS custom properties in `:root` and reused across badges and the legend, so a color only needs to change in one place.
+## Getting Started
 
-## Interactivity
+No build step required; it is static HTML.
 
-- Sidebar / hamburger drawer open-close (`rooms.js`)
-- Grid <-> Scroll board view toggle
-- Click a task's circle to mark it complete (fills green, strikes through the title)
-- New TODO button is wired to a click handler (`console.log` placeholder) - swap in the real modal/form when it's built
+```bash
+git clone https://github.com/<your-org>/roomsync.git
+cd roomsync
+# Open pages/login.html in a browser, or serve the folder with any static server:
+npx serve .
+```
 
-## Auth
+## Roadmap
 
-Login is hardcoded per instructions - no real auth logic. Focus stays on design and frontend integration.
+RoomSync was built as a course capstone with a deliberately frontend-only scope. Development continues past that scope as an independent side project.
 
-## Status
+- [ ] Backend API (authentication, persistence, real-time sync)
+- [ ] Database-backed rooms, tasks, and approval history
+- [ ] Real multi-user Discussion (WebSocket-based)
+- [ ] File upload and storage for Notes
+- [ ] Role-based access (admin-only Approve view)
+- [ ] Customizable task types and colors per room, for non-student use cases
 
-`pages/login.html` and `pages/home.html` are both built and styled across all three breakpoints. Room content (task list, room list) is static/hardcoded - no dynamic data yet.
+## Team
 
-**Still placeholder:**
-- Room avatar images (`TheBozos_Logo.jpg`, `Auroninc_Logo.jpg`, `CYB201_Logo.jpg`) - swap for real room photos/icons when available
-- New TODO button has no modal/form yet - logs to console only
-- `calendar.html`, `notes.html`, `discussion.html`, `approve.html`, `about.html` are linked from nav but not yet built
+Built by Thomas Franco, Mary Rose Bayani, and Daniel Rodriguez. Section CYB-201, School of Computing, Holy Angel University.
 
-## Local dev
-
-No build step. Open `index.html` in a browser, or serve the folder with any static server (e.g. VS Code Live Server).
+Course: Introduction to Web Programming. Instructor: Dr. Raquel B. Rivera.
 
 ## License
 
-MIT - see `LICENSE`.
+See LICENSE.

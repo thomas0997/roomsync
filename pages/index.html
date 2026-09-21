@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>RoomSync — Deadlines, without the group chat chaos</title>
+<title>Deadlines, without the group chat chaos | RoomSync</title>
 <meta name="description" content="Rooms for the people you actually coordinate with. Approve-gated, so nothing slips through.">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../assets/roomsync_logo.png">
@@ -11,15 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
 <style>
-  /* ============================================================
-     LANDING PAGE v2 — Apple product-page structure: pinned
-     sections where scroll position directly drives transforms
-     (scroll-scrubbing), not one-shot fade-ins. Reuses RoomSync's
-     own color tokens, but the LAYOUT language is deliberately
-     not Notion's grid-of-cards — one dramatic moment at a time.
-     ============================================================ */
 
-  html { scroll-behavior: auto; } /* smooth-scroll fights scroll-scrubbing math — disable it here */
+  html { scroll-behavior: auto; }
   body { overflow-x: hidden; background: #fff; }
 
   .land-nav {
@@ -49,7 +42,7 @@
     position: absolute; text-align: center; z-index: 2; padding: 0 24px;
     will-change: transform, opacity;
   }
-  .land-hero-eyebrow { font-size: 12px; font-weight: 700; color: #009CDF; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+  .land-hero-eyebrow {font-size: 12px; font-weight: 700; color: #009CDF; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
   .land-hero-h1 {
     font-size: 76px; font-weight: 800; letter-spacing: -3px; line-height: 1.02;
     color: var(--near-black);
@@ -188,11 +181,10 @@
     <a href="login.html" class="land-nav-cta">Get Started</a>
   </nav>
 
-  <!-- ============ HERO — scroll-scrubbed ============ -->
   <div class="land-hero-pin-track" id="heroTrack">
     <div class="land-hero-sticky">
       <div class="land-hero-text" id="heroText">
-        <p class="land-hero-eyebrow">Introducing RoomSync</p>
+        <p class="land-hero-eyebrow" style="font-weight: 1000;">Introducing RoomSync</p>
         <h1 class="land-hero-h1">Deadlines,<br>without the<br><span class="dim">group chat <span style="color: #DF0000">chaos.</span></span></h1>
         <p class="land-hero-sub">Rooms for the people you actually coordinate with. Approve-gated, so nothing slips through.</p>
       </div>
@@ -203,7 +195,6 @@
     </div>
   </div>
 
-  <!-- ============ FEATURE 1 — Home ============ -->
   <div class="land-feature-pin-track" data-feature>
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>HOME</p>
@@ -275,7 +266,6 @@
     </div>
   </div>
 
-  <!-- ============ FEATURE 2 — Calendar ============ -->
   <div class="land-feature-pin-track" data-feature>
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>CALENDAR</p>
@@ -284,7 +274,6 @@
     </div>
   </div>
 
-  <!-- ============ FEATURE 3 — Approve ============ -->
   <div class="land-feature-pin-track" data-feature>
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>APPROVE</p>
@@ -335,7 +324,6 @@
     </div>
   </div>
 
-  <!-- ============ FEATURE 4 — Discussion ============ -->
   <div class="land-feature-pin-track" data-feature>
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>DISCUSSION</p>
@@ -375,7 +363,6 @@
     </div>
   </section>
 
-  <!-- ============ TESTIMONIALS ============ -->
   <section class="land-testimonials">
     <div class="land-testimonials-inner">
     <h2>What people are saying</h2>
@@ -398,7 +385,6 @@
     </div>
   </section>
 
-  <!-- ============ CLOSING ============ -->
   <section class="land-closing">
     <h2 id="closingH2">Stop tracking deadlines in a group chat.</h2>
     <a href="login.html" class="land-btn-primary" id="closingBtn">Get Started</a>
@@ -429,8 +415,7 @@
     var featureTracks = Array.prototype.slice.call(document.querySelectorAll('[data-feature]'));
 
     function render() {
-      // Hero: text scales down + fades out over the first half; shot
-      // scales up from small+tilted to full size+flat over the whole track.
+
       var p = trackProgress(heroTrack);
       var textP = clamp01(p / 0.45);
       heroText.style.opacity = 1 - textP;
@@ -465,9 +450,6 @@
           shot.style.transform = 'scale(' + lerp(0.9, 1, shotIn) + ') translateY(' + lerp(50, 0, shotIn) + 'px)';
         }
 
-        // Card stacks (Home tasks, Approve queue): each card gets its own
-        // slice of the remaining scroll range, so they appear one by one
-        // as you keep scrolling, instead of all fading in together.
         var cardStack = track.querySelector('[data-f-cardstack]');
         if (cardStack) {
           var cards = cardStack.querySelectorAll('[data-card]');
@@ -491,7 +473,7 @@
     });
     render();
 
-    /* ---------- Simple one-shot reveals for the calmer sections ---------- */
+
     var revealTargets = document.querySelectorAll('.land-t-card, #closingH2, #closingBtn');
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {

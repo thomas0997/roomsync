@@ -103,10 +103,11 @@
   }
   .land-feature-shot img { width: 100%; display: block; }
 
-  .land-card-stack { display: flex; flex-direction: column; gap: 16px; opacity: 1 !important; }
+  .land-card-stack { display: flex; flex-direction: row; gap: 16px; opacity: 1 !important; align-items: flex-start; }
   .land-card-stack [data-card] {
-    opacity: 0; transform: translateY(28px) scale(0.97);
+    opacity: 0; transform: translateX(-24px) scale(0.97);
     transition: none; /* driven by scroll progress, not CSS transition */
+    flex-shrink: 0;
   }
 
   /* ---------- ROOMS: dots scale in on scroll ---------- */
@@ -208,8 +209,8 @@
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>HOME</p>
       <h2 class="land-feature-h2" data-f-title>Every deadline, laid out by day.</h2>
-      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:420px;">
-        <div class="day-card" data-card>
+      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:900px;">
+        <div class="day-card" data-card style="width:280px;">
           <div class="day-card-head">
             <div>
               <div class="day-name">Sunday</div>
@@ -230,7 +231,7 @@
           </button>
         </div>
 
-        <div class="day-card" data-card>
+        <div class="day-card" data-card style="width:280px;">
           <div class="day-card-head">
             <div>
               <div class="day-name">Monday</div>
@@ -251,7 +252,7 @@
           </button>
         </div>
 
-        <div class="day-card" data-card>
+        <div class="day-card" data-card style="width:280px;">
           <div class="day-card-head">
             <div>
               <div class="day-name">Tuesday</div>
@@ -289,8 +290,8 @@
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>APPROVE</p>
       <h2 class="land-feature-h2" data-f-title>Nothing goes live unchecked.</h2>
-      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:520px;">
-        <div class="appr-card" data-card style="padding:16px 18px;">
+      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:1080px;">
+        <div class="appr-card" data-card style="padding:16px 18px; width:340px;">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">Data Structures – Linked List</h3>
@@ -304,7 +305,7 @@
           </div>
         </div>
 
-        <div class="appr-card" data-card style="padding:16px 18px;">
+        <div class="appr-card" data-card style="padding:16px 18px; width:340px;">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6OOP Lab Quiz</h3>
@@ -318,7 +319,7 @@
           </div>
         </div>
 
-        <div class="appr-card" data-card style="padding:16px 18px;">
+        <div class="appr-card" data-card style="padding:16px 18px; width:340px;">
           <div class="appr-card-top">
             <div class="appr-card-text">
               <h3 class="appr-card-title">6IWEB Module 9 Case Study</h3>

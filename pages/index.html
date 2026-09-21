@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RoomSync — Deadlines, without the group chat chaos</title>
+<meta name="description" content="Rooms for the people you actually coordinate with. Approve-gated, so nothing slips through.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../assets/roomsync_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="../css/styles.css" rel="stylesheet">
+<style>
+  /* ============================================================
+     LANDING PAGE v2 — Apple product-page structure: pinned
+     sections where scroll position directly drives transforms
+     (scroll-scrubbing), not one-shot fade-ins. Reuses RoomSync's
+     own color tokens, but the LAYOUT language is deliberately
+     not Notion's grid-of-cards — one dramatic moment at a time.
+     ============================================================ */
+
+  html { scroll-behavior: auto; } /* smooth-scroll fights scroll-scrubbing math — disable it here */
+  body { overflow-x: hidden; background: #fff; }
+
+  .land-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 200ms ease;
+  }
+  .land-nav.land-nav-scrolled { border-bottom-color: var(--hairline); }
+  .land-nav-brand { display: flex; align-items: center; gap: 8px; }
+  .land-nav-brand img { width: 24px; height: 24px; border-radius: 6px; }
+  .land-nav-brand span { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: var(--near-black); }
+  .land-nav-links { display: flex; align-items: center; gap: 32px; }
+  .land-nav-links a { font-size: 12px; font-weight: 590; color: var(--gray-text-2); letter-spacing: 0.2px; }
+  .land-nav-links a:hover { color: var(--near-black); }
+  .land-nav-cta { font-size: 12px; font-weight: 700; color: #fff; background: var(--near-black); padding: 9px 18px; border-radius: var(--radius-pill); }
+  .land-nav-cta:hover { background: #000; }
+
+  /* ---------- HERO: text dissolves, product shot scales + tilts in as you scroll ---------- */
+  .land-hero-pin-track { height: 300vh; position: relative; background: #fff; }
+  .land-hero-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+  .land-hero-text {
+    position: absolute; text-align: center; z-index: 2; padding: 0 24px;
+    will-change: transform, opacity;
+  }
+  .land-hero-eyebrow { font-size: 12px; font-weight: 700; color: #34c759; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+  .land-hero-h1 {
+    font-size: 76px; font-weight: 800; letter-spacing: -3px; line-height: 1.02;
+    color: var(--near-black);
+  }
+  .land-hero-h1 .dim { color: #c7c7cb; }
+  .land-hero-sub { font-size: 17px; color: var(--gray-text-2); margin-top: 22px; max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+  .land-hero-shot {
+    position: absolute; width: min(1000px, 82vw);
+    border-radius: 18px; overflow: hidden;
+    border: 1px solid var(--hairline);
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.18);
+    will-change: transform, opacity;
+    opacity: 0;
+  }
+  .land-hero-shot img { width: 100%; display: block; }
+
+  .land-scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    color: var(--gray-text); font-size: 11px; font-weight: 590; letter-spacing: 0.5px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .land-scroll-hint::after {
+    content: ''; width: 1px; height: 28px; background: linear-gradient(var(--gray-text), transparent);
+    animation: land-scroll-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes land-scroll-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* ---------- FEATURE SECTIONS: full-bleed, one at a time, pinned + scrubbed ---------- */
+  .land-feature-pin-track { height: 260vh; position: relative; background: #fff; }
+  .land-feature-sticky {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden; padding: 0 24px;
+  }
+  .land-feature-label {
+    font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 18px; opacity: 0; will-change: transform, opacity;
+  }
+  .land-feature-h2 {
+    font-size: 44px; font-weight: 800; letter-spacing: -1.4px; color: var(--near-black); text-align: center;
+    max-width: 700px; line-height: 1.15;
+    opacity: 0; will-change: transform, opacity;
+  }
+  .land-feature-shot {
+    margin-top: 48px; width: min(1000px, 88vw);
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--hairline);
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.16);
+    opacity: 0; will-change: transform, opacity;
+  }
+  .land-feature-shot img { width: 100%; display: block; }
+
+  .land-card-stack { display: flex; flex-direction: column; gap: 16px; opacity: 1 !important; }
+  .land-card-stack [data-card] {
+    opacity: 0; transform: translateY(28px) scale(0.97);
+    transition: none; /* driven by scroll progress, not CSS transition */
+  }
+
+  /* ---------- ROOMS: dots scale in on scroll ---------- */
+  .land-rooms {
+    background: var(--gray-bg); padding: 180px 32px; text-align: center;
+  }
+  .land-rooms h2 { font-size: 40px; font-weight: 800; letter-spacing: -1.2px; color: var(--near-black); margin-bottom: 16px; }
+  .land-rooms p { font-size: 15px; color: var(--gray-text-2); max-width: 460px; margin: 0 auto 72px; line-height: 1.6; }
+  .land-rooms-diagram { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .land-room-cluster { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .land-room-dots { display: flex; }
+  .land-room-dot {
+    width: 48px; height: 48px; border-radius: 50%; border: 3px solid #f5f5f7;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 14px; font-weight: 700; margin-left: -14px;
+    opacity: 0; transform: scale(0.3);
+    transition: opacity 550ms cubic-bezier(0.16,1,0.3,1), transform 550ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .land-room-dot:first-child { margin-left: 0; }
+  .land-room-dot.land-in { opacity: 1; transform: scale(1); }
+  .land-room-cluster span { font-size: 14px; font-weight: 700; color: var(--near-black); }
+
+  /* ---------- TESTIMONIALS + CLOSING (simple reveal-once, not every moment needs scrubbing) ---------- */
+  .land-testimonials { padding: 140px 32px; background: #f5f5f7; }
+  .land-testimonials-inner { max-width: 1000px; margin: 0 auto; }
+  .land-testimonials h2 { text-align: center; font-size: 30px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 56px; color: var(--near-black); }
+  .land-testimonial-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .land-t-card {
+    background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 24px;
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 600ms cubic-bezier(0.16,1,0.3,1), transform 600ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .land-t-card.land-in { opacity: 1; transform: translateY(0); }
+  .land-t-text { font-size: 13.5px; font-style: italic; color: var(--near-black); line-height: 1.65; margin-bottom: 18px; }
+  .land-t-who { display: flex; align-items: center; gap: 10px; }
+  .land-t-avatar { width: 36px; height: 36px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .land-t-name { font-size: 13px; font-weight: 700; }
+  .land-t-room { font-size: 11px; color: var(--gray-text-2); }
+
+  .land-closing { text-align: center; padding: 160px 32px 180px; background: #fff; }
+  .land-closing h2 {
+    font-size: 48px; font-weight: 800; letter-spacing: -1.4px; color: var(--near-black); margin-bottom: 36px;
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 700ms cubic-bezier(0.16,1,0.3,1), transform 700ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .land-closing h2.land-in { opacity: 1; transform: translateY(0); }
+  .land-btn-primary {
+    display: inline-block; background: var(--blue); color: #fff; font-size: 15px; font-weight: 700;
+    padding: 15px 30px; border-radius: var(--radius-pill);
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 700ms cubic-bezier(0.16,1,0.3,1) 100ms, transform 700ms cubic-bezier(0.16,1,0.3,1) 100ms, background 150ms ease;
+  }
+  .land-btn-primary.land-in { opacity: 1; transform: translateY(0); }
+  .land-btn-primary:hover { background: #0064cc; }
+
+  @media (max-width: 860px) {
+    .land-nav-links { display: none; }
+    .land-hero-h1 { font-size: 40px; letter-spacing: -1.5px; }
+    .land-hero-sub { font-size: 15px; }
+    .land-feature-h2 { font-size: 28px; letter-spacing: -0.8px; }
+    .land-rooms h2 { font-size: 28px; }
+    .land-closing h2 { font-size: 30px; }
+    .land-testimonial-grid { grid-template-columns: 1fr; }
+    .land-hero-pin-track, .land-feature-pin-track { height: 220vh; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="land-nav">
+    <div class="land-nav-brand">
+      <img src="../assets/roomsync_logo.png" alt="RoomSync">
+      <span>roomsync</span>
+    </div>
+    <div class="land-nav-links">
+      <a href="#rooms">Rooms</a>
+      <a href="about.html">About</a>
+    </div>
+    <a href="login.html" class="land-nav-cta">Get Started</a>
+  </nav>
+
+  <!-- ============ HERO — scroll-scrubbed ============ -->
+  <div class="land-hero-pin-track" id="heroTrack">
+    <div class="land-hero-sticky">
+      <div class="land-hero-text" id="heroText">
+        <p class="land-hero-eyebrow">Introducing RoomSync</p>
+        <h1 class="land-hero-h1">Deadlines,<br>without the<br><span class="dim">group chat chaos.</span></h1>
+        <p class="land-hero-sub">Rooms for the people you actually coordinate with. Approve-gated, so nothing slips through.</p>
+      </div>
+      <div class="land-hero-shot" id="heroShot">
+        <img src="../assets/shot_home.png" alt="RoomSync home board">
+      </div>
+      <div class="land-scroll-hint" id="scrollHint">SCROLL</div>
+    </div>
+  </div>
+
+  <!-- ============ FEATURE 1 — Home ============ -->
+  <div class="land-feature-pin-track" data-feature>
+    <div class="land-feature-sticky">
+      <p class="land-feature-label" data-f-label>HOME</p>
+      <h2 class="land-feature-h2" data-f-title>Every deadline, laid out by day.</h2>
+      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:420px;">
+        <div class="day-card" data-card>
+          <div class="day-card-head">
+            <div>
+              <div class="day-name">Sunday</div>
+              <div class="day-date-sub">Aug 16</div>
+            </div>
+            <span class="task-count" style="width:22px;height:22px;font-size:11px;">2</span>
+          </div>
+          <button class="reminder-card" style="width:100%;text-align:left;" type="button">
+            <div class="reminder-top">
+              <span class="reminder-bullet"></span>
+              <span style="font-size:13px;font-weight:700;">Week 10 Queues Assignment (Partner)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="appr-badge appr-badge-assignment" style="font-size:8px;">ASSIGNMENT</span>
+              <span style="font-size:10px;color:var(--gray-text-2);">6DSAL</span>
+            </div>
+            <div style="text-align:right;font-size:10px;font-weight:700;color:var(--gray-text-2);">11:59 PM</div>
+          </button>
+        </div>
+
+        <div class="day-card" data-card>
+          <div class="day-card-head">
+            <div>
+              <div class="day-name">Monday</div>
+              <div class="day-date-sub">Aug 17</div>
+            </div>
+            <span class="task-count" style="width:22px;height:22px;font-size:11px;">2</span>
+          </div>
+          <button class="reminder-card" style="width:100%;text-align:left;" type="button">
+            <div class="reminder-top">
+              <span class="reminder-bullet"></span>
+              <span style="font-size:13px;font-weight:700;">Lecture Quiz – Module 7 to 8</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="appr-badge appr-badge-quiz" style="font-size:8px;">QUIZ</span>
+              <span style="font-size:10px;color:var(--gray-text-2);">6IWEB</span>
+            </div>
+            <div style="text-align:right;font-size:10px;font-weight:700;color:var(--gray-text-2);">On-site, 7:00 AM</div>
+          </button>
+        </div>
+
+        <div class="day-card" data-card>
+          <div class="day-card-head">
+            <div>
+              <div class="day-name">Tuesday</div>
+              <div class="day-date-sub">Aug 18</div>
+            </div>
+            <span class="task-count" style="width:22px;height:22px;font-size:11px;">3</span>
+          </div>
+          <button class="reminder-card" style="width:100%;text-align:left;" type="button">
+            <div class="reminder-top">
+              <span class="reminder-bullet"></span>
+              <span style="font-size:13px;font-weight:700;">Codechum – Inheritance with Polymorphism</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="appr-badge appr-badge-activity" style="font-size:8px;">ACTIVITY</span>
+              <span style="font-size:10px;color:var(--gray-text-2);">6OOP</span>
+            </div>
+            <div style="text-align:right;font-size:10px;font-weight:700;color:var(--gray-text-2);">11:59 PM</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FEATURE 2 — Calendar ============ -->
+  <div class="land-feature-pin-track" data-feature>
+    <div class="land-feature-sticky">
+      <p class="land-feature-label" data-f-label>CALENDAR</p>
+      <h2 class="land-feature-h2" data-f-title>The whole month, at a glance.</h2>
+      <div class="land-feature-shot" data-f-shot><img src="../assets/shot_calendar_crop.png" alt="Calendar grid"></div>
+    </div>
+  </div>
+
+  <!-- ============ FEATURE 3 — Approve ============ -->
+  <div class="land-feature-pin-track" data-feature>
+    <div class="land-feature-sticky">
+      <p class="land-feature-label" data-f-label>APPROVE</p>
+      <h2 class="land-feature-h2" data-f-title>Nothing goes live unchecked.</h2>
+      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:520px;">
+        <div class="appr-card" data-card style="padding:16px 18px;">
+          <div class="appr-card-top">
+            <div class="appr-card-text">
+              <h3 class="appr-card-title">Data Structures – Linked List</h3>
+              <p class="appr-card-meta">submitted by Thomas 2 hours ago &nbsp;•&nbsp; Due Aug 27</p>
+            </div>
+            <span class="appr-badge appr-badge-activity">ACTIVITY</span>
+          </div>
+          <div class="appr-card-actions">
+            <button class="appr-btn-approve" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Approve</button>
+            <button class="appr-btn-reject" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>Reject</button>
+          </div>
+        </div>
+
+        <div class="appr-card" data-card style="padding:16px 18px;">
+          <div class="appr-card-top">
+            <div class="appr-card-text">
+              <h3 class="appr-card-title">6OOP Lab Quiz</h3>
+              <p class="appr-card-meta">submitted by Mary a day ago &nbsp;•&nbsp; Due Aug 23</p>
+            </div>
+            <span class="appr-badge appr-badge-quiz">QUIZ</span>
+          </div>
+          <div class="appr-card-actions">
+            <button class="appr-btn-approve" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Approve</button>
+            <button class="appr-btn-reject" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>Reject</button>
+          </div>
+        </div>
+
+        <div class="appr-card" data-card style="padding:16px 18px;">
+          <div class="appr-card-top">
+            <div class="appr-card-text">
+              <h3 class="appr-card-title">6IWEB Module 9 Case Study</h3>
+              <p class="appr-card-meta">submitted by Daniel 4 days ago &nbsp;•&nbsp; Due Aug 25</p>
+            </div>
+            <span class="appr-badge appr-badge-case-study">CASE STUDY</span>
+          </div>
+          <div class="appr-card-actions">
+            <button class="appr-btn-approve" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Approve</button>
+            <button class="appr-btn-reject" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FEATURE 4 — Discussion ============ -->
+  <div class="land-feature-pin-track" data-feature>
+    <div class="land-feature-sticky">
+      <p class="land-feature-label" data-f-label>DISCUSSION</p>
+      <h2 class="land-feature-h2" data-f-title>The context stays with the work.</h2>
+      <div class="land-feature-shot" data-f-shot><img src="../assets/shot_discussion.png" alt="Discussion"></div>
+    </div>
+  </div>
+
+  <!-- ============ ROOMS ============ -->
+  <section class="land-rooms" id="rooms">
+    <h2>Rooms, not classrooms.</h2>
+    <p>A room maps to whoever you actually coordinate with — a friend group, a study team, an org. Not one calendar per class.</p>
+    <div class="land-rooms-diagram">
+      <div class="land-room-cluster">
+        <div class="land-room-dots">
+          <span class="land-room-dot" style="background:#df0000;">TF</span>
+          <span class="land-room-dot" style="background:#34c759;">MB</span>
+          <span class="land-room-dot" style="background:#8f8f97;">DR</span>
+        </div>
+        <span>The Bozos</span>
+      </div>
+      <div class="land-room-cluster">
+        <div class="land-room-dots">
+          <span class="land-room-dot" style="background:#0073ec;">JS</span>
+          <span class="land-room-dot" style="background:#c79adb;">MR</span>
+        </div>
+        <span>Auron Inc.</span>
+      </div>
+      <div class="land-room-cluster">
+        <div class="land-room-dots">
+          <span class="land-room-dot" style="background:#f2b84b;">KT</span>
+          <span class="land-room-dot" style="background:#f2795a;">BF</span>
+          <span class="land-room-dot" style="background:#009cdf;">MC</span>
+        </div>
+        <span>CYB201</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="land-testimonials">
+    <div class="land-testimonials-inner">
+    <h2>What people are saying</h2>
+    <div class="land-testimonial-grid">
+      <div class="land-t-card">
+        <p class="land-t-text">I rate it a 10/10, I love the minimalist and simplistic design of the website. There are a lot of productivity sites already, but this one provides all student necessities, reminders, calendar, and the unique approve section. Well done!</p>
+        <div class="land-t-who">
+          <span class="land-t-avatar" style="background:#ff101a">FP</span>
+          <div><div class="land-t-name">Frinz P.</div><div class="land-t-room">CYB201</div></div>
+        </div>
+      </div>
+      <div class="land-t-card">
+        <p class="land-t-text">The RoomSync platform earns an impressive 9.5 out of 10 for its exceptionally clean visual hierarchy, highly functional dashboard layouts, and well-thought-out color coding.</p>
+        <div class="land-t-who">
+          <span class="land-t-avatar" style="background:#c79adb">PD</span>
+          <div><div class="land-t-name">Phem DC.</div><div class="land-t-room">CYB201</div></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ CLOSING ============ -->
+  <section class="land-closing">
+    <h2 id="closingH2">Stop tracking deadlines in a group chat.</h2>
+    <a href="login.html" class="land-btn-primary" id="closingBtn">Get Started</a>
+  </section>
+
+  <script>
+    /* ---------- Scroll-scrubbing engine ----------
+       Each "pin track" is a tall element; the visual content inside
+       it is position:sticky, so it stays on screen while you scroll
+       through the tall track. We read how far you've scrolled through
+       THAT SPECIFIC track (0 to 1) and map it directly to transforms —
+       this is what makes it scrub instead of just fade in once. */
+
+    function trackProgress(track) {
+      var rect = track.getBoundingClientRect();
+      var scrollableDistance = track.offsetHeight - window.innerHeight;
+      if (scrollableDistance <= 0) return 0;
+      var scrolled = -rect.top;
+      return Math.min(Math.max(scrolled / scrollableDistance, 0), 1);
+    }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function clamp01(v) { return Math.min(Math.max(v, 0), 1); }
+
+    var heroTrack = document.getElementById('heroTrack');
+    var heroText = document.getElementById('heroText');
+    var heroShot = document.getElementById('heroShot');
+    var scrollHint = document.getElementById('scrollHint');
+    var featureTracks = Array.prototype.slice.call(document.querySelectorAll('[data-feature]'));
+
+    function render() {
+      // Hero: text scales down + fades out over the first half; shot
+      // scales up from small+tilted to full size+flat over the whole track.
+      var p = trackProgress(heroTrack);
+      var textP = clamp01(p / 0.45);
+      heroText.style.opacity = 1 - textP;
+      heroText.style.transform = 'scale(' + lerp(1, 0.85, textP) + ') translateY(' + lerp(0, -40, textP) + 'px)';
+      scrollHint.style.opacity = 1 - clamp01(p / 0.15);
+
+      var shotP = clamp01((p - 0.15) / 0.7);
+      heroShot.style.opacity = shotP;
+      heroShot.style.transform =
+        'perspective(1400px) rotateX(' + lerp(35, 0, shotP) + 'deg) ' +
+        'scale(' + lerp(0.75, 1, shotP) + ') ' +
+        'translateY(' + lerp(120, 0, shotP) + 'px)';
+
+      // Each feature section: label + title fade/rise in during the
+      // first third, shot scales up + rises during the middle third,
+      // everything holds pinned, then the NEXT section takes over.
+      featureTracks.forEach(function (track) {
+        var fp = trackProgress(track);
+        var label = track.querySelector('[data-f-label]');
+        var title = track.querySelector('[data-f-title]');
+        var shot = track.querySelector('[data-f-shot]');
+
+        var textIn = clamp01(fp / 0.25);
+        label.style.opacity = textIn;
+        label.style.transform = 'translateY(' + lerp(16, 0, textIn) + 'px)';
+        title.style.opacity = textIn;
+        title.style.transform = 'translateY(' + lerp(20, 0, textIn) + 'px)';
+
+        if (shot) {
+          var shotIn = clamp01((fp - 0.15) / 0.4);
+          shot.style.opacity = shotIn;
+          shot.style.transform = 'scale(' + lerp(0.9, 1, shotIn) + ') translateY(' + lerp(50, 0, shotIn) + 'px)';
+        }
+
+        // Card stacks (Home tasks, Approve queue): each card gets its own
+        // slice of the remaining scroll range, so they appear one by one
+        // as you keep scrolling, instead of all fading in together.
+        var cardStack = track.querySelector('[data-f-cardstack]');
+        if (cardStack) {
+          var cards = cardStack.querySelectorAll('[data-card]');
+          var stackStart = 0.2, stackEnd = 0.95;
+          var slice = (stackEnd - stackStart) / cards.length;
+          cards.forEach(function (card, i) {
+            var cardP = clamp01((fp - (stackStart + i * slice)) / (slice * 0.7));
+            card.style.opacity = cardP;
+            card.style.transform = 'translateY(' + lerp(28, 0, cardP) + 'px) scale(' + lerp(0.97, 1, cardP) + ')';
+          });
+        }
+      });
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        requestAnimationFrame(function () { render(); ticking = false; });
+        ticking = true;
+      }
+    });
+    render();
+
+    /* ---------- Simple one-shot reveals for the calmer sections ---------- */
+    var revealTargets = document.querySelectorAll('.land-t-card, #closingH2, #closingBtn');
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) entry.target.classList.add('land-in');
+      });
+    }, { threshold: 0.2 });
+    revealTargets.forEach(function (el) { observer.observe(el); });
+
+    document.querySelectorAll('.land-room-dots').forEach(function (group) {
+      var dots = group.querySelectorAll('.land-room-dot');
+      var groupObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            dots.forEach(function (dot, i) {
+              setTimeout(function () { dot.classList.add('land-in'); }, i * 130);
+            });
+            groupObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.4 });
+      groupObserver.observe(group);
+    });
+  </script>
+</body>
+</html>

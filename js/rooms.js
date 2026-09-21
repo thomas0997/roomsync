@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
       { name: 'Daniel Rodriguez', initials: 'DR', online: false },
       { name: 'Sean Dayrit', initials: 'SD', online: true },
       { name: 'Jarod Goodman', initials: 'JG', online: false },
-      { name: 'Hans Santos', initials: 'HS', online: true },
+      { name: 'Hans Satumbaga', initials: 'HS', online: true },
       { name: 'Phem Dela Cruz', initials: 'PDC', online: false },
       { name: 'Jen Nomo', initials: 'JN', online: false },
       { name: 'Nikka Bernal', initials: 'NB', online: false },

@@ -94,28 +94,28 @@ ul { list-style: none; }
 .brand-word-lg { font-size: 19px; color: var(--near-black); }
 .brand-word-lg .dim { color: rgba(51,51,51,0.35); }
 
-.topbar-nav { gap: 22px; align-items: center; }
-.topbar-nav a { font-size: 12px; font-weight: 500; color: #d6d6d6; }
+.topbar-nav { gap: 28px; align-items: center; }
+.topbar-nav a { font-size: 15px; font-weight: 500; color: #d6d6d6; }
 .topbar-nav a.active { color: #fff; font-weight: 700; }
 .topbar-nav a:hover { color: #fff; }
 
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
 
 .btn-todo {
-  height: 28px;
-  padding: 0 14px 0 10px;
+  height: 35px;
+  padding: 0 18px 0 13px;
   border-radius: var(--radius-pill);
-  background: #545454;
-  border: 0.3px solid var(--gray-bg);
+  background: var(--blue);
+  border: 0.3px solid var(--blue);
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
-.btn-todo:hover { background: #666; }
-.btn-todo .plus { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; }
+.btn-todo:hover { background: #0064cc; border-color: #0064cc; }
+.btn-todo .plus { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 19px; line-height: 1; }
 
 /* Hamburger */
 .hamburger {
@@ -236,7 +236,7 @@ ul { list-style: none; }
 }
 .profile-text { flex: 1; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .profile-name { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
-.profile-status { font-size: 11px; color: var(--gray-text); line-height: 1.2; }
+.profile-status { font-size: 14px; color: var(--gray-text); line-height: 1.2; }
 .settings-icon { width: 20px; height: 20px; color: var(--gray-text); flex-shrink: 0; padding: 0; display: flex; align-items: center; justify-content: center; }
 .settings-icon:hover { color: var(--near-black); }
 .settings-icon svg { width: 100%; height: 100%; }
@@ -291,7 +291,7 @@ ul { list-style: none; }
   width: 100%;
   padding: 9px 10px;
   border-radius: 9px;
-  font-size: 12.5px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--near-black);
   text-align: left;
@@ -308,12 +308,12 @@ ul { list-style: none; }
   flex-shrink: 0;
 }
 .room-avatar-outline { background: var(--gray-bg); border: 0.2px solid #868686; }
-.room-pill-floating .room-name { font-size: 10px; font-weight: 700; color: #fff; }
+.room-pill-floating .room-name { font-size: 12.5px; font-weight: 700; color: #fff; }
 .room-pill-floating img { border-radius: 100%;}
 .page-header { margin-bottom: 16px; }
-.page-eyebrow { font-size: 10px; font-weight: 700; color: var(--exam); letter-spacing: 0.5px; margin-bottom: 6px; }
+.page-eyebrow { font-size: 12.5px; font-weight: 700; color: var(--exam); letter-spacing: 0.5px; margin-bottom: 6px; }
 .page-title { font-size: 34px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 6px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist", sans-serif; }
-.page-subtitle { font-size: 12px; color: var(--gray-text-2); }
+.page-subtitle { font-size: 15px; color: var(--gray-text-2); }
 
 .mobile-fab-bar {
   position: fixed;
@@ -330,7 +330,7 @@ ul { list-style: none; }
 .fab-pill {
   background: rgba(211,211,211,0.9);
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 800;
   padding: 9px 22px;
   border-radius: var(--radius-pill);
@@ -352,12 +352,12 @@ ul { list-style: none; }
 
 /* ---------- Week sections ---------- */
 .week-section { margin-bottom: 4px; }
-.week-label { font-size: 11px; font-weight: 800; color: var(--gray-text); letter-spacing: 0.5px; margin-bottom: 14px; }
+.week-label { font-size: 14px; font-weight: 800; color: var(--gray-text); letter-spacing: 0.5px; margin-bottom: 14px; }
 .week-label-accent { color: var(--blue); }
 .week-label-accent-muted { color: var(--gray-text); }
 .week-label .bullet { color: var(--gray-text); font-weight: 400; margin: 0 2px; }
 .section-rule { border: none; border-top: 1px solid var(--hairline); margin: 18px 0; }
-.empty-week-note { font-size: 12px; color: var(--gray-text); padding: 8px 0 20px; }
+.empty-week-note { font-size: 15px; color: var(--gray-text); padding: 8px 0 20px; }
 
 .board { display: flex; flex-direction: column; gap: 12px; }
 .board.view-scroll { display: flex; flex-direction: column; }
@@ -368,33 +368,33 @@ ul { list-style: none; }
   background: var(--gray-bg-2);
   border: 1px solid rgba(134,134,134,0.25);
   border-radius: var(--radius-md);
-  padding: 16px 14px 18px;
+  padding: 20px 18px 22px;
 }
 .day-card-today { background: #f7f7f7; border: 1.2px solid var(--blue); border-radius: var(--radius-lg); }
 
-.day-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.day-name { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-.day-date-sub { font-size: 9px; color: var(--gray-text); margin-top: 2px; }
+.day-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+.day-name { font-size: 16.5px; font-weight: 700; letter-spacing: -0.3px; }
+.day-date-sub { font-size: 11px; color: var(--gray-text); margin-top: 3px; }
 .day-card-meta { display: flex; align-items: center; gap: 8px; }
-.date-pill { background: var(--blue); color: #fff; font-size: 7px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); }
+.date-pill { background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); }
 .task-count {
-  width: 13px; height: 13px; border-radius: 100%; background: #d9d9d9; color: var(--gray-text);
-  font-size: 7px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 17px; height: 17px; border-radius: 100%; background: #d9d9d9; color: var(--gray-text);
+  font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
 .reminder-card {
   background: #fff;
   border: 0.5px solid var(--hairline);
   border-radius: var(--radius-sm);
-  padding: 10px 11px;
-  margin-top: 10px;
+  padding: 13px 14px;
+  margin-top: 12px;
   cursor: pointer;
 }
 .reminder-card:hover { border-color: var(--blue); }
 .reminder-card:first-of-type { margin-top: 0; }
-.reminder-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.reminder-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
 .reminder-bullet {
-  width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--hairline);
+  width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--hairline);
   flex-shrink: 0; margin-top: 1px;
   padding: 0;
   background: #fff;
@@ -409,7 +409,7 @@ ul { list-style: none; }
   inset: 0;
   opacity: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
-  background-size: 9px 9px;
+  background-size: 11px 11px;
   background-repeat: no-repeat;
   background-position: center;
   transition: opacity 150ms;
@@ -418,16 +418,16 @@ ul { list-style: none; }
 .reminder-bullet.is-complete::after { opacity: 1; }
 .reminder-card.is-complete { opacity: 0.6; }
 .reminder-card.is-complete .reminder-title { text-decoration: line-through; color: var(--gray-text); }
-.reminder-title { font-size: 11px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.3; }
-.reminder-tags { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.reminder-time { font-size: 8px; font-weight: 700; color: var(--gray-text); text-align: right; }
+.reminder-title { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.3; }
+.reminder-tags { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.reminder-time { font-size: 10px; font-weight: 700; color: var(--gray-text); text-align: right; }
 
 .type-badge {
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.2px;
   color: #fff;
-  padding: 3px 9px;
+  padding: 4px 11px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
@@ -437,7 +437,7 @@ ul { list-style: none; }
 .type-activity { background: var(--activity); }
 .type-seatwork { background: var(--seatwork); }
 .type-assignment { background: var(--assignment); }
-.subject-tag { font-size: 8px; color: var(--gray-text); font-weight: 500; }
+.subject-tag { font-size: 10px; color: var(--gray-text); font-weight: 500; }
 
 /* ---------- Legend ---------- */
 .task-colors {
@@ -454,8 +454,8 @@ ul { list-style: none; }
   padding: 12px 18px;
 }
 .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--gray-text); }
-.legend-dot { width: 5px; height: 5px; border-radius: 50%; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--gray-text); }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; }
 .legend-dot-exam { background: var(--exam); }
 .legend-dot-quiz { background: var(--quiz); }
 .legend-dot-case-study { background: var(--case-study); }
@@ -470,11 +470,11 @@ ul { list-style: none; }
   display: inline-flex; gap: 5px; background: var(--gray-bg); border-radius: 8px; padding: 3px;
 }
 .layout-btn {
-  display: flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 500; color: var(--gray-text-2);
-  padding: 5px 8px; border-radius: 6px;
+  display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; color: var(--gray-text-2);
+  padding: 6px 10px; border-radius: 7px;
 }
 .layout-btn-active { background: #fff; color: var(--near-black); box-shadow: 0 0 1px rgba(115,115,115,0.4); }
-.layout-btn svg { width: 8px; height: 8px; }
+.layout-btn svg { width: 10px; height: 10px; }
 .task-colors {
   display: none;
 }
@@ -539,7 +539,7 @@ ul { list-style: none; }
   .btn-todo.tablet-only { margin-bottom: 20px; }
 
   .page-title { font-size: 20px; letter-spacing: -1px; font-weight: 700; }
-  .page-subtitle { font-size: 10px; }
+  .page-subtitle { font-size: 12.5px; }
 
   .desktop-tablet-only.page-eyebrow { display: block !important; color: var(--exam); }
 
@@ -548,7 +548,7 @@ ul { list-style: none; }
     display: inline-flex; gap: 5px; background: var(--gray-bg); border-radius: 8px; padding: 3px;
   }
   .layout-btn {
-    display: flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 500; color: var(--gray-text-2);
+    display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; color: var(--gray-text-2);
     padding: 5px 8px; border-radius: 6px;
   }
   .layout-btn-active { background: #fff; color: var(--near-black); box-shadow: 0 0 1px rgba(115,115,115,0.4); }
@@ -556,10 +556,10 @@ ul { list-style: none; }
 
   .board-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
     gap: 14px;
   }
-  .day-card-today { max-width: 220px; }
+  .day-card-today { max-width: 270px; }
   .board.board-grid .day-card { display: flex; flex-direction: column; }
 
   .task-colors { left: 84px; }
@@ -635,8 +635,8 @@ ul { list-style: none; }
     display: flex;
     align-items: center;
     gap: 10px;
-    height: 33px;
-    padding: 4px 16px 4px 5px;
+    height: 40px;
+    padding: 4px 18px 4px 6px;
     border-radius: var(--radius-pill);
     background: #fff;
     border: 0.5px solid var(--hairline);
@@ -645,24 +645,24 @@ ul { list-style: none; }
   .room-pill-active { background: var(--near-black); border-color: var(--near-black); }
   .room-pill-active .room-name { color: #fff; }
   .room-avatar-outline { background: var(--gray-bg); border: 0.2px solid #868686; }
-  .room-name { font-size: 10px; font-weight: 600; color: var(--gray-text-2); }
+  .room-name { font-size: 12.5px; font-weight: 600; color: var(--gray-text-2); }
   .room-dot { width: 5px; height: 5px; border-radius: 50%; background: #34c759; }
-  .room-count { font-size: 9px; font-weight: 600; color: var(--gray-text); margin-left: auto; }
+  .room-count { font-size: 11px; font-weight: 600; color: var(--gray-text); margin-left: auto; }
 
   .room-pill-floating { display: none !important; }
 
   .page-header { margin-bottom: 0; }
   .page-title { font-size: 20px; letter-spacing: -1px; margin-bottom: 6px; }
-  .page-subtitle { font-size: 10px; }
+  .page-subtitle { font-size: 12.5px; }
 
   .board-controls { margin-top: 10px; margin-bottom: 24px; display: flex; justify-content: flex-end; }
 
   .week-section { margin-bottom: 0; }
   .board-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 17px;
   }
-  .day-card-today { max-width: 210px; }
+  .day-card-today { max-width: 260px; }
 
   /* Grid vs scroll view toggle (JS adds .view-scroll to .board) */
   .board.view-scroll {
@@ -737,7 +737,7 @@ ul { list-style: none; }
 .settings-row-text { flex: 1; min-width: 0; }
 .settings-row-label { font-size: 16px; font-weight: 590; color: var(--near-black); }
 .settings-room-name { text-transform: uppercase; }
-.settings-row-sub { font-size: 10px; color: #8f8f97; margin-top: 4px; }
+.settings-row-sub { font-size: 12.5px; color: #8f8f97; margin-top: 4px; }
 
 /* Toggle switch */
 .settings-toggle { position: relative; width: 46px; height: 27px; flex-shrink: 0; cursor: pointer; }
@@ -886,11 +886,11 @@ ul { list-style: none; }
 .cal-dow-row-desktop { display: grid; }
 .cal-dow-row div {
   text-align: center;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.3px;
   color: #8d8d95;
-  padding: 7px 0;
+  padding: 9px 0;
 }
 .cal-grid {
   display: grid;
@@ -898,36 +898,36 @@ ul { list-style: none; }
 }
 .cal-cell {
   border: 0.5px solid var(--hairline);
-  min-height: 54px;
-  padding: 3px 3px 4px;
+  min-height: 68px;
+  padding: 4px 4px 5px;
   display: flex;
   flex-direction: column;
-  gap: 1.5px;
+  gap: 2px;
   background: #fff;
   overflow: hidden;
 }
 .cal-cell-empty { background: var(--gray-bg-2); }
 .cal-cell-exam { background: rgba(223,0,0,0.06); }
 body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { background: #fff; }
-.cal-daynum { font-size: 8px; font-weight: 600; color: #8d8d95; align-self: flex-start; }
+.cal-daynum { font-size: 11px; font-weight: 600; color: #8d8d95; align-self: flex-start; }
 .cal-daynum.cal-daynum-today { color: #fff; }
 .cal-daynum-today {
   background: var(--blue);
   color: #fff;
   border-radius: 50%;
-  width: 15px;
-  height: 15px;
+  width: 19px;
+  height: 19px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 7.5px;
+  font-size: 10.5px;
   font-weight: 700;
 }
 .cal-chip {
-  font-size: 5.5px;
+  font-size: 7.5px;
   font-weight: 700;
   color: #fff;
-  padding: 2px 3px;
+  padding: 2.5px 4px;
   border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -942,7 +942,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .cal-chip-assignment { background: var(--assignment); }
 
 .exams-section { margin-top: 8px; }
-.exam-proctor { font-size: 8px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; padding-top: 10px; }
+.exam-proctor { font-size: 10px; color: var(--gray-text); margin-top: -4px; margin-bottom: 6px; padding-top: 10px; }
 
 
 /* ============================================================
@@ -958,11 +958,11 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   }
 
   .cal-month-title { font-size: 20px; }
-  .cal-cell { min-height: 64px; padding: 4px; }
-  .cal-daynum { font-size: 9px; }
-  .cal-chip { font-size: 6.5px; padding: 2px 4px; }
-  .cal-dow-row div { font-size: 9px; }
-  .exam-proctor { font-size: 9px; }
+  .cal-cell { min-height: 82px; padding: 5px; }
+  .cal-daynum { font-size: 12.5px; }
+  .cal-chip { font-size: 9px; padding: 2.5px 5px; }
+  .cal-dow-row div { font-size: 12.5px; padding: 10px 0; }
+  .exam-proctor { font-size: 11px; }
 }
 
 
@@ -972,12 +972,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 @media (min-width: 1200px) {
   .cal-card { padding: 28px 30px; margin-top: 2rem; }
   .cal-month-title { font-size: 20px; }
-  .cal-cell { min-height: 80px; padding: 6px; }
-  .cal-daynum { font-size: 10px; }
-  .cal-daynum-today { width: 17px; height: 17px; font-size: 8.5px; }
-  .cal-chip { font-size: 7.5px; padding: 2px 6px; }
-  .cal-dow-row div { font-size: 11px; padding: 9px 0; }
-  .exam-proctor { font-size: 10px; margin-top: -6px; }
+  .cal-cell { min-height: 100px; padding: 7px; }
+  .cal-daynum { font-size: 14px; }
+  .cal-daynum-today { width: 22px; height: 22px; font-size: 12px; }
+  .cal-chip { font-size: 10.5px; padding: 3px 7px; }
+  .cal-dow-row div { font-size: 15.5px; padding: 11px 0; }
+  .exam-proctor { font-size: 12.5px; margin-top: -6px; }
   
 }
 
@@ -997,13 +997,13 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   gap: 10px;
   margin-bottom: 20px;
 }
-.status-control-label { font-size: 11px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.3px; }
+.status-control-label { font-size: 14px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.3px; }
 .status-select-wrap select {
   height: 32px;
   border: 1px solid var(--hairline);
   border-radius: 10px;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--near-black);
   background: #fff;
@@ -1019,7 +1019,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   border: 1px solid var(--hairline);
   border-radius: 10px;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   min-width: 160px;
   flex: 1;
@@ -1077,12 +1077,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 .profile-head-text { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .profile-name-big { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; }
-.profile-email { font-size: 12px; color: var(--gray-text-2); }
+.profile-email { font-size: 15px; color: var(--gray-text-2); }
 .profile-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
 .profile-badge {
   background: rgba(0,115,236,0.15);
   color: var(--blue);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2px;
   padding: 4px 9px;
@@ -1092,7 +1092,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 /* ---------- Shared section pattern ---------- */
 .profile-section { margin-bottom: 24px; }
-.profile-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; }
+.profile-section-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; }
 
 .profile-info-box { border: 1px solid var(--hairline); border-radius: var(--radius-lg); overflow: hidden; }
 .profile-info-row {
@@ -1104,8 +1104,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   gap: 12px;
 }
 .profile-info-row-last { border-bottom: none; }
-.profile-info-label { font-size: 12px; font-weight: 500; color: #a8a8ab; }
-.profile-info-value { font-size: 12px; font-weight: 600; color: var(--near-black); text-align: right; }
+.profile-info-label { font-size: 15px; font-weight: 500; color: #a8a8ab; }
+.profile-info-value { font-size: 15px; font-weight: 600; color: var(--near-black); text-align: right; }
 
 .profile-room-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .profile-room-card {
@@ -1116,8 +1116,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   border-radius: var(--radius-lg);
   padding: 13px 16px;
 }
-.profile-room-name { font-size: 12px; font-weight: 700; }
-.profile-room-role { font-size: 12px; color: #8f8f97; margin-top: 2px; }
+.profile-room-name { font-size: 15px; font-weight: 700; }
+.profile-room-role { font-size: 15px; color: #8f8f97; margin-top: 2px; }
 .profile-room-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
 .profile-stats-box {
@@ -1134,7 +1134,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 }
 .profile-stat:last-child { border-right: none; }
 .profile-stat-num { font-size: 30px; font-weight: 800; }
-.profile-stat-label { font-size: 9px; font-weight: 600; color: #8f8f97; letter-spacing: 0.3px; margin-top: 2px; }
+.profile-stat-label { font-size: 11px; font-weight: 600; color: #8f8f97; letter-spacing: 0.3px; margin-top: 2px; }
 
 .profile-actions { display: flex; gap: 10px; margin-bottom: 28px; }
 .btn-edit-profile, .btn-logout {
@@ -1143,7 +1143,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   border-radius: var(--radius-pill);
   border: 1px solid var(--hairline);
   background: transparent;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 590;
 }
 .btn-edit-profile { color: var(--near-black); }
@@ -1157,7 +1157,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   display: none;
   background: #333;
   color: #fff;
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.3px;
   padding: 10px 16px;
@@ -1168,7 +1168,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   gap: 4px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--hairline);
-  font-size: 11px;
+  font-size: 14px;
 }
 .profile-history-row-last { border-bottom: none; }
 .profile-history-row span[data-label]::before {
@@ -1181,7 +1181,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 .history-status {
   display: inline-block;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2px;
   padding: 3px 10px;
@@ -1268,32 +1268,32 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .notes-icon-generic svg { width: 16px; height: 16px; stroke: #fff; }
 
 .notes-quick-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.notes-quick-title { font-size: 13px; font-weight: 700; letter-spacing: -0.3px; color: var(--near-black); }
-.notes-quick-sub { font-size: 10px; color: var(--gray-text-2); }
+.notes-quick-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: var(--near-black); }
+.notes-quick-sub { font-size: 12.5px; color: var(--gray-text-2); }
 
 /* ---------- Filter pills ---------- */
 .notes-filter-row { display: flex; gap: 8px; margin: 16px 0 18px; align-items: center; flex-wrap: wrap; }
 .sort-select {
   margin-left: auto;
-  height: 26px;
-  padding: 0 10px;
+  height: 32px;
+  padding: 0 12px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill);
   background: #fff;
   color: var(--gray-text-2);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 590;
   font-family: inherit;
   cursor: pointer;
 }
 .sort-select:focus { outline: none; border-color: var(--blue); }
 .notes-filter-pill {
-  height: 24px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 15px;
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--gray-text-2);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 590;
 }
 .notes-filter-active { background: #333; color: #fff; }
@@ -1331,8 +1331,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   font-size: 13px;
   color: #fff;
 }
-.notes-file-name { font-size: 12px; font-weight: 700; color: var(--gray-text-2); letter-spacing: -0.3px; }
-.notes-file-meta { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--gray-text-2); }
+.notes-file-name { font-size: 15px; font-weight: 700; color: var(--gray-text-2); letter-spacing: -0.3px; }
+.notes-file-meta { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-text-2); }
 .notes-file-dot { width: 4px; height: 4px; border-radius: 50%; background: #34c759; flex-shrink: 0; }
 
 /* This page's Grid/Scroll toggle is visible at every breakpoint, including mobile —
@@ -1350,7 +1350,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 @media (min-width: 1200px) {
   .notes-quick-card { flex: 1; max-width: 225px; }
   .notes-file-grid { grid-template-columns: repeat(4, 1fr); }
-  .notes-file-name { font-size: 12px; }
+  .notes-file-name { font-size: 15px; }
 }
 
 /* ============================================================
@@ -1370,7 +1370,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   justify-content: flex-start;
   padding: 8px 16px 8px 6px;
 }
-.disc-content .room-switcher.mobile-only .room-name { font-size: 13px; }
+.disc-content .room-switcher.mobile-only .room-name { font-size: 16px; }
 
 .disc-thread {
   display: flex;
@@ -1387,12 +1387,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .disc-msg-own .disc-msg-meta { justify-content: flex-end; }
 
 .disc-avatar {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #1d1d1f;
   color: #fff;
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -0.3px;
   display: flex;
@@ -1400,8 +1400,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   justify-content: center;
   flex-shrink: 0;
 }
-.disc-name { font-size: 11px; font-weight: 700; color: #333; }
-.disc-time { font-size: 9px; color: var(--gray-text-2); }
+.disc-name { font-size: 14px; font-weight: 700; color: #333; }
+.disc-time { font-size: 11px; color: var(--gray-text-2); }
 .disc-time::before { content: '•'; margin-right: 8px; color: var(--gray-text-2);  padding-right: 0.5rem;}
 .disc-msg-own .disc-time::before { margin-right: 0; margin-left: 8px;}
 
@@ -1415,7 +1415,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   border: none;
   border-radius: 70px 70px 70px 0;
   padding: 9px 20px;
-  font-size: 12px;
+  font-size: 15px;
   color: #333;
   text-align: left;
   line-height: 1.4;
@@ -1436,7 +1436,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   gap: 5px;
   background: var(--hairline);
   color: #535353;
-  font-size: 9px;
+  font-size: 11px;
   padding: 4px 10px 4px 8px;
   border-radius: 8px 8px 70px 0;
   margin-top: 1px;
@@ -1463,7 +1463,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   30% { transform: translateY(-3px); opacity: 1; }
 }
 
-.disc-seenby { font-size: 9px; color: var(--gray-text-2); text-align: right; margin-top: -6px; }
+.disc-seenby { font-size: 11px; color: var(--gray-text-2); text-align: right; margin-top: -6px; }
 
 /* ---------- Reply indicator above the input ---------- */
 .disc-reply-indicator[hidden] { display: none; }
@@ -1473,7 +1473,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   gap: 8px;
   background: rgba(110,110,117,0.15);
   color: #535353;
-  font-size: 11px;
+  font-size: 14px;
   padding: 8px 14px;
   border-radius: 10px;
   margin-bottom: 8px;
@@ -1505,7 +1505,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   flex: 1;
   border: none;
   background: none;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--near-black);
   min-width: 0;
 }
@@ -1514,7 +1514,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .disc-send-btn {
   background: var(--blue);
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   padding: 7px 16px;
   border-radius: var(--radius-pill);
@@ -1526,18 +1526,18 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 @media (min-width: 768px) {
   .disc-content .page-header-row { display: flex; }
   .disc-msg-group { max-width: 62%; }
-  .disc-avatar { width: 32px; height: 32px; font-size: 11px; }
-  .disc-name { font-size: 12px; }
-  .disc-bubble { font-size: 12.5px; }
+  .disc-avatar { width: 38px; height: 38px; font-size: 14px; }
+  .disc-name { font-size: 15px; }
+  .disc-bubble { font-size: 15.5px; }
 }
 
 @media (min-width: 1200px) {
   .disc-content { padding-bottom: 24px; }
   .disc-msg-group { max-width: 44%; }
-  .disc-avatar { width: 34px; height: 34px; font-size: 12px; }
-  .disc-name { font-size: 13px; }
-  .disc-time { font-size: 10px; }
-  .disc-bubble { font-size: 13px; padding: 10px 16px; }
+  .disc-avatar { width: 40px; height: 40px; font-size: 15px; }
+  .disc-name { font-size: 16px; }
+  .disc-time { font-size: 12.5px; }
+  .disc-bubble { font-size: 16px; padding: 10px 16px; }
 }
 
 /* ============================================================
@@ -1554,10 +1554,10 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   z-index: 0;
 }
 .abt-hero { text-align: center; padding: 8px 0 4px; }
-.abt-eyebrow { font-size: 11px; font-weight: 860; color: var(--blue); letter-spacing: 0.5px; margin-bottom: 8px; }
+.abt-eyebrow { font-size: 14px; font-weight: 860; color: var(--blue); letter-spacing: 0.5px; margin-bottom: 8px; }
 .abt-title { font-size: 22px; font-weight: 700; letter-spacing: -0.8px; margin-bottom: 10px; }
 .abt-title .dim { color: #c1c1c1; }
-.abt-subtitle { font-size: 12px; color: var(--gray-text-2); line-height: 1.6; }
+.abt-subtitle { font-size: 15px; color: var(--gray-text-2); line-height: 1.6; }
 
 .abt-tabs {
   display: flex;
@@ -1572,7 +1572,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   z-index: 1;
 }
 .abt-tab {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 510;
   color: var(--gray-text);
   padding: 6px 14px;
@@ -1596,12 +1596,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .abt-team-photo { width: 100%; aspect-ratio: 336/174; object-fit: cover; display: block; border-bottom: 1px solid var(--hairline); }
 .abt-team-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
 .abt-team-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-.abt-team-role { font-size: 12px; color: var(--blue); font-weight: 600; margin: 3px 0 10px; }
-.abt-team-bio { font-size: 12px; color: var(--gray-text-2); line-height: 1.55; margin-bottom: 14px; }
+.abt-team-role { font-size: 15px; color: var(--blue); font-weight: 600; margin: 3px 0 10px; }
+.abt-team-bio { font-size: 15px; color: var(--gray-text-2); line-height: 1.55; margin-bottom: 14px; }
 .abt-team-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.abt-tag { background: var(--gray-bg); color: var(--gray-text-2); font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); }
+.abt-tag { background: var(--gray-bg); color: var(--gray-text-2); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill); }
 .abt-team-links { display: flex; gap: 14px; margin-top: auto; }
-.abt-team-links a { font-size: 12px; color: var(--gray-text-2); font-weight: 510; }
+.abt-team-links a { font-size: 15px; color: var(--gray-text-2); font-weight: 510; }
 .abt-team-links a:hover { color: var(--blue); }
 
 /* ---------- Stats ---------- */
@@ -1616,7 +1616,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .abt-stats-rule { border: none; border-top: 1px solid var(--hairline); margin: 0; }
 .abt-stats-row { display: flex; justify-content: center; gap: 32px; padding: 28px 0; flex-wrap: wrap; }
 .abt-stat-num { font-size: 52px; font-weight: 1000; letter-spacing: -1px; line-height: 1; }
-.abt-stat-label { font-size: 12px; color: var(--gray-text-2); font-weight: 590; margin-top: 8px; letter-spacing: 0.3px; }
+.abt-stat-label { font-size: 15px; color: var(--gray-text-2); font-weight: 590; margin-top: 8px; letter-spacing: 0.3px; }
 
 /* ---------- Testimonials ---------- */
 .abt-testimonial-title { font-size: 17px; font-weight: 590; margin-bottom: 16px; }
@@ -1627,15 +1627,15 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   border-radius: var(--radius-lg);
   padding: 18px;
 }
-.abt-testimonial-text { font-size: 12px; font-style: italic; color: var(--near-black); line-height: 1.6; margin-bottom: 16px; }
+.abt-testimonial-text { font-size: 15px; font-style: italic; color: var(--near-black); line-height: 1.6; margin-bottom: 16px; }
 .abt-testimonial-who { display: flex; align-items: center; gap: 10px; }
 .abt-testimonial-avatar {
   width: 36px; height: 36px; border-radius: 50%; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 590; flex-shrink: 0;
 }
-.abt-testimonial-name { font-size: 13px; font-weight: 700; }
-.abt-testimonial-room { font-size: 11px; color: var(--gray-text-2); }
+.abt-testimonial-name { font-size: 16px; font-weight: 700; }
+.abt-testimonial-room { font-size: 14px; color: var(--gray-text-2); }
 
 /* ---------- Forms (Feedback + Contact) ---------- */
 .abt-form-card {
@@ -1649,12 +1649,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 }
 .abt-form-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
 .abt-field { display: flex; flex-direction: column; gap: 6px; }
-.abt-field-label { font-size: 11px; font-weight: 700; color: var(--gray-text-2); letter-spacing: 0.3px; }
+.abt-field-label { font-size: 14px; font-weight: 700; color: var(--gray-text-2); letter-spacing: 0.3px; }
 .abt-field input, .abt-field select, .abt-field textarea {
   border: 1px solid var(--hairline);
   border-radius: 13px;
   padding: 12px 14px;
-  font-size: 13px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--near-black);
   resize: vertical;
@@ -1666,7 +1666,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   height: 37px;
   padding: 0 20px;
   border-radius: var(--radius-pill);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
 }
 .abt-btn-submit { background: var(--blue); color: #fff; }
@@ -1677,12 +1677,12 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 .abt-contact-layout { display: flex; flex-direction: column; gap: 20px; }
 .abt-contact-info { display: flex; flex-direction: column; gap: 12px; }
 .abt-info-card { border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 16px 18px; }
-.abt-info-label { font-size: 11px; font-weight: 700; color: var(--gray-text-2); letter-spacing: 0.3px; margin-bottom: 4px; }
+.abt-info-label { font-size: 14px; font-weight: 700; color: var(--gray-text-2); letter-spacing: 0.3px; margin-bottom: 4px; }
 .abt-info-value { font-size: 15px; font-weight: 600; color: var(--near-black); }
 .abt-info-link { color: var(--blue); }
 .abt-info-link:hover { text-decoration: underline; }
 
-.abt-footer { text-align: center; font-size: 11px; color: var(--gray-text-2); padding: 28px 0 8px; }
+.abt-footer { text-align: center; font-size: 14px; color: var(--gray-text-2); padding: 28px 0 8px; }
 
 .abt-toast {
   position: fixed;
@@ -1691,7 +1691,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   transform: translateX(-50%) translateY(20px);
   background: var(--near-black);
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 590;
   padding: 12px 22px;
   border-radius: var(--radius-pill);
@@ -1706,7 +1706,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 @media (min-width: 768px) {
   .abt-hero-band { margin: -24px -24px 32px -108px; padding: 40px 24px 28px 108px; }
   .abt-title { font-size: 30px; }
-  .abt-subtitle { font-size: 13px; }
+  .abt-subtitle { font-size: 16px; }
   .abt-team-grid { flex-direction: row; }
   .abt-team-card { flex: 1; display: flex; flex-direction: column; }
   .abt-testimonial-grid { display: grid; grid-template-columns: repeat(2, 1fr); align-items: start; }
@@ -1756,11 +1756,11 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 .appr-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .appr-card-text { min-width: 0; }
-.appr-card-title { font-size: 14px; font-weight: 700; color: var(--near-black); letter-spacing: -0.3px; }
-.appr-card-meta { font-size: 10px; color: var(--gray-text-2); margin-top: 4px; }
+.appr-card-title { font-size: 17.5px; font-weight: 700; color: var(--near-black); letter-spacing: -0.3px; }
+.appr-card-meta { font-size: 12.5px; color: var(--gray-text-2); margin-top: 4px; }
 
 .appr-badge {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 860;
   letter-spacing: 0.4px;
   color: #fff;
@@ -1781,13 +1781,13 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   display: flex;
   align-items: center;
   gap: 5px;
-  height: 26px;
-  padding: 0 12px;
+  height: 32px;
+  padding: 0 15px;
   border-radius: var(--radius-pill);
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 590;
 }
-.appr-btn-approve svg, .appr-btn-reject svg { width: 10px; height: 10px; flex-shrink: 0; }
+.appr-btn-approve svg, .appr-btn-reject svg { width: 12px; height: 12px; flex-shrink: 0; }
 .appr-btn-approve { background: #00ca48; color: #fff; }
 .appr-btn-approve:hover { background: #00b33f; }
 .appr-btn-reject { background: var(--gray-bg); color: var(--gray-text-2); }
@@ -1795,13 +1795,13 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
 .appr-card.appr-card-resolved { opacity: 0.45; pointer-events: none; }
 
-.appr-empty { font-size: 12px; color: var(--gray-text); padding: 20px 0; }
+.appr-empty { font-size: 15px; color: var(--gray-text); padding: 20px 0; }
 
 
 @media (min-width: 768px) {
   .appr-card { padding: 17px 24px 16px 19px; }
   .appr-card-title { font-size: 16px; }
-  .appr-card-meta { font-size: 10px; }
+  .appr-card-meta { font-size: 12.5px; }
 }
 
 @media (min-width: 1200px) {
@@ -1814,16 +1814,16 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
    ============================================================ */
 .online-users { padding: 0 20px 16px; }
 .online-users.profile-text-conditional { flex-direction: column !important; align-items: flex-start !important; }
-.online-users-title { font-size: 10px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.online-users-title { font-size: 12.5px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
 .online-users-list { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.online-user-more { font-size: 11px; color: var(--gray-text-2); font-weight: 590; padding-left: 34px; background: none; border: none; cursor: pointer; text-align: left; }
+.online-user-more { font-size: 14px; color: var(--gray-text-2); font-weight: 590; padding-left: 42px; background: none; border: none; cursor: pointer; text-align: left; }
 .online-user-more:hover { color: var(--blue); text-decoration: underline; }
 .online-user { display: flex; align-items: center; gap: 8px; }
 .online-user-avatar {
   position: relative;
-  width: 26px; height: 26px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   background: #1d1d1f; color: #fff;
-  font-size: 9px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -1833,7 +1833,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   background: #b6b6ba; border: 1.5px solid #fff;
 }
 .online-dot-active { background: #34c759; }
-.online-user-name { font-size: 12px; font-weight: 590; color: var(--near-black); }
+.online-user-name { font-size: 15px; font-weight: 590; color: var(--near-black); }
 
 /* When switched to a room with no real data yet, the page structure
    (headers, controls, calendar dates, quick-actions, legend, input bar)
@@ -1898,7 +1898,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
   gap: 4px;
   min-width: 110px;
 }
-.cal-more-popover .cal-chip { font-size: 8px; white-space: normal; }
+.cal-more-popover .cal-chip { font-size: 11px; white-space: normal; }
 
 /* ---------- New Room button (desktop pill + dropdown item) ---------- */
 .room-pill-new, .room-dropdown-item-new { color: var(--gray-text-2); }
@@ -1918,3 +1918,33 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 
 .online-user-clickable { cursor: pointer; border-radius: 8px; padding: 2px 4px; margin: -2px -4px; }
 .online-user-clickable:hover { background: var(--gray-bg); }
+
+/* ---------- Task colors (Settings) + custom type (New TODO) + empty days ---------- */
+.tc-name { display: flex; align-items: center; gap: 12px; }
+.tc-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.tc-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.tc-color {
+  width: 46px; height: 36px; padding: 3px; cursor: pointer;
+  border: 1px solid var(--hairline); border-radius: 10px; background: transparent;
+}
+.tc-name-input {
+  height: 36px; width: 150px; padding: 0 12px; font-size: 15px;
+  border: 1px solid var(--hairline); border-radius: 10px; background: transparent; color: var(--near-black);
+}
+.tc-name-input:focus { outline: none; border-color: var(--blue); }
+.tc-btn {
+  height: 36px; padding: 0 16px; font-size: 14px; font-weight: 590; cursor: pointer;
+  border: 1px solid var(--hairline); border-radius: 10px; background: transparent; color: var(--gray-text-2);
+}
+.tc-btn:hover { background: var(--gray-bg); color: var(--near-black); }
+.tc-btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.tc-btn-primary:hover { background: #0064cc; color: #fff; }
+.abt-custom-type { display: flex; flex-direction: column; gap: inherit; }
+.abt-custom-type[hidden] { display: none; }
+.abt-field input[type="color"] { height: 42px; padding: 4px; cursor: pointer; }
+@media (max-width: 600px) {
+  .tc-add-row { flex-direction: column; align-items: stretch; }
+  .tc-add-row .tc-controls { width: 100%; }
+  .tc-add-row .tc-name-input { flex: 1; min-width: 0; width: auto; }
+}
+

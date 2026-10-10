@@ -490,3 +490,252 @@ document.addEventListener('DOMContentLoaded', function () {
   initSort('approveSortSelect', '#apprList', '.appr-card', '.appr-card-title');
 
 });
+
+/* ============================================================
+   ROOMSYNC — custom task colors / custom task types + empty days
+   Browser-only (localStorage). Exposes window.RoomSyncTasks so the
+   Settings page can reuse the same store.
+   ============================================================ */
+(function () {
+  var KEY = 'roomsync.taskColors';
+  var EMPTY_KEY = 'roomsync.showEmptyDays';
+  var BUILTIN = [
+    { id: 'exam', name: 'Exam', color: '#DF0000' },
+    { id: 'quiz', name: 'Quiz', color: '#F2B84B' },
+    { id: 'case-study', name: 'Case Study', color: '#C79ADB' },
+    { id: 'activity', name: 'Activity', color: '#F2795A' },
+    { id: 'seatwork', name: 'Seatwork', color: '#009CDF' },
+    { id: 'assignment', name: 'Assignment', color: '#8F8F97' }
+  ];
+  var HEX = /^#[0-9a-f]{6}$/i;
+
+  function load() {
+    try {
+      var o = JSON.parse(localStorage.getItem(KEY));
+      return { overrides: (o && o.overrides) || {}, custom: (o && o.custom) || [] };
+    } catch (e) { return { overrides: {}, custom: [] }; }
+  }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  function rgb(hex) {
+    return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+  }
+  function textOn(hex) {
+    var c = rgb(hex);
+    var lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+    return lum > 0.72 ? '#2b2b30' : '#fff';
+  }
+
+  function allTypes() {
+    var s = load();
+    var list = BUILTIN.map(function (t) {
+      return { id: t.id, name: t.name, color: s.overrides[t.id] || t.color, builtin: true, def: t.color };
+    });
+    s.custom.forEach(function (t) { list.push({ id: t.id, name: t.name, color: t.color, builtin: false }); });
+    return list;
+  }
+
+  function applyStyles() {
+    var s = load();
+    var css = '';
+    function rule(id, color) {
+      var t = textOn(color);
+      css += '.type-' + id + ',.appr-badge-' + id + ',.cal-chip-' + id + '{background:' + color + ';color:' + t + ';}' +
+             '.legend-dot-' + id + '{background:' + color + ';}';
+    }
+    BUILTIN.forEach(function (t) {
+      var c = s.overrides[t.id];
+      if (c && HEX.test(c)) {
+        rule(t.id, c);
+        if (t.id === 'exam') {
+          var r = rgb(c);
+          css += 'body:not([data-current-room]) .cal-cell-exam,body[data-current-room="The Bozos"] .cal-cell-exam{background:rgba(' + r.join(',') + ',0.06);}';
+        }
+      }
+    });
+    s.custom.forEach(function (t) { if (HEX.test(t.color)) rule(t.id, t.color); });
+    var el = document.getElementById('rsCustomColors');
+    if (!el) { el = document.createElement('style'); el.id = 'rsCustomColors'; document.head.appendChild(el); }
+    el.textContent = css;
+    renderLegend();
+  }
+
+  function renderLegend() {
+    var legend = document.querySelector('.task-colors');
+    if (!legend) return;
+    legend.querySelectorAll('[data-custom-type]').forEach(function (n) { n.remove(); });
+    load().custom.forEach(function (t) {
+      var item = document.createElement('span');
+      item.className = 'legend-item';
+      item.setAttribute('data-custom-type', t.id);
+      var dot = document.createElement('span');
+      dot.className = 'legend-dot legend-dot-' + t.id;
+      item.appendChild(dot);
+      item.appendChild(document.createTextNode(t.name));
+      legend.appendChild(item);
+    });
+  }
+
+  function slug(name) {
+    return 'custom-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function addCustom(name, color) {
+    name = (name || '').trim();
+    if (!name || !HEX.test(color)) return null;
+    var s = load();
+    var lower = name.toLowerCase();
+    var existing = allTypes().filter(function (t) { return t.name.toLowerCase() === lower; })[0];
+    if (existing) return existing;
+    var id = slug(name) || ('custom-' + Date.now());
+    if (s.custom.some(function (t) { return t.id === id; })) id += '-' + Date.now().toString(36);
+    var t = { id: id, name: name.slice(0, 20), color: color };
+    s.custom.push(t);
+    save(s);
+    applyStyles();
+    return t;
+  }
+  function removeCustom(id) {
+    var s = load();
+    s.custom = s.custom.filter(function (t) { return t.id !== id; });
+    save(s);
+    applyStyles();
+  }
+  function setColor(id, color) {
+    if (!HEX.test(color)) return;
+    var s = load();
+    var b = BUILTIN.filter(function (t) { return t.id === id; })[0];
+    if (b) {
+      if (color.toLowerCase() === b.color.toLowerCase()) delete s.overrides[id];
+      else s.overrides[id] = color;
+    } else {
+      s.custom.forEach(function (t) { if (t.id === id) t.color = color; });
+    }
+    save(s);
+    applyStyles();
+  }
+  function resetDefaults() {
+    var s = load();
+    s.overrides = {};
+    save(s);
+    applyStyles();
+  }
+
+  function getEmptyDays() {
+    try { return localStorage.getItem(EMPTY_KEY) === '1'; } catch (e) { return false; }
+  }
+  function setEmptyDays(on) {
+    try { localStorage.setItem(EMPTY_KEY, on ? '1' : '0'); } catch (e) {}
+  }
+
+  window.RoomSyncTasks = {
+    builtin: BUILTIN, all: allTypes, add: addCustom, remove: removeCustom,
+    setColor: setColor, reset: resetDefaults, apply: applyStyles,
+    getEmptyDays: getEmptyDays, setEmptyDays: setEmptyDays
+  };
+
+  /* ---------- Empty-day placeholder cards on the Home weekly boards ---------- */
+  var MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+  var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function cardKey(card) {
+    var el = card.querySelector('.date-pill') || card.querySelector('.day-date-sub');
+    if (!el) return null;
+    var m = el.textContent.trim().toLowerCase().match(/^([a-z]{3})[a-z]*\s+(\d+)/);
+    if (!m) return null;
+    var mi = SHORT.map(function (x) { return x.toLowerCase(); }).indexOf(m[1]);
+    return mi < 0 ? null : mi * 100 + parseInt(m[2], 10);
+  }
+
+  function renderEmptyDays() {
+    document.querySelectorAll('.day-card-empty').forEach(function (n) { n.remove(); });
+    if (!getEmptyDays()) return;
+    ['board-thisweek', 'board-nextweek'].forEach(function (boardId) {
+      var board = document.getElementById(boardId);
+      if (!board) return;
+      var label = board.closest('.week-section') && board.closest('.week-section').querySelector('.week-label');
+      var m = label && label.textContent.toLowerCase().match(/([a-z]+)\s+(\d+)\s+to/);
+      if (!m) return;
+      var mi = MONTHS.indexOf(m[1]);
+      if (mi < 0) return;
+      var start = new Date(2026, mi, parseInt(m[2], 10));
+      var present = {};
+      var cards = Array.prototype.slice.call(board.querySelectorAll('.day-card'));
+      cards.forEach(function (c) { var k = cardKey(c); if (k !== null) present[k] = true; });
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+        var key = d.getMonth() * 100 + d.getDate();
+        if (present[key]) continue;
+        var card = document.createElement('article');
+        card.className = 'day-card day-card-empty';
+        card.innerHTML =
+          '<div class="day-card-head"><div class="day-card-title-group">' +
+          '<h3 class="day-name">' + DAYS[d.getDay()] + '</h3>' +
+          '<p class="day-date-sub">' + SHORT[d.getMonth()] + ' ' + d.getDate() + '</p>' +
+          '</div><span class="task-count">0</span></div>';
+        var before = null;
+        cards.forEach(function (c) { var k = cardKey(c); if (!before && k !== null && k > key) before = c; });
+        if (before) board.insertBefore(card, before); else board.appendChild(card);
+        cards.push(card);
+        cards.sort(function (a, b) { return (cardKey(a) || 0) - (cardKey(b) || 0); });
+      }
+    });
+  }
+  window.RoomSyncTasks.renderEmptyDays = renderEmptyDays;
+
+  /* ---------- New TODO modal: custom type + color ---------- */
+  function setupModal() {
+    var form = document.getElementById('todoModalForm');
+    if (!form) return;
+    var select = form.querySelector('select');
+    var typeField = select && select.closest('.abt-field');
+    if (!typeField) return;
+
+    function fillOptions(selected) {
+      select.innerHTML = '<option value="">Select a type</option>';
+      allTypes().forEach(function (t) {
+        var o = document.createElement('option');
+        o.textContent = t.name;
+        select.appendChild(o);
+      });
+      var n = document.createElement('option');
+      n.value = '__new'; n.textContent = '+ Custom type…';
+      select.appendChild(n);
+      if (selected) select.value = selected;
+    }
+    fillOptions();
+
+    var box = document.createElement('div');
+    box.className = 'abt-custom-type';
+    box.hidden = true;
+    box.innerHTML =
+      '<label class="abt-field"><span class="abt-field-label">Custom type name</span>' +
+      '<input type="text" maxlength="20" placeholder="e.g. Project"></label>' +
+      '<label class="abt-field"><span class="abt-field-label">Color</span>' +
+      '<input type="color" value="#0073ec"></label>';
+    typeField.parentNode.insertBefore(box, typeField.nextSibling);
+    var nameIn = box.querySelector('input[type=text]');
+    var colorIn = box.querySelector('input[type=color]');
+
+    select.addEventListener('change', function () {
+      var on = select.value === '__new';
+      box.hidden = !on;
+      nameIn.required = on;
+      if (on) nameIn.focus();
+    });
+
+    // Runs before the existing submit handler (registered earlier would run first, so use capture)
+    form.addEventListener('submit', function () {
+      if (select.value === '__new') {
+        var t = addCustom(nameIn.value, colorIn.value);
+        if (t) fillOptions();
+      }
+      setTimeout(function () { box.hidden = true; nameIn.required = false; nameIn.value = ''; fillOptions(); }, 0);
+    }, true);
+  }
+
+  applyStyles();
+  function ready() { setupModal(); renderEmptyDays(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();

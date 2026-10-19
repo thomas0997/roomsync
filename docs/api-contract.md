@@ -40,7 +40,7 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | POST | /rooms/join | `{invite_code}` | room | T1 DONE |
 | GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
-| POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only. Promote: creator, or any admin once others are admins. Demote: creator only; the creator can never be demoted. | T1 TODO |
+| POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |
 | PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only. | T1 TODO |
 | DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only. Admins can remove members; only the creator can remove another admin; the creator can never be removed. The removed user gets 403 on every room endpoint. | T1 TODO |
 | POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only. | T1 TODO |

@@ -14,27 +14,33 @@
 <body>
 
   <div class="login-wrap">
-    <div class="logo-head">
+    <a href="index.html" class="logo-head" aria-label="RoomSync home">
       <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="logo-mark">
       <div class="logo-word"><span class="room">room</span><span class="sync">sync</span></div>
-    </div>
+    </a>
 
     <div class="card">
-      <div class="card-title">Log in</div>
-      
-      <div id="login-error" class="login-error" hidden>Incorrect email or password.</div>
+      <h1 class="card-title">Log in</h1>
+      <p class="card-sub">Welcome back. Pick up where your room left off.</p>
 
-      <div class="field">
-        <label for="email">EMAIL</label>
-        <input type="text" id="email" placeholder="you@roomsync.ph">
-      </div>
+      <div id="login-error" class="login-error" role="alert" hidden>Incorrect email or password.</div>
 
-      <div class="field">
-        <label for="password">PASSWORD</label>
-        <input type="password" id="password" placeholder="•••••••••••••">
-      </div>
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="field">
+          <label for="email">EMAIL</label>
+          <input type="text" id="email" name="email" placeholder="you@school.edu" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false">
+        </div>
 
-      <button class="btn-login" id="loginBtn" type="button">Log in</button>
+        <div class="field">
+          <label for="password">PASSWORD</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" maxlength="128">
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+
+        <button class="btn-login" id="loginBtn" type="submit">Log in</button>
+      </form>
 
       <div class="divider">
         <div class="line"></div>
@@ -42,21 +48,13 @@
         <div class="line"></div>
       </div>
 
-      <button class="btn-oauth">
-        <img src="../assets/GoogleLogo.png" alt="Google logo">
-        <span>Continue with Google</span>
-      </button>
-
-      <button class="btn-oauth">
-        <img src="../assets/AppleLogo.png" alt="Apple logo">
-        <span>Continue with Apple</span>
-      </button>
-
       <div class="quick-row">
-        <button class="btn-quick" id="quickAdmin">Continue as Admin</button>
-        <button class="btn-quick" id="quickMember">Continue as Member</button>
+        <button class="btn-quick" id="quickAdmin" type="button">Continue as Admin</button>
+        <button class="btn-quick" id="quickMember" type="button">Continue as Member</button>
       </div>
     </div>
+
+    <a href="index.html" class="back-link">&larr; Back to home</a>
   </div>
 
   <script src="../js/login.js"></script>

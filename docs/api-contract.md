@@ -6,7 +6,7 @@ Datetimes are ISO 8601 UTC strings, e.g. `"2026-08-13T15:59:00Z"`. Interactive d
 
 Tiers: **T1** = Nov 7 core, **T2** = Nov to Dec, **T3** = after launch. Build only T1 unless told otherwise. Status: DONE or TODO.
 
-Limits (server-enforced): a user can be in at most 10 rooms and a room has at most 50 members (409 "Room limit reached" on create or join).
+Limits (server-enforced): a user can be in at most 10 rooms and a room has at most 50 members (409 "Room limit reached" on create or join). Status: TODO (not enforced in code yet).
 Rules for every endpoint: validate input, check membership/admin first, never log message content, never trust IDs from the client.
 
 ## Roles (read this first)
@@ -35,16 +35,17 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 `type` is `classroom | study_group | team | other`. `pending_count` = number of pending tasks in that room (same number for admins and members).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms | `{name, type?}` | 201 room (role `admin`) | T1 DONE, add `type` and `pending_count` TODO |
-| GET | /rooms | none | `[room]` (rooms I'm in) | T1 DONE, add new fields TODO |
+| POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
+| GET | /rooms | none | `[room]` (rooms I'm in), including `type` and `pending_count` | T1 DONE |
 | POST | /rooms/join | `{invite_code}` | room | T1 DONE |
 | GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
 | POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |
-| PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only. | T1 TODO |
-| DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only. Admins can remove members; only the creator can remove another admin; the creator can never be removed. The removed user gets 403 on every room endpoint. | T1 TODO |
-| POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only. | T1 TODO |
+| PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only (403 otherwise). Send at least one field and no unknown fields, otherwise 422. | T1 DONE |
+| DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only (403 otherwise). 404 if the user is not in the room. Admins can remove members; only the creator can remove another admin (403 otherwise); the creator can never be removed (400). The removed user gets 403 on every room endpoint. | T1 DONE |
+| POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only (403 otherwise). | T1 DONE |
 | PUT | /rooms/{room_id}/avatar | multipart `image` | room. Admin only. Same image rules as profile pictures. | T2 TODO |
+
 ## Tasks (Daniel)
 Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?}`
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.

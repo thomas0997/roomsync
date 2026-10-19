@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from .routers import approvals, auth, discussion, notes, profile, rooms, tasks
 
@@ -28,3 +31,15 @@ for module in (auth, rooms, tasks, approvals, notes, discussion, profile):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Serve the frontend from the same address as the API (no CORS needed).
+# Only these four folders are public; backend/, .env and the rest of the repo are not.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+for folder in ("pages", "css", "js", "assets"):
+    app.mount(f"/{folder}", StaticFiles(directory=REPO_ROOT / folder), name=folder)
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return RedirectResponse("/pages/index.html")

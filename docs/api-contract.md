@@ -53,7 +53,7 @@ Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|app
 Only `approved` tasks appear on the board and calendar.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at?, all_day?, subject?}` | 201 task. Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 TODO |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 TODO |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due that Sun to Sat week, sorted by due_at | T1 TODO |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month | T1 TODO |
 | PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 TODO |
@@ -65,12 +65,12 @@ Rules:
 - A task created by a member: any admin can decide it.
 - A task created by an admin: another admin must decide it. An admin cannot approve or reject their own task, UNLESS they are the room's only admin. If the room has exactly one admin, that admin's new tasks are auto-approved at creation.
 - The first admin decision is final.
-- The Approve tab = pending tasks in the room, admins only. History = decided tasks.
+- The Approve tab = pending tasks in the room, admins only. History = tasks an admin explicitly decided (auto-approved tasks are not in history).
 
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/approvals | none | `[task]` with status `pending` (admin only) | T1 TODO |
-| GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` decided tasks, newest decision first, with `decided_by_name` and `decided_at` (admin only) | T1 TODO |
+| GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` tasks an admin explicitly approved or rejected, newest decision first, with `decided_by_name` and `decided_at` (admin only). Auto-approved tasks (sole admin) are NOT included. | T1 TODO |
 | POST | /tasks/{task_id}/approve | none | task (updated). Admin only. | T1 TODO |
 | POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 TODO |
 

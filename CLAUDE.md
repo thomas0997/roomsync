@@ -1,149 +1,42 @@
-# RoomSync API contract (source of truth)
+# RoomSync: project rules for any AI assistant
 
-Base URL: `http://localhost:8000` locally. In production the API and the frontend are served from the same domain (`https://roomsync.me`, after the backend deploy). Bodies are JSON unless a section says multipart. Auth = header `Authorization: Bearer <token>`.
-Errors look like `{"detail": "message"}`. Status codes: 401 not logged in, 403 not allowed, 404 not found, 409 conflict (including limits), 413 file too large, 415 file type not allowed, 422 bad input, 429 too many requests.
-Datetimes are ISO 8601 UTC strings, e.g. `"2026-08-13T15:59:00Z"`. Interactive docs: `/docs`.
+RoomSync is a student capstone web app (HAU, CYB-201): classmates share deadlines in "rooms". A task must be
+approved by a room admin before it appears on the room's weekly board and calendar. This is a REAL product shipping Nov 7, not a demo.
 
-Tiers: **T1** = Nov 7 core, **T2** = Nov to Dec, **T3** = after launch. Build only T1 unless told otherwise. Status: DONE or TODO.
+## Stack (fixed, do not suggest alternatives)
+- Frontend: plain HTML/CSS/JS in `pages/`, `css/`, `js/` (no framework). Design is DONE.
+- Backend: Python 3.12+, FastAPI, SQLAlchemy 2, bcrypt, PyJWT, pytest.
+- DB: SQLite locally (`DATABASE_URL=sqlite:///./roomsync.db`), Neon Postgres in production.
+- Hosting: ONE Render web service serves the API and the frontend on roomsync.me (no CORS). Until the backend ships, Vercel serves `main` (static frontend only).
 
-Limits (server-enforced): a user can be in at most 10 rooms and a room has at most 50 members (409 "Room limit reached" on create or join).
-Rules for every endpoint: validate input, check membership/admin first, never log message content, never trust IDs from the client.
+## Source of truth
+- `docs/api-contract.md` v2: endpoints, JSON shapes, tiers (T1 = Nov 7 core, T2 = Nov to Dec, T3 = after launch). Build ONLY T1 unless Thomas says otherwise.
+- `docs/feature-spec.md`: page-by-page behavior.
 
-## Roles (read this first)
-- A room has members. Each member is either `admin` or `member`. Roles belong to rooms, not accounts.
-- The room creator is the first admin.
-- Promote to admin: the creator first. Once other admins exist, any admin can promote.
-- Demote to member: the creator only. The creator can never be demoted.
-- Only admins approve or reject tasks (see Approvals).
-- Admins manage the room (members, roles, name, invite code) and may delete tasks and files. They have NO power over message content (see Discussion).
+## Team and ownership (two people, beginners at backend)
+- Thomas: models.py, auth, rooms, /users/me, deploy, and the login/register/home/settings/profile pages.
+- Daniel: tasks, approvals, discussion (`routers/` files of the same names) and the calendar/approve/discussion pages.
+- Only edit your own router files. Shared files (`models.py`, `main.py`, `schemas.py`, `conftest.py`): small edits only, pull first, tell your partner BEFORE changing. After every push your partner runs `git pull --rebase`.
 
-## Auth (Thomas)
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| POST | /auth/signup | `{email, name, password(min 8)}` | 201 `{access_token, token_type, user:{id,email,name}}` | T1 DONE |
-| POST | /auth/login | `{email, password}` | `{access_token, token_type, user}` | T1 DONE |
-| GET | /auth/me | none | `{id,email,name}` | T1 DONE |
-| POST | /auth/forgot | `{email}` | 204 always (never reveal whether the email exists) | T2 TODO |
-| POST | /auth/reset | `{token, new_password}` | 204. Token is single-use and expires in 1 hour | T2 TODO |
-| POST | /auth/verify | `{token}` | 204 | T2 TODO |
-| GET | /auth/google, /auth/github (+ `/callback`) | none | redirect flow, then the same token response as login | T2 TODO |
+## Rules
+1. The contract is law. Do not invent or rename endpoints. To change one, edit the contract FIRST and tell your partner.
+2. Every room endpoint MUST call `require_member(db, user, room_id)` (or `require_admin`) from `app/auth.py` before touching data. Never trust a room_id, task_id or user_id from the client without checking membership.
+3. Validate input with Pydantic schemas. Use the SQLAlchemy ORM, never build SQL from strings.
+4. Never hardcode secrets. They live in `backend/.env` (gitignored). Update `.env.example` when adding a variable. Never paste secrets, tokens or the database URL into chat or git.
+5. Every new endpoint gets a pytest covering the happy path AND the failure cases (non-member 403, no token 401, bad input 422). Use the helpers in `tests/conftest.py` (`client`, `signup`, `make_room`, `join_room`). Run all tests before every commit.
+6. Frontend: replace hardcoded data with `fetch()` calls. Keep the existing look and class names. JWT in `localStorage` under `roomsync.token`, sent as `Authorization: Bearer <token>`. API base URL in one place (`js/config.js`).
+7. Frontend security: render ALL user-supplied text with `textContent`, never `innerHTML`. No hardcoded logins.
+8. Never log message content. Room chat is not end-to-end encrypted; do not claim it is.
+9. Small tasks, one endpoint at a time. Explain code in plain words (we present it).
 
-Log out = the client deletes the token (no endpoint). Rate-limit signup, login, forgot and reset (429). Social accounts link to an existing account only by a VERIFIED email. No Apple sign-in.
+## Git (IMPORTANT)
+- `main` is frontend-only until the professor finishes grading. NEVER merge backend work into `main`, and never push to `main`.
+- Work on a branch off `feat/backend-skeleton` (e.g. `feat/tasks`). Pull requests go into `feat/backend-skeleton`.
+- Never run `git add .` from the repo root; add files by name.
+- Name new files in lowercase (Vercel/Linux is case-sensitive).
 
-## Rooms (Thomas)
-Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_url?}`
-`type` is `classroom | study_group | team | other`. `pending_count` = number of pending tasks in that room (same number for admins and members).
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| POST | /rooms | `{name, type?}` | 201 room (role `admin`) | T1 DONE, add `type` and `pending_count` TODO |
-| GET | /rooms | none | `[room]` (rooms I'm in) | T1 DONE, add new fields TODO |
-| POST | /rooms/join | `{invite_code}` | room | T1 DONE |
-| GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
-| POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
-| POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only. Promote: creator, or any admin once others are admins. Demote: creator only; the creator can never be demoted. | T1 TODO |
-| PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only. | T1 TODO |
-| DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only. Admins can remove members; only the creator can remove another admin; the creator can never be removed. The removed user gets 403 on every room endpoint. | T1 TODO |
-| POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only. | T1 TODO |
-| PUT | /rooms/{room_id}/avatar | multipart `image` | room. Admin only. Same image rules as profile pictures. | T2 TODO |
-
-## Tasks (Daniel)
-Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?}`
-`type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.
-`all_day` is true when no time was given (`due_at` is then the end of that day, in the user's time zone).
-Only `approved` tasks appear on the board and calendar.
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 TODO |
-| GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due that Sun to Sat week, sorted by due_at | T1 TODO |
-| GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month | T1 TODO |
-| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 TODO |
-| DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 TODO |
-
-## Approvals (Daniel)
-Rules:
-- Only room admins approve or reject tasks. Members submit tasks as `pending`.
-- A task created by a member: any admin can decide it.
-- A task created by an admin: another admin must decide it. An admin cannot approve or reject their own task, UNLESS they are the room's only admin. If the room has exactly one admin, that admin's new tasks are auto-approved at creation.
-- The first admin decision is final.
-- The Approve tab = pending tasks in the room, admins only. History = tasks an admin explicitly decided (auto-approved tasks are not in history).
-
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| GET | /rooms/{room_id}/approvals | none | `[task]` with status `pending` (admin only) | T1 TODO |
-| GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` tasks an admin explicitly approved or rejected, newest decision first, with `decided_by_name` and `decided_at` (admin only). Auto-approved tasks (sole admin) are NOT included. | T1 TODO |
-| POST | /tasks/{task_id}/approve | none | task (updated). Admin only. | T1 TODO |
-| POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 TODO |
-
-## Discussion (Daniel): room chat, text only
-Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at}`
-Rules:
-- Only room members can read or post (`require_member` on every endpoint). `body` is 1 to 2000 characters; rate-limit posting.
-- A user can delete ONLY their own messages. Room admins can NOT delete other users' messages (403).
-- Room discussion is NOT end-to-end encrypted (stored readable; disclosed in the privacy note). Never log message content.
-- The frontend renders message text with `textContent`, never `innerHTML`.
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 TODO |
-| POST | /rooms/{room_id}/messages | `{body, reply_to_id?}` | 201 message | T1 TODO |
-| DELETE | /messages/{message_id} | none | 204. Author only; anyone else, including admins, gets 403. | T1 TODO |
-T2 (not defined yet): @mentions, attachments, unread counts, "seen by". T3: WebSockets, DMs, calls (see Messaging).
-
-## Files (Daniel): replaces Notes
-File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version}`
-Rules:
-- Only room members can list or download. Locked = read-only notes: no new version, no rename (everyone can still download). The creator or any room admin can lock or unlock. The creator or any room admin can delete (even if locked).
-- Allowed: .pdf .docx .xlsx .pptx .txt .csv .md; source code of any language as plain text (.py .java .c .cpp .h .cs .js .ts .json .html .css .sql .php .rb .go .rs .sh and similar); images .png .jpg .jpeg .gif .webp; audio .mp3 .wav .m4a. Everything else is rejected with 415 (video, archives, executables and installers, macro-enabled Office files, legacy .doc/.xls/.ppt, SVG).
-- Limits (defaults): 10 MB per file, images 5 MB, audio 15 MB, 250 MB per room (413 when exceeded).
-- Validation order: logged in and member, size cap while streaming, extension allowlist, magic-bytes check (real type must match; text must be valid UTF-8 with no NUL bytes), sanitize the display name, store under a random key, re-encode images (strip EXIF). Never unzip or parse uploaded docx/xlsx on the server. Never execute or render uploaded files.
-- Serving: user files never come from the roomsync.me origin. Signed short-lived links, `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, text as `text/plain`.
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| GET | /rooms/{room_id}/files?kind=&sort=modified&order=desc | none | `[file]`. `kind`: docs, sheets, files. `sort`: modified, created, name, size. `order`: asc, desc. | T2 TODO |
-| POST | /rooms/{room_id}/files | multipart `file` | 201 file | T2 TODO |
-| POST | /rooms/{room_id}/files/new | `{kind:"doc" or "sheet", name}` | 201 file (a blank .docx or .xlsx) | T2 TODO |
-| GET | /files/{file_id}/download | none | `{url, expires_at}` (short-lived signed link) | T2 TODO |
-| PUT | /files/{file_id}/content | multipart `file` | file (new version). 403 if locked. | T2 TODO |
-| PATCH | /files/{file_id} | `{name?, locked?}` | file. Rename: not when locked. Lock or unlock: creator or admin. | T2 TODO |
-| DELETE | /files/{file_id} | none | 204 (creator or room admin) | T2 TODO |
-T3: live co-editing docs (Yjs over WebSockets). Not defined yet.
-
-## Users: profile, status, account
-User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
-`status.kind` is `working | brb | away | custom` (shown as "Working!", "BRB!", "Somewhere Else", or the custom text, max 40 characters). The status never expires; it stays until changed, and is visible to everyone in your rooms.
-| Method | Path | Body | Returns | Tier / Status |
-|---|---|---|---|---|
-| GET | /users/me | none | user | T1 TODO |
-| PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom`. | T1 TODO |
-| GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 TODO |
-| DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". | T1 TODO |
-| PUT | /users/me/avatar | multipart `image` | user. png/jpg/webp, max 2 MB, resized to 256x256, re-encoded. | T2 TODO |
-| DELETE | /users/me/avatar | none | 204 | T2 TODO |
-| POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes) | T2 TODO |
-| GET | /users/me/task-types | none | `[{id,name,color}]` | T2 TODO |
-| POST | /users/me/task-types | `{name(max 20), color:"#rrggbb"}` | 201 `{id,name,color}` (409 if name exists) | T2 TODO |
-| DELETE | /users/me/task-types/{id} | none | 204 | T2 TODO |
-| GET | /users/me/settings | none | settings | T2 TODO |
-| PUT | /users/me/settings | `{theme:"light|dark|system", show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone:"Asia/Manila", task_colors?:{type:"#rrggbb"}}` | settings | T2 TODO |
-Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
-
-## Deadline reminders (T2, no public endpoints except unsubscribe)
-- A background job emails users before an APPROVED task is due: defaults 3 days, 1 day and 3 hours before `due_at`.
-- Each user, task and offset is emailed at most once. Respects `notify_deadline_reminders`. Every email has an unsubscribe link: GET `/unsubscribe?token=` turns the setting off.
-
-## About (T2)
-| Method | Path | Body | Returns |
-|---|---|---|---|
-| POST | /feedback | `{name, room?, rating(1-5), message(max 2000), website?}` | 204 |
-| POST | /contact | `{name, email, message(max 2000), website?}` | 204 |
-Public endpoints: rate-limited. `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing.
-
-## Messaging (T3: AFTER LAUNCH, do NOT build yet)
-Listed so nobody invents conflicting endpoints. Exact endpoints are added here BEFORE any code is written.
-- Instant delivery (WebSockets) for room chat, typing indicators, presence.
-- Direct messages: private between two users, END-TO-END ENCRYPTED. The server stores only ciphertext. Room admins and developers can NOT read DMs. Users still see history. Users can delete only their own DMs.
-- Audio and video calls (press Call, the other person is rung), 1-on-1 and room group calls, through an embedded call service. The ring uses the WebSocket.
-- Live co-editing docs in Files.
-- Until DMs ship, do not claim end-to-end encryption anywhere in the product or docs.
-
-## Health
-GET `/health` returns `{"status":"ok"}` (no auth).
+## Commands (from `backend/`)
+- Setup (Mac/Linux): `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
+- Setup (Windows PowerShell): `python -m venv .venv; .venv\Scripts\Activate.ps1; pip install -r requirements.txt`
+- Run: `uvicorn app.main:app --reload`, then open http://localhost:8000/docs
+- Test: `python -m pytest -q`

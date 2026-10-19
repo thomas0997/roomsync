@@ -1,7 +1,7 @@
 """All database tables. Edit carefully: both of us touch this file, keep changes small."""
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -17,6 +17,10 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(100))
     password_hash: Mapped[str] = mapped_column(String(255))
+    # status: "working" | "brb" | "away" | "custom". Never expires. status_text only used for "custom" (max 40).
+    status_kind: Mapped[str] = mapped_column(String(10), default="working")
+    status_text: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # soft delete
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
@@ -27,6 +31,7 @@ class Room(Base):
     __tablename__ = "rooms"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
+    type: Mapped[str] = mapped_column(String(20), default="classroom")  # classroom|study_group|team|other
     invite_code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -58,14 +63,18 @@ class Task(Base):
     type: Mapped[str] = mapped_column(String(30))  # exam, quiz, case-study, ... or a custom type name
     subject: Mapped[str | None] = mapped_column(String(50), nullable=True)
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    all_day: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(10), default="pending")  # pending|approved|rejected
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    decided_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     approvals = relationship("Approval", cascade="all, delete-orphan")
 
 
 class Approval(Base):
+    # UNUSED: the first admin decision lives on Task (decided_by/decided_at). Remove in cleanup.
     __tablename__ = "approvals"
     __table_args__ = (UniqueConstraint("task_id", "voter_id", name="uq_task_voter"),)
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -76,6 +85,7 @@ class Approval(Base):
 
 
 class Note(Base):
+    # UNUSED: replaced by Files (T2). Remove in cleanup.
     __tablename__ = "notes"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), index=True)
@@ -91,6 +101,9 @@ class Message(Base):
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"), index=True)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     body: Mapped[str] = mapped_column(Text)
+    reply_to_id: Mapped[int | None] = mapped_column(
+        ForeignKey("messages.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

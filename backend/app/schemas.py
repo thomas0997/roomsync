@@ -1,5 +1,6 @@
 """Request/response shapes (what the frontend sends and receives)."""
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -49,3 +50,7 @@ class MemberOut(BaseModel):
     name: str
     role: str
     joined_at: datetime
+
+
+class RoleIn(BaseModel):
+    role: Literal["admin", "member"]

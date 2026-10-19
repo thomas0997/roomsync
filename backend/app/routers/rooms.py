@@ -4,10 +4,10 @@ import string
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user, require_member
+from ..auth import get_current_user, require_admin, require_member
 from ..db import get_db
 from ..models import Membership, Room, User
-from ..schemas import MemberOut, RoomCreate, RoomJoin, RoomOut
+from ..schemas import MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 ALPHABET = string.ascii_uppercase + string.digits
@@ -73,3 +73,30 @@ def leave_room(room_id: int, user: User = Depends(get_current_user), db: Session
     else:
         db.delete(me)
     db.commit()
+
+
+@router.post("/{room_id}/members/{user_id}/role", response_model=MemberOut)
+def set_role(
+    room_id: int,
+    user_id: int,
+    data: RoleIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    require_admin(db, user, room_id)  # 403 unless the caller is an admin of this room
+    target = db.query(Membership).filter(Membership.room_id == room_id, Membership.user_id == user_id).first()
+    if target is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found")
+    room = db.get(Room, room_id)
+
+    if data.role == "member" and target.role == "admin":  # demoting
+        if user.id != room.created_by:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the room creator can demote an admin")
+        if target.user_id == room.created_by:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "The room creator can't be demoted")
+    # Promoting needs no extra check: any admin can promote (require_admin already ran).
+
+    target.role = data.role
+    db.commit()
+    db.refresh(target)
+    return MemberOut(user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at)

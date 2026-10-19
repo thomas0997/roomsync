@@ -6,9 +6,10 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  var form = document.getElementById('loginForm');
   var emailField = document.getElementById('email');
   var passwordField = document.getElementById('password');
-  var loginBtn = document.getElementById('loginBtn');
+  var pwToggle = document.getElementById('pwToggle');
   var errorMsg = document.getElementById('login-error');
   var quickAdminBtn = document.getElementById('quickAdmin');
   var quickMemberBtn = document.getElementById('quickMember');
@@ -24,25 +25,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  loginBtn.addEventListener('click', tryLogin);
+  // Submit by button click or by pressing Enter in either field
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    tryLogin();
+  });
 
-  // Allow pressing Enter in either field to submit
-  [emailField, passwordField].forEach(function (field) {
-    field.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') tryLogin();
-    });
+  // Show / hide password
+  pwToggle.addEventListener('click', function () {
+    var show = passwordField.type === 'password';
+    passwordField.type = show ? 'text' : 'password';
+    pwToggle.textContent = show ? 'Hide' : 'Show';
+    pwToggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    pwToggle.setAttribute('aria-pressed', String(show));
   });
 
   // Quick login shortcuts skip the admin/admin check entirely
-  if (quickAdminBtn) {
-    quickAdminBtn.addEventListener('click', function () {
-      window.location.href = 'home.html';
-    });
-  }
-  if (quickMemberBtn) {
-    quickMemberBtn.addEventListener('click', function () {
-      window.location.href = 'home.html';
-    });
-  }
+  quickAdminBtn.addEventListener('click', function () {
+    window.location.href = 'home.html';
+  });
+  quickMemberBtn.addEventListener('click', function () {
+    window.location.href = 'home.html';
+  });
 
 });

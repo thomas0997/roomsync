@@ -14,51 +14,51 @@
 <body>
 
   <div class="login-wrap">
-    <div class="logo-head">
+    <a href="index.html" class="logo-head" aria-label="RoomSync home">
       <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="logo-mark">
       <div class="logo-word"><span class="room">room</span><span class="sync">sync</span></div>
-    </div>
+    </a>
 
     <div class="card">
-      <div class="card-title">Log in</div>
-      
-      <div id="login-error" class="login-error" hidden>Incorrect email or password.</div>
-
-      <div class="field">
-        <label for="email">EMAIL</label>
-        <input type="text" id="email" placeholder="you@roomsync.ph">
+      <div class="auth-tabs" role="tablist" aria-label="Log in or sign up">
+        <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" aria-controls="authForm">Log in</button>
+        <button type="button" class="auth-tab" id="tabSignup" role="tab" aria-selected="false" aria-controls="authForm">Sign up</button>
       </div>
 
-      <div class="field">
-        <label for="password">PASSWORD</label>
-        <input type="password" id="password" placeholder="•••••••••••••">
-      </div>
+      <p class="card-sub" id="cardSub">Welcome back. Pick up where your room left off.</p>
 
-      <button class="btn-login" id="loginBtn" type="button">Log in</button>
+      <div id="auth-error" class="login-error" role="alert" hidden></div>
 
-      <div class="divider">
-        <div class="line"></div>
-        <div class="label">QUICK LOG IN</div>
-        <div class="line"></div>
-      </div>
+      <form id="authForm" class="auth-form" novalidate>
+        <div class="field" id="nameField" hidden>
+          <label for="name">NAME</label>
+          <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" maxlength="100">
+        </div>
 
-      <button class="btn-oauth">
-        <img src="../assets/GoogleLogo.png" alt="Google logo">
-        <span>Continue with Google</span>
-      </button>
+        <div class="field">
+          <label for="email">EMAIL</label>
+          <input type="email" id="email" name="email" placeholder="you@school.edu" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+        </div>
 
-      <button class="btn-oauth">
-        <img src="../assets/AppleLogo.png" alt="Apple logo">
-        <span>Continue with Apple</span>
-      </button>
+        <div class="field">
+          <label for="password">PASSWORD</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" maxlength="128">
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          <p class="hint" id="pwHint" hidden>At least 8 characters.</p>
+        </div>
 
-      <div class="quick-row">
-        <button class="btn-quick" id="quickAdmin">Continue as Admin</button>
-        <button class="btn-quick" id="quickMember">Continue as Member</button>
-      </div>
+        <button class="btn-login" id="submitBtn" type="submit">Log in</button>
+      </form>
+
+      <p class="switch-row" id="switchRow">New to RoomSync? <button type="button" class="link-btn" id="switchBtn">Create an account</button></p>
     </div>
+
+    <a href="index.html" class="back-link">&larr; Back to home</a>
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/login.js"></script>
 </body>
 </html>

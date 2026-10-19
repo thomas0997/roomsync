@@ -45,17 +45,17 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only. Admins can remove members; only the creator can remove another admin; the creator can never be removed. The removed user gets 403 on every room endpoint. | T1 TODO |
 | POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only. | T1 TODO |
 | PUT | /rooms/{room_id}/avatar | multipart `image` | room. Admin only. Same image rules as profile pictures. | T2 TODO |
-
 ## Tasks (Daniel)
 Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?}`
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.
-`all_day` is true when no time was given (`due_at` is then the end of that day, in the user's time zone).
+`all_day` is true when no time was given (`due_at` is then the end of that day in Asia/Manila, which is 15:59:00Z).
 Only `approved` tasks appear on the board and calendar.
+Time zone: until the T2 timezone setting exists, weeks and months are calculated in Asia/Manila (UTC+8).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 TODO |
-| GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due that Sun to Sat week, sorted by due_at | T1 TODO |
-| GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month | T1 TODO |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing) and must include a time zone. Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
+| GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 TODO |
+| GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 TODO |
 | PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 TODO |
 | DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 TODO |
 

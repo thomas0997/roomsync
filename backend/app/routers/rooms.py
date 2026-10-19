@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_admin, require_member
 from ..db import get_db
-from ..models import Membership, Room, User
-from ..schemas import MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut
+from ..models import Membership, Room, Task, User
+from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 ALPHABET = string.ascii_uppercase + string.digits
@@ -22,12 +22,21 @@ def _new_code(db: Session) -> str:
 
 def _room_out(room: Room, role: str, db: Session) -> RoomOut:
     count = db.query(Membership).filter(Membership.room_id == room.id).count()
-    return RoomOut(id=room.id, name=room.name, invite_code=room.invite_code, role=role, member_count=count)
+    pending = db.query(Task).filter(Task.room_id == room.id, Task.status == "pending").count()
+    return RoomOut(
+        id=room.id,
+        name=room.name,
+        type=room.type,
+        invite_code=room.invite_code,
+        role=role,
+        member_count=count,
+        pending_count=pending,
+    )
 
 
 @router.post("", response_model=RoomOut, status_code=status.HTTP_201_CREATED)
 def create_room(data: RoomCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    room = Room(name=data.name.strip(), invite_code=_new_code(db), created_by=user.id)
+    room = Room(name=data.name.strip(), type=data.type, invite_code=_new_code(db), created_by=user.id)
     db.add(room)
     db.flush()
     db.add(Membership(user_id=user.id, room_id=room.id, role="admin"))
@@ -100,3 +109,50 @@ def set_role(
     db.commit()
     db.refresh(target)
     return MemberOut(user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at)
+
+
+@router.patch("/{room_id}", response_model=RoomOut)
+def update_room(
+    room_id: int,
+    data: RoomUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    me = require_admin(db, user, room_id)
+    room = db.get(Room, room_id)
+    if data.name is not None:
+        room.name = data.name.strip()
+    if data.type is not None:
+        room.type = data.type
+    db.commit()
+    db.refresh(room)
+    return _room_out(room, me.role, db)
+
+
+@router.delete("/{room_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_member(
+    room_id: int,
+    user_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    require_admin(db, user, room_id)
+    target = db.query(Membership).filter(Membership.room_id == room_id, Membership.user_id == user_id).first()
+    if target is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found")
+    room = db.get(Room, room_id)
+    if target.user_id == room.created_by:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "The room creator can't be removed")
+    if target.role == "admin" and user.id != room.created_by:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the room creator can remove an admin")
+    db.delete(target)
+    db.commit()
+
+
+@router.post("/{room_id}/invite-code/reset", response_model=InviteCodeOut)
+def reset_invite_code(room_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    require_admin(db, user, room_id)
+    room = db.get(Room, room_id)
+    room.invite_code = _new_code(db)
+    db.commit()
+    return InviteCodeOut(invite_code=room.invite_code)

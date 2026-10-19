@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class SignupIn(BaseModel):
@@ -29,8 +29,24 @@ class TokenOut(BaseModel):
     user: UserOut
 
 
+RoomType = Literal["classroom", "study_group", "team", "other"]
+
+
 class RoomCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
+    type: RoomType = "classroom"
+
+
+class RoomUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    type: RoomType | None = None
+
+    @model_validator(mode="after")
+    def _need_one_field(self):
+        if self.name is None and self.type is None:
+            raise ValueError("Send at least one of: name, type")
+        return self
 
 
 class RoomJoin(BaseModel):
@@ -40,9 +56,11 @@ class RoomJoin(BaseModel):
 class RoomOut(BaseModel):
     id: int
     name: str
+    type: str
     invite_code: str
     role: str  # the caller's role in this room
     member_count: int
+    pending_count: int  # tasks waiting for an admin decision
 
 
 class MemberOut(BaseModel):
@@ -54,3 +72,7 @@ class MemberOut(BaseModel):
 
 class RoleIn(BaseModel):
     role: Literal["admin", "member"]
+
+
+class InviteCodeOut(BaseModel):
+    invite_code: str

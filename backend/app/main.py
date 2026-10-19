@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import Base, engine
 from .routers import approvals, auth, discussion, notes, profile, rooms, tasks
 
 load_dotenv()
@@ -20,8 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Simple for now: create tables on startup. (Migrations with Alembic only if we have time.)
-Base.metadata.create_all(bind=engine)
+# Tables are created and changed by Alembic migrations, not by the app: run `alembic upgrade head`.
 
 for module in (auth, rooms, tasks, approvals, notes, discussion, profile):
     app.include_router(module.router)

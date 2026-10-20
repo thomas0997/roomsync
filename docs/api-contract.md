@@ -6,7 +6,7 @@ Datetimes are ISO 8601 UTC strings, e.g. `"2026-08-13T15:59:00Z"`. Interactive d
 
 Tiers: **T1** = Nov 7 core, **T2** = Nov to Dec, **T3** = after launch. Build only T1 unless told otherwise. Status: DONE or TODO.
 
-Limits (server-enforced): a user can be in at most 10 rooms and a room has at most 50 members (409 "Room limit reached" on create or join). Status: TODO (not enforced in code yet).
+Limits (server-enforced, T1 DONE): a user can be in at most 10 rooms and a room has at most 50 members. Creating or joining a room when you are already in 10 gives 409 "Room limit reached: ...". Joining a full room gives 409 "This room is full (50 members)." Joining a room you are already in is still fine at the limit.
 Rules for every endpoint: validate input, check membership/admin first, never log message content, never trust IDs from the client.
 
 ## Roles (read this first)

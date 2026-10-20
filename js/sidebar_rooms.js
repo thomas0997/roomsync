@@ -1,19 +1,27 @@
 /* ============================================================
-   ROOMSYNC — home_rooms.js
-   Home page rooms, wired to the API:
+   ROOMSYNC — sidebar_rooms.js
+   The shared sidebar, wired to the API. Loaded on every page after
+   js/config.js. It:
    - sends logged-out visitors to login.html
-   - lists your rooms (sidebar + mobile/tablet dropdowns)
+   - lists your rooms (sidebar + mobile/tablet dropdowns) and remembers
+     the selected room in localStorage "roomsync_room"
    - shows the members of the selected room
    - create a room, join a room with an invite code
-   - shows your name and a Log out button
+   - shows your name and status
+   Other scripts can listen for the "roomsync:room" event (detail.id) and
+   ask window.RoomSyncHome.currentRoomId(). Dispatch "roomsync:rooms-changed"
+   on document to make this file reload the room list (after leaving a room).
    All user text is written with textContent (never innerHTML).
-   Needs: js/config.js (window.ROOMSYNC) and <body data-api-rooms>.
+   Needs: js/config.js (window.ROOMSYNC).
    ============================================================ */
 (function () {
   'use strict';
 
   var cfg = window.ROOMSYNC;
   if (!cfg) { return; }
+
+  // Tell rooms.js this page gets its rooms from the API, so the old demo data stays off.
+  document.body.setAttribute('data-api-rooms', '');
 
   var LAST_ROOM_KEY = 'roomsync_room';
   var MAX_VISIBLE_MEMBERS = 5;
@@ -289,6 +297,53 @@
   });
 
   /* ---------- new room modal ---------- */
+  // Home's modal has ids and error lines; the other pages' copies are plain. Add what is missing
+  // so one set of code below works everywhere.
+  function prepareModals() {
+    var j = byId('joinRoomForm');
+    var c = byId('createRoomForm');
+    function needError(form, id) {
+      if (!form || byId(id)) { return; }
+      var p = document.createElement('p');
+      p.className = 'abt-form-error';
+      p.id = id;
+      p.setAttribute('role', 'alert');
+      p.hidden = true;
+      var actions = form.querySelector('.abt-form-actions');
+      form.insertBefore(p, actions);
+    }
+    if (j) {
+      var ji = j.querySelector('input');
+      if (ji && !byId('joinCodeInput')) { ji.id = 'joinCodeInput'; ji.maxLength = 16; ji.placeholder = 'Paste your invite code'; ji.autocomplete = 'off'; }
+      needError(j, 'joinError');
+    }
+    if (c) {
+      var ci = c.querySelector('input[type="text"]');
+      if (ci && !byId('createNameInput')) { ci.id = 'createNameInput'; ci.maxLength = 100; }
+      var cs = c.querySelector('select');
+      if (cs && !byId('createTypeSelect')) {
+        cs.id = 'createTypeSelect';
+        var values = ['classroom', 'study_group', 'team', 'other'];
+        Array.prototype.forEach.call(cs.options, function (opt, i) { opt.value = values[i] || 'other'; });
+      }
+      needError(c, 'createError');
+    }
+    // The invite code line lives under the member list; home has it in its HTML, the others get it here.
+    if (!byId('inviteCodeLine') && byId('onlineUsersList')) {
+      var line = document.createElement('p');
+      line.className = 'invite-code-line';
+      line.id = 'inviteCodeLine';
+      line.hidden = true;
+      line.appendChild(document.createTextNode('Invite code: '));
+      var strong = document.createElement('strong');
+      strong.id = 'inviteCodeValue';
+      line.appendChild(strong);
+      byId('onlineUsersList').parentNode.appendChild(line);
+    }
+    // We have no live "online" tracking yet (T2), so call the list what it is.
+    document.querySelectorAll('.online-users-title').forEach(function (el) { el.textContent = 'Members'; });
+  }
+  prepareModals();
   function setModalOpen(open) {
     var overlay = byId('newRoomModalOverlay');
     if (overlay) { overlay.hidden = !open; }
@@ -348,8 +403,16 @@
     });
   }
 
-  /* ---------- profile row + log out ---------- */
-  function renderProfile() {
+  /* ---------- profile row ---------- */
+  var KIND_LABEL = { working: 'Working!', brb: 'BRB!', away: 'Somewhere Else' };
+
+  function statusLabel(st) {
+    if (!st) { return KIND_LABEL.working; }
+    if (st.kind === 'custom') { return st.text || 'Custom'; }
+    return KIND_LABEL[st.kind] || KIND_LABEL.working;
+  }
+
+  async function renderProfile() {
     var user = null;
     try { user = JSON.parse(read(cfg.USER_KEY) || 'null'); } catch (e) { user = null; }
     var nameEl = document.querySelector('.profile-name');
@@ -358,6 +421,13 @@
     if (nameEl) { nameEl.textContent = user && user.name ? user.name : ''; }
     if (statusEl) { statusEl.textContent = ''; }
     if (img && user && user.name) { img.alt = user.name; }
+    // The profile page fills in its own name and status (js/profile_api.js).
+    if (document.body.hasAttribute('data-api-profile')) { return; }
+    var r = await api('/users/me');
+    if (!r.ok) { return; }
+    if (nameEl) { nameEl.textContent = r.body.name; }
+    if (statusEl) { statusEl.textContent = statusLabel(r.body.status); }
+    if (img) { img.alt = r.body.name; }
   }
 
   var logoutBtn = byId('logoutBtn');
@@ -391,6 +461,9 @@
     errorText: errorText,
     currentRoomId: function () { return currentId; }
   };
+
+  // Another script (for example Settings after Leave Room) can ask for a fresh room list.
+  document.addEventListener('roomsync:rooms-changed', function () { init(); });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

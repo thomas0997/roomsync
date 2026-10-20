@@ -56,10 +56,10 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing) and must include a time zone. Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
-| GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 TODO |
-| GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 TODO |
-| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 TODO |
-| DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 TODO |
+| GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
+| GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
+| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 DONE |
+| DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 DONE |
 
 ## Approvals (Daniel)
 Rules:

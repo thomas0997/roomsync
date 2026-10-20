@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +21,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Make browsers re-check our frontend files on every load. The server already
+# sends an ETag, so an unchanged file costs a tiny "304 Not Modified" reply, and a
+# changed file (after a deploy) is picked up straight away instead of staying stale.
+STATIC_PREFIXES = ("/pages/", "/css/", "/js/", "/assets/")
+
+
+@app.middleware("http")
+async def no_stale_frontend_files(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith(STATIC_PREFIXES):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 
 # Tables are created and changed by Alembic migrations, not by the app: run `alembic upgrade head`.
 

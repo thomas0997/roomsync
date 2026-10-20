@@ -1,6 +1,6 @@
 # RoomSync API contract (source of truth)
 
-Base URL: `http://localhost:8000` locally. In production the API and the frontend are served from the same domain (`https://roomsync.me`, after the backend deploy). Bodies are JSON unless a section says multipart. Auth = header `Authorization: Bearer <token>`.
+Base URL: `http://localhost:8000` locally. In production the API and the frontend are served from the same domain, `https://roomsync.me` (LIVE since Oct 19: Render + Neon, deployed from `feat/backend-skeleton`). The server also serves the frontend files (`/pages`, `/css`, `/js`, `/assets`), and `/` redirects to `/pages/index.html`. Bodies are JSON unless a section says multipart. Auth = header `Authorization: Bearer <token>`.
 Errors look like `{"detail": "message"}`. Status codes: 401 not logged in, 403 not allowed, 404 not found, 409 conflict (including limits), 413 file too large, 415 file type not allowed, 422 bad input, 429 too many requests.
 Datetimes are ISO 8601 UTC strings, e.g. `"2026-08-13T15:59:00Z"`. Interactive docs: `/docs`.
 
@@ -33,11 +33,12 @@ Log out = the client deletes the token (no endpoint). Rate-limit signup, login, 
 ## Rooms (Thomas)
 Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_url?}`
 `type` is `classroom | study_group | team | other`. `pending_count` = number of pending tasks in that room (same number for admins and members).
+`invite_code` is currently returned to every member by `GET /rooms`; the home page only shows it to admins. TODO (T1): return it only to admins (`null` for members), so a member can't read it from the API and invite others.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
 | GET | /rooms | none | `[room]` (rooms I'm in), including `type` and `pending_count` | T1 DONE |
-| POST | /rooms/join | `{invite_code}` | room | T1 DONE |
+| POST | /rooms/join | `{invite_code}` | room. Invalid code gives 404 "Invalid invite code". Joining a room you are already in just returns the room. Codes are case-insensitive. | T1 DONE |
 | GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
 | POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |
@@ -145,6 +146,12 @@ Listed so nobody invents conflicting endpoints. Exact endpoints are added here B
 - Audio and video calls (press Call, the other person is rung), 1-on-1 and room group calls, through an embedded call service. The ring uses the WebSocket.
 - Live co-editing docs in Files.
 - Until DMs ship, do not claim end-to-end encryption anywhere in the product or docs.
+
+## Frontend conventions (all pages)
+- API address: `js/config.js` sets `window.ROOMSYNC.API_BASE` (empty in production, `http://localhost:8000` on Live Server ports).
+- The login token is stored in `localStorage` as `roomsync_token`, the user as `roomsync_user`. Send `Authorization: Bearer <token>`. On any 401, clear both keys and go to `login.html`.
+- Render all user text with `textContent`, never `innerHTML`.
+- Pages already wired to the API: `login.html`, `home.html` (rooms, members, create, join, logout). Marked with `<body data-api-rooms>`; other pages still show demo data.
 
 ## Health
 GET `/health` returns `{"status":"ok"}` (no auth).

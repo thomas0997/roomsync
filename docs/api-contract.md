@@ -52,13 +52,14 @@ Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|app
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.
 `all_day` is true when no time was given (`due_at` is then the end of that day in Asia/Manila, which is 15:59:00Z).
 Only `approved` tasks appear on the board and calendar.
+A task cannot be due in the past (decided Oct 20). Admins can still approve or reject a task whose date has passed while it waited.
 Time zone: until the T2 timezone setting exists, weeks and months are calculated in Asia/Manila (UTC+8).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing) and must include a time zone. Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
-| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject can be cleared with null. Editing never changes the status. | T1 DONE |
+| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject can be cleared with null. Editing never changes the status. If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 DONE |
 | DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 DONE |
 
 Task-id endpoints (PATCH and DELETE /tasks/{task_id}, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
@@ -162,7 +163,7 @@ Listed so nobody invents conflicting endpoints. Exact endpoints are added here B
 - API address: `js/config.js` sets `window.ROOMSYNC.API_BASE` (empty in production, `http://localhost:8000` on Live Server ports).
 - The login token is stored in `localStorage` as `roomsync_token`, the user as `roomsync_user`. Send `Authorization: Bearer <token>`. On any 401, clear both keys and go to `login.html`.
 - Render all user text with `textContent`, never `innerHTML`.
-- Pages already wired to the API: `login.html`, `home.html` (rooms, members, create, join, logout). Marked with `<body data-api-rooms>`; other pages still show demo data.
+- Pages already wired to the API: `login.html`, `home.html` (rooms, members, create, join, logout, the week board and New TODO). Marked with `<body data-api-rooms>`; other pages still show demo data.
 - Frontend files are sent with `Cache-Control: no-cache`, so browsers re-check them on every load (an unchanged file costs a tiny 304 reply).
 
 ## Health

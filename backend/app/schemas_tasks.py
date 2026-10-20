@@ -1,7 +1,7 @@
 """Request/response shapes for tasks. Separate file so we don't collide with Thomas in schemas.py."""
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
 
 def _to_utc(value: datetime | None) -> datetime | None:
@@ -31,6 +31,38 @@ class TaskCreate(BaseModel):
     @classmethod
     def due_at_to_utc(cls, v):
         return _to_utc(v)
+
+
+class TaskUpdate(BaseModel):
+    """PATCH body: every field is optional, but at least one must be sent."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    type: str | None = Field(default=None, min_length=1, max_length=30)
+    subject: str | None = Field(default=None, max_length=50)  # null or "" clears the subject
+    due_at: datetime | None = None
+    all_day: bool | None = None
+
+    @field_validator("subject")
+    @classmethod
+    def blank_subject_is_none(cls, v):
+        return v or None
+
+    @field_validator("due_at")
+    @classmethod
+    def due_at_to_utc(cls, v):
+        return _to_utc(v)
+
+    @model_validator(mode="after")
+    def check_fields(self):
+        sent = self.model_fields_set  # the fields the client actually sent
+        if not sent:
+            raise ValueError("send at least one field to change")
+        for name in ("title", "type", "due_at", "all_day"):
+            if name in sent and getattr(self, name) is None:  # only subject may be null
+                raise ValueError(f"{name} cannot be null")
+        return self
 
 
 class TaskOut(BaseModel):

@@ -6,6 +6,10 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // Pages marked <body data-api-rooms> get their rooms and members from the
+  // API (see home_rooms.js). On those pages the old demo data below is skipped.
+  var API_MODE = document.body.hasAttribute('data-api-rooms');
+
   var sidebar = document.getElementById('sidebar');
   var overlay = document.getElementById('sidebarOverlay');
   var hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -194,8 +198,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Set the default room's state on load
-  updateRoomEmptyState('The Bozos');
-  renderOnlineUsers('The Bozos');
+  if (!API_MODE) {
+    updateRoomEmptyState('The Bozos');
+    renderOnlineUsers('The Bozos');
+  }
 
   // Desktop's persistent room list (sidebar) didn't have a click handler before — add one
   document.querySelectorAll('.room-buttons .room-pill:not(.room-pill-new)').forEach(function (pill) {
@@ -403,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   var joinRoomForm = document.getElementById('joinRoomForm');
-  if (joinRoomForm) {
+  if (joinRoomForm && !API_MODE) {
     joinRoomForm.addEventListener('submit', function (e) {
       e.preventDefault();
       // TODO: send the real invite code to a backend once one exists
@@ -415,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var createRoomForm = document.getElementById('createRoomForm');
-  if (createRoomForm) {
+  if (createRoomForm && !API_MODE) {
     createRoomForm.addEventListener('submit', function (e) {
       e.preventDefault();
       // TODO: actually create the room once there's a backend
@@ -435,7 +441,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!personModalOverlay) return;
     document.getElementById('personModalAvatar').textContent = initials;
     document.getElementById('personModalName').textContent = name;
-    document.getElementById('personModalStatus').textContent = online === 'true' ? 'Online now' : 'Offline';
+    document.getElementById('personModalStatus').textContent =
+      online === 'true' ? 'Online now' : (online === 'false' ? 'Offline' : '');
     personModalOverlay.hidden = false;
   }
   function closePersonModal() {

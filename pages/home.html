@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
 </head>
-<body>
+<body data-api-rooms>
 
   <!-- ============================================================
        TOP BAR (desktop: text nav links + New TODO button)
@@ -43,19 +43,10 @@
       <div class="room-switcher tablet-only">
         <button class="room-pill-floating" id="roomPillBtnTablet" aria-haspopup="true" aria-expanded="false">
           <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
-          <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar" data-room-avatar>
-          <span class="room-name" data-room-name>The Bozos</span>
+          <span class="room-avatar room-avatar-letter" data-room-avatar aria-hidden="true"></span>
+          <span class="room-name" data-room-name>Loading...</span>
         </button>
         <div class="room-dropdown" id="roomDropdownTablet" hidden>
-          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="" data-avatar-src="../assets/TheBozos_Logo.jpg">
-            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar"> The Bozos
-          </button>
-          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline" data-avatar-src="../assets/Auroninc_Logo.jpg">
-                      <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar">Auron Inc.
-          </button>
-          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline" data-avatar-src="../assets/CYB201_Logo.jpg">
-            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar"> CYB201
-          </button>
           <button class="room-dropdown-item room-dropdown-item-new" id="newRoomBtn_roomDropdownTablet">
             <span class="room-pill-new-icon">+</span>
             New Room
@@ -89,24 +80,6 @@
 
         <!-- Desktop: room list lives here, directly under the logo -->
         <div class="room-buttons desktop-only" role="tablist" aria-label="Your rooms">
-          <button class="room-pill room-pill-active">
-            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar">
-            <span class="room-name">The Bozos</span>
-            <span class="room-dot"></span>
-            <span class="room-count">13</span>
-          </button>
-          <button class="room-pill">
-            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar room-avatar-outline">
-            <span class="room-name">Auron Inc.</span>
-            <span class="room-dot"></span>
-            <span class="room-count">4</span>
-          </button>
-          <button class="room-pill">
-            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar room-avatar-outline">
-            <span class="room-name">CYB201</span>
-            <span class="room-dot"></span>
-            <span class="room-count">9</span>
-          </button>
           <button class="room-pill room-pill-new" id="newRoomBtnDesktop">
             <span class="room-pill-new-icon">+</span>
             <span class="room-name">New Room</span>
@@ -212,6 +185,7 @@
         <div class="online-users profile-text-conditional">
           <p class="online-users-title">Online in this room</p>
           <ul class="online-users-list" id="onlineUsersList"></ul>
+          <p class="invite-code-line" id="inviteCodeLine" hidden>Invite code: <strong id="inviteCodeValue"></strong></p>
         </div>
       </div>
 
@@ -221,17 +195,20 @@
             <!-- PLACEHOLDER IMAGE: replace with the user's real profile photo -->
             <div class="avatar">
               <!-- PLACEHOLDER PROFILE PHOTO: replace ../assets/profile_photo.png with the real photo — this one file updates it everywhere -->
-              <img src="../assets/profile_photo.png" alt="Tony Franks" class="avatar-img">
+              <img src="../assets/profile_photo.png" alt="" class="avatar-img">
               <span class="status-dot"></span>
             </div>
             <div class="profile-text profile-text-conditional">
-              <div class="profile-name">Tony Franks</div>
-              <div class="profile-status">Working!</div>
+              <div class="profile-name"></div>
+              <div class="profile-status"></div>
             </div>
           </a>
           <!-- PLACEHOLDER ICON: settings gear icon -->
           <button class="settings-icon profile-text-conditional" id="settingsBtn" aria-label="Settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+          <button class="settings-icon profile-text-conditional" id="logoutBtn" aria-label="Log out" title="Log out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
           </button>
         </div>
       </div>
@@ -249,23 +226,11 @@
       <div class="room-switcher mobile-only">
         <button class="room-pill-floating" id="roomPillBtnMobile" aria-haspopup="true" aria-expanded="false">
           <!-- PLACEHOLDER IMAGE: replace with the room's real photo/icon -->
-          <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar" data-room-avatar>
+          <span class="room-avatar room-avatar-letter" data-room-avatar aria-hidden="true"></span>
 
-          <span class="room-name" data-room-name>The Bozos</span>
+          <span class="room-name" data-room-name>Loading...</span>
         </button>
         <div class="room-dropdown" id="roomDropdownMobile" hidden>
-          <button class="room-dropdown-item active" data-room="The Bozos" data-avatar-class="" data-avatar-src="../assets/TheBozos_Logo.jpg">
-            <img src="../assets/TheBozos_Logo.jpg" alt="The Bozos" class="room-avatar">
-            The Bozos
-          </button>
-          <button class="room-dropdown-item" data-room="Auron Inc." data-avatar-class="room-avatar-outline" data-avatar-src="../assets/Auroninc_Logo.jpg">
-            <img src="../assets/Auroninc_Logo.jpg" alt="Auron Inc." class="room-avatar room-avatar-outline">
-            Auron Inc.
-          </button>
-          <button class="room-dropdown-item" data-room="CYB201" data-avatar-class="room-avatar-outline" data-avatar-src="../assets/CYB201_Logo.jpg">
-            <img src="../assets/CYB201_Logo.jpg" alt="CYB201" class="room-avatar room-avatar-outline">
-            CYB201
-          </button>
           <button class="room-dropdown-item room-dropdown-item-new" id="newRoomBtn_roomDropdownMobile">
             <span class="room-pill-new-icon">+</span>
             New Room
@@ -276,9 +241,9 @@
       <div class="page-header-row">
         <div class="page-header">
           <p class="page-eyebrow desktop-tablet-only">BOARD</p>
-          <h1 class="page-title desktop-tablet-only">What's Happening in <span data-room-title-name>The Bozos</span> This Week?</h1>
+          <h1 class="page-title desktop-tablet-only">What's Happening in <span data-room-title-name>your room</span> This Week?</h1>
           <h1 class="page-title page-title-mobile mobile-only-inline">This week</h1>
-          <p class="page-subtitle">Every deadline for <span data-room-title-name>The Bozos</span>, laid out day by day.</p>
+          <p class="page-subtitle">Every deadline for <span data-room-title-name>your room</span>, laid out day by day.</p>
         </div>
         <button class="btn-todo desktop-only" id="newTodoBtnDesktop">
           <span class="plus">+</span> New TODO
@@ -613,8 +578,9 @@
       <form id="joinRoomForm" class="abt-panel abt-panel-active" data-room-panel="join" style="flex-direction:column; gap:16px;">
         <label class="abt-field">
           <span class="abt-field-label">Invite Code</span>
-          <input type="text" placeholder="e.g. BOZO-2026" required>
+          <input type="text" id="joinCodeInput" placeholder="Paste your invite code" maxlength="16" autocomplete="off" required>
         </label>
+        <p class="abt-form-error" id="joinError" role="alert" hidden></p>
         <div class="abt-form-actions">
           <button type="submit" class="abt-btn-submit">Join Room</button>
           <button type="button" class="abt-btn-reset" data-room-cancel>Cancel</button>
@@ -624,17 +590,18 @@
       <form id="createRoomForm" class="abt-panel" data-room-panel="create" hidden style="flex-direction:column; gap:16px;">
         <label class="abt-field">
           <span class="abt-field-label">Room Name</span>
-          <input type="text" placeholder="e.g. Study Group 4" required>
+          <input type="text" id="createNameInput" placeholder="e.g. Study Group 4" maxlength="100" required>
         </label>
         <label class="abt-field">
           <span class="abt-field-label">Room Type</span>
-          <select>
-            <option>Classroom</option>
-            <option>Study Group</option>
-            <option>Team / Org</option>
-            <option>Other</option>
+          <select id="createTypeSelect">
+            <option value="classroom">Classroom</option>
+            <option value="study_group">Study Group</option>
+            <option value="team">Team / Org</option>
+            <option value="other">Other</option>
           </select>
         </label>
+        <p class="abt-form-error" id="createError" role="alert" hidden></p>
         <div class="abt-form-actions">
           <button type="submit" class="abt-btn-submit">Create Room</button>
           <button type="button" class="abt-btn-reset" data-room-cancel>Cancel</button>
@@ -662,6 +629,8 @@
     </div>
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/rooms.js"></script>
+  <script src="../js/home_rooms.js"></script>
 </body>
 </html>

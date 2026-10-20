@@ -1918,3 +1918,19 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 
 .online-user-clickable { cursor: pointer; border-radius: 8px; padding: 2px 4px; margin: -2px -4px; }
 .online-user-clickable:hover { background: var(--gray-bg); }
+
+/* ---------- Real rooms (home_rooms.js) ---------- */
+.room-avatar-letter {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
+}
+.room-avatar-letter.room-avatar-outline { color: var(--near-black); }
+.room-dropdown-item .room-avatar-letter { margin: 0; }
+.online-user-role {
+  margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  text-transform: uppercase; color: var(--gray-text-2);
+}
+.invite-code-line { margin: 10px 0 0; font-size: 11px; color: var(--gray-text-2); }
+.invite-code-line strong { color: var(--near-black); letter-spacing: 0.5px; user-select: all; }
+.abt-form-error { margin: 0; font-size: 12px; font-weight: 600; color: #c0392b; }
+.abt-form-error[hidden] { display: none; }

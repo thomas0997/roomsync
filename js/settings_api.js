@@ -124,6 +124,7 @@
     if (read(ROOM_KEY) === String(room.id)) { drop(ROOM_KEY); }
     showToast('You left ' + room.name + '.');
     loadRooms();
+    document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));
   }
 
   async function loadRooms() {

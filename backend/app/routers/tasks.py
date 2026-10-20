@@ -3,13 +3,13 @@ Every room endpoint must call require_member(db, user, room_id) from ..auth firs
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..models import Membership, Task, User
-from ..schemas_tasks import TaskCreate, TaskOut
+from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
 
 router = APIRouter(tags=["tasks"])
 
@@ -58,6 +58,23 @@ def _approved_between(db: Session, room_id: int, start: datetime, end: datetime)
         .all()
     )
     return [task_to_out(db, t) for t in tasks]
+
+
+def _task_and_membership(db: Session, user: User, task_id: int) -> tuple[Task, Membership]:
+    """For endpoints addressed by task id (Thomas's decision, Oct 20): 'no such task' and
+    'not a member of its room' both give the same 404, so task ids cannot be probed."""
+    not_found = HTTPException(404, "Task not found")
+    task = db.get(Task, task_id)
+    if task is None:
+        raise not_found
+    membership = (
+        db.query(Membership)
+        .filter(Membership.user_id == user.id, Membership.room_id == task.room_id)
+        .first()
+    )
+    if membership is None:
+        raise not_found
+    return task, membership
 
 
 @router.post("/rooms/{room_id}/tasks", response_model=TaskOut, status_code=201)
@@ -131,3 +148,40 @@ def list_month_tasks(
     start = datetime(year, month_number, 1, tzinfo=MANILA).astimezone(timezone.utc)
     end = datetime(next_year, next_month, 1, tzinfo=MANILA).astimezone(timezone.utc)
     return _approved_between(db, room_id, start, end)
+
+
+@router.patch("/tasks/{task_id}", response_model=TaskOut)
+def update_task(
+    task_id: int,
+    body: TaskUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    task, _ = _task_and_membership(db, user, task_id)  # 404 if missing or not in this room
+
+    if task.created_by != user.id:
+        raise HTTPException(403, "Only the creator can edit this task")
+    if task.status != "pending":
+        raise HTTPException(403, "Only pending tasks can be edited")
+
+    for field in body.model_fields_set:  # change only what the client sent; status is never touched
+        setattr(task, field, getattr(body, field))
+    db.commit()
+    db.refresh(task)
+    return task_to_out(db, task)
+
+
+@router.delete("/tasks/{task_id}", status_code=204)
+def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    task, membership = _task_and_membership(db, user, task_id)  # 404 if missing or not in this room
+
+    if task.created_by != user.id and membership.role != "admin":
+        raise HTTPException(403, "Only the creator or a room admin can delete this task")
+
+    db.delete(task)
+    db.commit()
+    return Response(status_code=204)

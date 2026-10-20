@@ -1934,3 +1934,5 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .invite-code-line strong { color: var(--near-black); letter-spacing: 0.5px; user-select: all; }
 .abt-form-error { margin: 0; font-size: 12px; font-weight: 600; color: #c0392b; }
 .abt-form-error[hidden] { display: none; }
+.avatar { overflow: visible; }
+.status-dot { bottom: -1px; right: -1px; }

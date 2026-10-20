@@ -5,6 +5,7 @@ import tempfile
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmp.name}"
 os.environ["SECRET_KEY"] = "test-secret-key-that-is-long-enough-for-hs256-0000"
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # many tests sign up many users; tests/test_ratelimit.py turns it on
 
 import pytest
 from fastapi.testclient import TestClient

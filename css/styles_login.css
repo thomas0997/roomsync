@@ -67,7 +67,7 @@ button {
 .logo-word {
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
-  font-size: 25px;
+  font-size: 30px;
   margin-left: 14px;
 }
 
@@ -97,7 +97,7 @@ button {
   background: rgba(255, 69, 58, 0.15);
   border: 1px solid rgba(255, 69, 58, 0.4);
   color: #ff6961;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 600;
   border-radius: 12px;
   padding: 10px 14px;
@@ -112,7 +112,7 @@ button {
 
 .field label {
   display: block;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--label-gray);
   margin-bottom: 6px;
@@ -127,7 +127,7 @@ button {
   border: 0.5px solid var(--card-border);
   padding: 0 22px;
   color: #fff;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 510;
   font-family: inherit;
 }
@@ -151,7 +151,7 @@ button {
   background: rgba(217, 217, 217, 0.4);
   border: 0.5px solid #fff;
   color: #fff;
-  font-size: 18px;
+  font-size: 21.6px;
   font-weight: 510;
 }
 
@@ -178,7 +178,7 @@ button {
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 510;
 }
 
@@ -204,7 +204,7 @@ button {
 .card-sub {
   width: 100%;
   text-align: center;
-  font-size: 14px;
+  font-size: 16.8px;
   line-height: 1.45;
   color: var(--label-gray);
   margin-bottom: 20px;
@@ -234,7 +234,7 @@ button {
   border: none;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -243,7 +243,7 @@ button {
 }
 
 .hint {
-  font-size: 12.5px;
+  font-size: 15px;
   color: var(--label-gray);
   margin: 8px 0 0 22px;
 }
@@ -255,7 +255,7 @@ button {
 
 /* ---------- switch row + back link ---------- */
 .switch-row {
-  font-size: 14px;
+  font-size: 16.8px;
   color: var(--label-gray);
   text-align: center;
 }
@@ -265,14 +265,14 @@ button {
   border: none;
   padding: 0;
   color: #fff;
-  font-size: 14px;
+  font-size: 16.8px;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .back-link {
-  font-size: 14px;
+  font-size: 16.8px;
   font-weight: 510;
   color: #666;
 }

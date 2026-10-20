@@ -102,6 +102,8 @@
     var select = byId('statusSelect');
     var input = byId('statusCustomInput');
     if (select) { select.value = me.status.kind; }
+    var done = byId('statusDoneBtn');
+    if (done) { done.hidden = me.status.kind !== 'custom' && !(select && select.value === 'custom'); }
     if (input) {
       input.hidden = me.status.kind !== 'custom';
       if (me.status.kind === 'custom') { input.value = me.status.text || ''; }
@@ -175,13 +177,16 @@
 
   var select = byId('statusSelect');
   var customInput = byId('statusCustomInput');
+  var doneBtn = byId('statusDoneBtn');
   if (select) {
     select.addEventListener('change', function () {
       if (select.value === 'custom') {
         customInput.hidden = false;
+        if (doneBtn) { doneBtn.hidden = false; }
         customInput.focus();
       } else {
         customInput.hidden = true;
+        if (doneBtn) { doneBtn.hidden = true; }
         saveStatus({ status_kind: select.value });
       }
     });
@@ -196,49 +201,82 @@
     customInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); sendCustom(); customInput.blur(); }
     });
-    customInput.addEventListener('blur', sendCustom);
+    // The Done button is the obvious way to save; Enter works too. (No save-on-blur: it would
+    // save twice when Done is clicked.)
+    if (doneBtn) {
+      doneBtn.addEventListener('click', function () {
+        if (!customInput.value.trim()) { showToast('Type your status first.'); customInput.focus(); return; }
+        sendCustom();
+      });
+    }
   }
 
   /* ---------- edit name ---------- */
   var editBtn = byId('editProfileBtn');
+
   function stopEditing() {
     editing = false;
-    editBtn.textContent = 'Edit Profile';
+    if (editBtn) { editBtn.textContent = 'Edit Profile'; }
     renderMe();
   }
+
+  async function saveName() {
+    var field = byId('acctNameInput');
+    if (!field || !me) { return; }
+    var value = field.value.trim();
+    if (!value) { showToast('Name cannot be empty.'); field.focus(); return; }
+    if (value === me.name) { stopEditing(); return; }
+    var saveBtn = byId('acctNameSave');
+    if (saveBtn) { saveBtn.disabled = true; }
+    var r = await api('/users/me', 'PATCH', { name: value });
+    if (saveBtn) { saveBtn.disabled = false; }
+    if (!r.ok) { showToast(errorText(r)); return; }
+    me = r.body;
+    stopEditing();
+    showToast('Name updated.');
+  }
+
+  function startEditing() {
+    var cell = byId('acctName');
+    if (!cell || !me) { return; }
+    editing = true;
+    if (editBtn) { editBtn.textContent = 'Save'; }
+    var wrap = document.createElement('span');
+    wrap.className = 'name-edit-row';
+    var field = document.createElement('input');
+    field.type = 'text';
+    field.id = 'acctNameInput';
+    field.className = 'status-custom-input';
+    field.maxLength = 100;
+    field.value = me.name;
+    field.setAttribute('aria-label', 'Full name');
+    field.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveName(); }
+      if (e.key === 'Escape') { stopEditing(); }
+    });
+    var save = document.createElement('button');
+    save.type = 'button';
+    save.id = 'acctNameSave';
+    save.className = 'status-done-btn';
+    save.textContent = 'Save';
+    save.addEventListener('click', saveName);
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'status-cancel-btn';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', stopEditing);
+    wrap.appendChild(field);
+    wrap.appendChild(save);
+    wrap.appendChild(cancel);
+    cell.textContent = '';
+    cell.appendChild(wrap);
+    field.focus();
+    field.select();
+  }
+
   if (editBtn) {
-    editBtn.addEventListener('click', async function () {
-      var cell = byId('acctName');
-      if (!cell || !me) { return; }
-      if (!editing) {
-        editing = true;
-        editBtn.textContent = 'Save';
-        var field = document.createElement('input');
-        field.type = 'text';
-        field.id = 'acctNameInput';
-        field.className = 'status-custom-input';
-        field.maxLength = 100;
-        field.value = me.name;
-        field.setAttribute('aria-label', 'Full name');
-        field.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') { e.preventDefault(); editBtn.click(); }
-          if (e.key === 'Escape') { stopEditing(); }
-        });
-        cell.textContent = '';
-        cell.appendChild(field);
-        field.focus();
-        return;
-      }
-      var value = byId('acctNameInput').value.trim();
-      if (!value) { showToast('Name cannot be empty.'); return; }
-      if (value === me.name) { stopEditing(); return; }
-      editBtn.disabled = true;
-      var r = await api('/users/me', 'PATCH', { name: value });
-      editBtn.disabled = false;
-      if (!r.ok) { showToast(errorText(r)); return; }
-      me = r.body;
-      stopEditing();
-      showToast('Name updated.');
+    editBtn.addEventListener('click', function () {
+      if (editing) { saveName(); } else { startEditing(); }
     });
   }
 

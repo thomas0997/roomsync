@@ -1,5 +1,6 @@
 """tasks endpoints. Owner: Daniel. Follow docs/api-contract.md exactly.
 Every room endpoint must call require_member(db, user, room_id) from ..auth first."""
+import os
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Annotated
 
@@ -12,6 +13,15 @@ from ..models import Membership, Task, User
 from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
 
 router = APIRouter(tags=["tasks"])
+
+# A task cannot be due in the past (Thomas's decision, Oct 20). Only the test setup turns this off
+# (tests/conftest.py), because many older tests use fixed dates; tests/test_tasks_future_only.py turns it on.
+ALLOW_PAST_DUE = os.getenv("ALLOW_PAST_DUE", "false").lower() == "true"
+
+
+def _reject_past(due_at: datetime) -> None:
+    if not ALLOW_PAST_DUE and due_at <= datetime.now(timezone.utc):
+        raise HTTPException(422, "due_at must be in the future")
 
 # Weeks and months use Manila time until the T2 timezone setting exists (Thomas's decision, Oct 19).
 # The Philippines has no daylight saving, so a fixed UTC+8 offset is exact.
@@ -85,6 +95,7 @@ def create_task(
     user: User = Depends(get_current_user),
 ):
     membership = require_member(db, user, room_id)  # 403 if not in this room
+    _reject_past(body.due_at)
 
     status = "pending"
     if membership.role == "admin":
@@ -163,6 +174,8 @@ def update_task(
         raise HTTPException(403, "Only the creator can edit this task")
     if task.status != "pending":
         raise HTTPException(403, "Only pending tasks can be edited")
+    if "due_at" in body.model_fields_set:  # only a new due date has to be in the future
+        _reject_past(body.due_at)
 
     for field in body.model_fields_set:  # change only what the client sent; status is never touched
         setattr(task, field, getattr(body, field))

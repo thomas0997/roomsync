@@ -1,8 +1,9 @@
 """tasks endpoints. Owner: Daniel. Follow docs/api-contract.md exactly.
 Every room endpoint must call require_member(db, user, room_id) from ..auth first."""
 from datetime import date, datetime, time, timedelta, timezone
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
@@ -41,6 +42,22 @@ def task_to_out(db: Session, task: Task) -> TaskOut:
         decided_by_name=_name(db, task.decided_by),
         decided_at=task.decided_at,
     )
+
+
+def _approved_between(db: Session, room_id: int, start: datetime, end: datetime) -> list[TaskOut]:
+    """Approved tasks of one room due from start (included) up to end (not included), earliest first."""
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.room_id == room_id,
+            Task.status == "approved",  # only approved tasks show on the board and calendar
+            Task.due_at >= start,
+            Task.due_at < end,
+        )
+        .order_by(Task.due_at, Task.id)
+        .all()
+    )
+    return [task_to_out(db, t) for t in tasks]
 
 
 @router.post("/rooms/{room_id}/tasks", response_model=TaskOut, status_code=201)
@@ -93,16 +110,24 @@ def list_week_tasks(
     # Sunday 00:00 Manila time, converted to UTC, up to (but not including) the next Sunday 00:00
     start = datetime.combine(week_start, time.min, tzinfo=MANILA).astimezone(timezone.utc)
     end = start + timedelta(days=7)
+    return _approved_between(db, room_id, start, end)
 
-    tasks = (
-        db.query(Task)
-        .filter(
-            Task.room_id == room_id,
-            Task.status == "approved",  # only approved tasks show on the board
-            Task.due_at >= start,
-            Task.due_at < end,
-        )
-        .order_by(Task.due_at, Task.id)
-        .all()
-    )
-    return [task_to_out(db, t) for t in tasks]
+
+@router.get("/rooms/{room_id}/calendar", response_model=list[TaskOut])
+def list_month_tasks(
+    room_id: int,
+    month: Annotated[str, Query(pattern=r"^\d{4}-\d{2}$")],  # required, shaped like 2026-08, else 422
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    require_member(db, user, room_id)  # 403 if not in this room
+
+    year, month_number = int(month[:4]), int(month[5:])
+    if not (1 <= month_number <= 12) or not (2000 <= year <= 2100):
+        raise HTTPException(422, "month must look like YYYY-MM, with a real month")
+
+    # 1st of the month 00:00 Manila time, up to (but not including) the 1st of the next month
+    next_year, next_month = (year + 1, 1) if month_number == 12 else (year, month_number + 1)
+    start = datetime(year, month_number, 1, tzinfo=MANILA).astimezone(timezone.utc)
+    end = datetime(next_year, next_month, 1, tzinfo=MANILA).astimezone(timezone.utc)
+    return _approved_between(db, room_id, start, end)

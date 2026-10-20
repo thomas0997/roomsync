@@ -7,6 +7,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // When the page is wired to the API (js/profile_api.js), that file owns status, Edit Profile and Log out.
+  var API_MODE = document.body.hasAttribute('data-api-profile');
+
   var statusSelect = document.getElementById('statusSelect');
   var statusCustomInput = document.getElementById('statusCustomInput');
   var sidebarStatusText = document.getElementById('sidebarStatusText');
@@ -22,17 +25,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  if (statusSelect) {
+  if (statusSelect && !API_MODE) {
     statusSelect.addEventListener('change', applyStatus);
   }
-  if (statusCustomInput) {
+  if (statusCustomInput && !API_MODE) {
     statusCustomInput.addEventListener('input', function () {
       if (sidebarStatusText) sidebarStatusText.textContent = statusCustomInput.value.trim() || 'Custom';
     });
   }
 
   var editProfileBtn = document.getElementById('editProfileBtn');
-  if (editProfileBtn) {
+  if (editProfileBtn && !API_MODE) {
     editProfileBtn.addEventListener('click', function () {
       // TODO: wire up real inline editing once the backend exists
       console.log('Edit Profile clicked — hook up editable fields here.');
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
+  if (logoutBtn && !API_MODE) {
     logoutBtn.addEventListener('click', function () {
       var confirmed = confirm('Log out of RoomSync?');
       if (confirmed) {

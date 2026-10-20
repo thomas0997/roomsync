@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
 </head>
-<body>
+<body data-api-profile>
 
   <header class="topbar">
     <div class="topbar-brand">
@@ -201,8 +201,8 @@
             <span class="status-dot"></span>
           </div>
           <div class="profile-text profile-text-conditional">
-            <div class="profile-name">Tony Franks</div>
-            <div class="profile-status" id="sidebarStatusText">Working!</div>
+            <div class="profile-name"></div>
+            <div class="profile-status" id="sidebarStatusText"></div>
           </div>
           <button class="settings-icon profile-text-conditional" id="settingsBtn" aria-label="Settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -255,13 +255,9 @@
         </div>
 
         <div class="profile-head-text">
-          <h1 class="profile-name-big">Tony Franks</h1>
-          <p class="profile-email">thomas@roomsync.com</p>
-          <div class="profile-badges">
-            <span class="profile-badge">ADMIN • CYB201</span>
-            <span class="profile-badge">ADMIN • THE BOZOS</span>
-            <span class="profile-badge">ADMIN • AURON Inc</span>
-          </div>
+          <h1 class="profile-name-big"></h1>
+          <p class="profile-email"></p>
+          <div class="profile-badges"></div>
         </div>
       </div>
 
@@ -270,10 +266,10 @@
         <label for="statusSelect" class="status-control-label">Your status</label>
         <div class="status-select-wrap">
           <select id="statusSelect">
-            <option>Working!</option>
-            <option>BRB!</option>
-            <option>Somewhere Else</option>
-            <option>Custom</option>
+            <option value="working">Working!</option>
+            <option value="brb">BRB!</option>
+            <option value="away">Somewhere Else</option>
+            <option value="custom">Custom</option>
           </select>
         </div>
         <input type="text" id="statusCustomInput" class="status-custom-input" placeholder="Type your status..." hidden maxlength="40">
@@ -285,15 +281,15 @@
         <div class="profile-info-box">
           <div class="profile-info-row">
             <span class="profile-info-label">Full Name</span>
-            <span class="profile-info-value">Tony Franks</span>
+            <span class="profile-info-value" id="acctName"></span>
           </div>
           <div class="profile-info-row">
             <span class="profile-info-label">Email</span>
-            <span class="profile-info-value">tony@roomsync.com</span>
+            <span class="profile-info-value" id="acctEmail"></span>
           </div>
           <div class="profile-info-row profile-info-row-last">
             <span class="profile-info-label">Joined</span>
-            <span class="profile-info-value">August 7, 2026</span>
+            <span class="profile-info-value" id="acctJoined"></span>
           </div>
         </div>
       </section>
@@ -302,47 +298,6 @@
       <section class="profile-section">
         <h2 class="profile-section-title">Rooms</h2>
         <div class="profile-room-grid" id="profileRoomGrid">
-          <div class="profile-room-card">
-            <div>
-              <div class="profile-room-name">CYB201</div>
-              <div class="profile-room-role">Admin</div>
-            </div>
-            <span class="profile-room-dot" style="background:#df0000"></span>
-          </div>
-          <div class="profile-room-card">
-            <div>
-              <div class="profile-room-name">The Bozos</div>
-              <div class="profile-room-role">Admin</div>
-            </div>
-            <span class="profile-room-dot" style="background:#34c759"></span>
-          </div>
-          <div class="profile-room-card">
-            <div>
-              <div class="profile-room-name">Auron Inc.</div>
-              <div class="profile-room-role">Admin</div>
-            </div>
-            <span class="profile-room-dot" style="background:#f2b84b"></span>
-          </div>
-          <div class="profile-room-card">
-            <div>
-              <div class="profile-room-name">The Avengers</div>
-              <div class="profile-room-role">Member</div>
-            </div>
-            <span class="profile-room-dot" style="background:#0073ec"></span>
-          </div>
-          <div class="profile-room-card profile-room-overflow-item" hidden>
-            <div>
-              <div class="profile-room-name">Goats</div>
-              <div class="profile-room-role">Member</div>
-            </div>
-            <span class="profile-room-dot" style="background:#c79adb"></span>
-          </div>
-          <button type="button" class="profile-room-card profile-room-more" id="profileRoomMore">
-            <div>
-              <div class="profile-room-name">+1 more</div>
-              <div class="profile-room-role">Show all rooms</div>
-            </div>
-          </button>
         </div>
       </section>
 
@@ -351,15 +306,15 @@
         <h2 class="profile-section-title">Activity</h2>
         <div class="profile-stats-box">
           <div class="profile-stat">
-            <div class="profile-stat-num">57</div>
+            <div class="profile-stat-num" id="statSubmitted">-</div>
             <div class="profile-stat-label">Submitted</div>
           </div>
           <div class="profile-stat">
-            <div class="profile-stat-num">67</div>
+            <div class="profile-stat-num" id="statApproved">-</div>
             <div class="profile-stat-label">Approved</div>
           </div>
           <div class="profile-stat">
-            <div class="profile-stat-num">12</div>
+            <div class="profile-stat-num" id="statPending">-</div>
             <div class="profile-stat-label">Pending</div>
           </div>
         </div>
@@ -371,7 +326,8 @@
       </div>
 
       <!-- ---------- HISTORY ---------- -->
-      <section class="profile-section">
+      <!-- History is sample data until a history endpoint exists (T2): hidden for real accounts -->
+      <section class="profile-section" id="historySection" hidden>
         <h2 class="profile-section-title">History</h2>
 
         <div class="profile-history-table">
@@ -492,6 +448,8 @@
   </div>
 
   <script src="../js/rooms.js"></script>
+  <script src="../js/config.js"></script>
   <script src="../js/profile.js"></script>
+  <script src="../js/profile_api.js"></script>
 </body>
 </html>

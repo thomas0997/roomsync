@@ -6,6 +6,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // When wired to the API (js/settings_api.js), that file owns Leave Room and Delete Account.
+  var API_MODE = document.body.hasAttribute('data-api-settings');
+
   var form = document.getElementById('settingsForm');
   var deleteBtn = document.getElementById('deleteAccountBtn');
   var leaveButtons = document.querySelectorAll('.btn-leave-room');
@@ -25,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Delete Account — requires typed confirmation, since this is permanent
-  if (deleteBtn) {
+  if (deleteBtn && !API_MODE) {
     deleteBtn.addEventListener('click', function () {
       var typed = prompt('This permanently removes you from every room. Type DELETE to confirm.');
       if (typed === 'DELETE') {

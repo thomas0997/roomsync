@@ -76,10 +76,10 @@ Rules:
 
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| GET | /rooms/{room_id}/approvals | none | `[task]` with status `pending` (admin only) | T1 TODO |
-| GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` tasks an admin explicitly approved or rejected, newest decision first, with `decided_by_name` and `decided_at` (admin only). Auto-approved tasks (sole admin) are NOT included. | T1 TODO |
-| POST | /tasks/{task_id}/approve | none | task (updated). Admin only. | T1 TODO |
-| POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 TODO |
+| GET | /rooms/{room_id}/approvals | none | `[task]` with status `pending` (admin only) | T1 DONE |
+| GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` tasks an admin explicitly approved or rejected, newest decision first, with `decided_by_name` and `decided_at` (admin only). Auto-approved tasks (sole admin) are NOT included. | T1 DONE |
+| POST | /tasks/{task_id}/approve | none | task (updated). Admin only. | T1 DONE |
+| POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 DONE |
 
 ## Discussion (Daniel): room chat, text only
 Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at}`
@@ -91,6 +91,9 @@ Rules:
 - reply_to_id must point to a message in the same room, otherwise 422.
 - Deleting a message that has replies is a hard delete; those replies then show reply_to as null.
 - reply_to.snippet is the first 80 characters of the replied-to message.
+- `body` is trimmed, then must be 1 to 2000 characters; a blank body gives 422.
+- GET messages: `limit` defaults to 50 and must be 1 to 100 (422 otherwise); a bad `before_id` (not a positive integer) gives 422; a `before_id` that does not exist or belongs to another room returns an empty list.
+- DELETE message: 404 when the message does not exist or is in a room the caller is not in (so ids cannot be probed); 403 for a room member who is not the author (admins included).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 TODO |

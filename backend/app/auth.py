@@ -52,7 +52,7 @@ def get_current_user(
         user = db.get(User, int(payload["sub"]))
     except (jwt.PyJWTError, KeyError, ValueError):
         raise unauthorized
-    if user is None:
+    if user is None or user.deleted_at is not None:
         raise unauthorized
     return user
 

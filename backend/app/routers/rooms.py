@@ -12,6 +12,10 @@ from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, Ro
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 ALPHABET = string.ascii_uppercase + string.digits
 
+# Server-enforced limits (409). Tests lower these with monkeypatch.
+MAX_ROOMS_PER_USER = 10
+MAX_MEMBERS_PER_ROOM = 50
+
 
 def _new_code(db: Session) -> str:
     while True:
@@ -33,8 +37,17 @@ def _room_out(room: Room, role: str, db: Session) -> RoomOut:
         pending_count=pending,
     )
 
+def _check_room_limit(db: Session, user: User) -> None:
+    if db.query(Membership).filter(Membership.user_id == user.id).count() >= MAX_ROOMS_PER_USER:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"Room limit reached: you can be in at most {MAX_ROOMS_PER_USER} rooms. Leave one first.",
+        )
+
+
 @router.post("", response_model=RoomOut, status_code=status.HTTP_201_CREATED)
 def create_room(data: RoomCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    _check_room_limit(db, user)
     room = Room(name=data.name.strip(), type=data.type, invite_code=_new_code(db), created_by=user.id)
     db.add(room)
     db.flush()
@@ -58,6 +71,9 @@ def join_room(data: RoomJoin, user: User = Depends(get_current_user), db: Sessio
     existing = db.query(Membership).filter(Membership.user_id == user.id, Membership.room_id == room.id).first()
     if existing:
         return _room_out(room, existing.role, db)
+    _check_room_limit(db, user)
+    if db.query(Membership).filter(Membership.room_id == room.id).count() >= MAX_MEMBERS_PER_ROOM:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"This room is full ({MAX_MEMBERS_PER_ROOM} members).")
     db.add(Membership(user_id=user.id, room_id=room.id, role="member"))
     db.commit()
     return _room_out(room, "member", db)

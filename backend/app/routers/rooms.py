@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_user, require_admin, require_member
 from ..db import get_db
 from ..models import Membership, Room, Task, User
-from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate
+from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate, status_of
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 ALPHABET = string.ascii_uppercase + string.digits
@@ -67,7 +67,7 @@ def join_room(data: RoomJoin, user: User = Depends(get_current_user), db: Sessio
 def members(room_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     require_member(db, user, room_id)
     rows = db.query(Membership).filter(Membership.room_id == room_id).all()
-    return [MemberOut(user_id=m.user_id, name=m.user.name, role=m.role, joined_at=m.joined_at) for m in rows]
+    return [MemberOut(user_id=m.user_id, name=m.user.name, role=m.role, joined_at=m.joined_at, status=status_of(m.user)) for m in rows]
 
 
 @router.post("/{room_id}/leave", status_code=status.HTTP_204_NO_CONTENT)
@@ -107,7 +107,7 @@ def set_role(
     target.role = data.role
     db.commit()
     db.refresh(target)
-    return MemberOut(user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at)
+    return MemberOut(user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at, status=status_of(target.user))
 
 
 @router.patch("/{room_id}", response_model=RoomOut)

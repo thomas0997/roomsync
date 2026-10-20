@@ -126,10 +126,10 @@ User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
 `status.kind` is `working | brb | away | custom` (shown as "Working!", "BRB!", "Somewhere Else", or the custom text, max 40 characters). The status never expires; it stays until changed, and is visible to everyone in your rooms.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| GET | /users/me | none | user | T1 TODO |
-| PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom`. | T1 TODO |
-| GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 TODO |
-| DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". | T1 TODO |
+| GET | /users/me | none | user | T1 DONE |
+| PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom` (max 40); it is cleared when the kind is not `custom`. Send at least one field; unknown fields give 422. The members list also returns each member's `status`. | T1 DONE |
+| GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 DONE |
+| DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". I leave all my rooms (a room with no one left is deleted), the email is freed for a new signup, and the old token stops working (401). | T1 DONE |
 | PUT | /users/me/avatar | multipart `image` | user. png/jpg/webp, max 2 MB, resized to 256x256, re-encoded. | T2 TODO |
 | DELETE | /users/me/avatar | none | 204 | T2 TODO |
 | POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes) | T2 TODO |

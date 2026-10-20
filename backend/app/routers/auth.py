@@ -36,7 +36,7 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
     hit("login_email", data.email.lower(), 10, 900)  # and 10 tries per 15 min per account, whatever the address
     user = db.query(User).filter(User.email == data.email.lower()).first()
     # Same error for "no such user" and "wrong password" so attackers can't tell which
-    if user is None or not verify_password(data.password, user.password_hash):
+    if user is None or user.deleted_at is not None or not verify_password(data.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     return TokenOut(access_token=create_token(user.id), user=user)
 

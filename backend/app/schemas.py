@@ -2,13 +2,21 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 class SignupIn(BaseModel):
     email: EmailStr
     name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, v):
+        # bcrypt can't hash more than 72 BYTES (emoji and accents use several bytes per character)
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password is too long (72 bytes at most)")
+        return v
 
 
 class LoginIn(BaseModel):

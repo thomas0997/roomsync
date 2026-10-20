@@ -1,6 +1,8 @@
 """tasks endpoints. Owner: Daniel. Follow docs/api-contract.md exactly.
 Every room endpoint must call require_member(db, user, room_id) from ..auth first."""
-from fastapi import APIRouter, Depends
+from datetime import date, datetime, time, timedelta, timezone
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
@@ -9,6 +11,10 @@ from ..models import Membership, Task, User
 from ..schemas_tasks import TaskCreate, TaskOut
 
 router = APIRouter(tags=["tasks"])
+
+# Weeks and months use Manila time until the T2 timezone setting exists (Thomas's decision, Oct 19).
+# The Philippines has no daylight saving, so a fixed UTC+8 offset is exact.
+MANILA = timezone(timedelta(hours=8))
 
 
 def _name(db: Session, user_id: int | None) -> str | None:
@@ -70,3 +76,33 @@ def create_task(
     db.commit()
     db.refresh(task)
     return task_to_out(db, task)
+
+
+@router.get("/rooms/{room_id}/tasks", response_model=list[TaskOut])
+def list_week_tasks(
+    room_id: int,
+    week_start: date,  # required query parameter; a missing or malformed date gives 422 automatically
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    require_member(db, user, room_id)  # 403 if not in this room
+
+    if week_start.weekday() != 6:  # Python: Monday is 0, Sunday is 6
+        raise HTTPException(422, "week_start must be a Sunday")
+
+    # Sunday 00:00 Manila time, converted to UTC, up to (but not including) the next Sunday 00:00
+    start = datetime.combine(week_start, time.min, tzinfo=MANILA).astimezone(timezone.utc)
+    end = start + timedelta(days=7)
+
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.room_id == room_id,
+            Task.status == "approved",  # only approved tasks show on the board
+            Task.due_at >= start,
+            Task.due_at < end,
+        )
+        .order_by(Task.due_at, Task.id)
+        .all()
+    )
+    return [task_to_out(db, t) for t in tasks]

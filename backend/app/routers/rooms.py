@@ -27,12 +27,11 @@ def _room_out(room: Room, role: str, db: Session) -> RoomOut:
         id=room.id,
         name=room.name,
         type=room.type,
-        invite_code=room.invite_code,
+        invite_code=room.invite_code if role == "admin" else None,
         role=role,
         member_count=count,
         pending_count=pending,
     )
-
 
 @router.post("", response_model=RoomOut, status_code=status.HTTP_201_CREATED)
 def create_room(data: RoomCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):

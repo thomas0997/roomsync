@@ -33,7 +33,7 @@ Log out = the client deletes the token (no endpoint). Rate-limit signup, login, 
 ## Rooms (Thomas)
 Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_url?}`
 `type` is `classroom | study_group | team | other`. `pending_count` = number of pending tasks in that room (same number for admins and members).
-`invite_code` is currently returned to every member by `GET /rooms`; the home page only shows it to admins. TODO (T1): return it only to admins (`null` for members), so a member can't read it from the API and invite others.
+`invite_code` is returned only to admins; members get `null` (DONE, so a member can't read it from the API and invite others).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
@@ -152,6 +152,7 @@ Listed so nobody invents conflicting endpoints. Exact endpoints are added here B
 - The login token is stored in `localStorage` as `roomsync_token`, the user as `roomsync_user`. Send `Authorization: Bearer <token>`. On any 401, clear both keys and go to `login.html`.
 - Render all user text with `textContent`, never `innerHTML`.
 - Pages already wired to the API: `login.html`, `home.html` (rooms, members, create, join, logout). Marked with `<body data-api-rooms>`; other pages still show demo data.
+- Frontend files are sent with `Cache-Control: no-cache`, so browsers re-check them on every load (an unchanged file costs a tiny 304 reply).
 
 ## Health
 GET `/health` returns `{"status":"ok"}` (no auth).

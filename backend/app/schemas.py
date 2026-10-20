@@ -57,11 +57,10 @@ class RoomOut(BaseModel):
     id: int
     name: str
     type: str
-    invite_code: str
+    invite_code: str | None  # only admins get the code; members get null
     role: str  # the caller's role in this room
     member_count: int
     pending_count: int  # tasks waiting for an admin decision
-
 
 class MemberOut(BaseModel):
     user_id: int

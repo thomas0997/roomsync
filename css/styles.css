@@ -1936,3 +1936,10 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .abt-form-error[hidden] { display: none; }
 .avatar { overflow: visible; }
 .status-dot { bottom: -1px; right: -1px; }
+
+
+/* Week board: empty days and custom task types */
+.empty-day-note { margin: 0; font-size: 12px; color: var(--gray-text); }
+.day-card-empty { opacity: 0.75; }
+.type-custom { background: var(--near-black); }
+.board.board-grid .day-card-today { max-width: none; }

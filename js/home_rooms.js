@@ -161,7 +161,7 @@
     while (select.firstChild) { select.removeChild(select.firstChild); }
     rooms.forEach(function (r) {
       var opt = document.createElement('option');
-      opt.value = r.name;
+      opt.value = String(r.id);
       opt.textContent = r.name;
       select.appendChild(opt);
     });
@@ -179,9 +179,6 @@
     });
     var discInput = byId('discMessageInput');
     if (discInput && room) { discInput.placeholder = 'Message ' + room.name + '...'; }
-    // The old demo cards only show for a room named "The Bozos". Using the
-    // room id instead means a real room never shows demo tasks.
-    document.body.setAttribute('data-current-room', room ? 'room-' + room.id : 'none');
   }
 
   /* ---------- rendering: members ---------- */
@@ -269,6 +266,8 @@
     renderInviteCode();
     renderMembers();
     if (id !== null) { loadMembers(id); }
+    // Tell the other home scripts (the week board) which room is selected now.
+    document.dispatchEvent(new CustomEvent('roomsync:room', { detail: { id: id } }));
   }
 
   function closeRoomDropdowns() {
@@ -384,6 +383,14 @@
     rooms.forEach(function (room) { if (room.id === saved) { start = saved; } });
     selectRoom(start);
   }
+
+  // What home_board.js needs from this file.
+  window.RoomSyncHome = {
+    api: api,
+    showToast: showToast,
+    errorText: errorText,
+    currentRoomId: function () { return currentId; }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

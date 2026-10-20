@@ -1,0 +1,257 @@
+/* ============================================================
+   ROOMSYNC — profile_api.js
+   Profile page, wired to the API:
+   - your name, email, join date, rooms and activity numbers
+   - the status picker (saved on the server, visible to your rooms)
+   - Edit Profile (change your name) and Log out
+   All user text is written with textContent (never innerHTML).
+   Needs: js/config.js (window.ROOMSYNC) and <body data-api-profile>.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var cfg = window.ROOMSYNC;
+  if (!cfg || !document.body.hasAttribute('data-api-profile')) { return; }
+
+  var ROOM_KEY = 'roomsync_room';
+  var KIND_LABEL = { working: 'Working!', brb: 'BRB!', away: 'Somewhere Else' };
+  var DOT_COLORS = ['#df0000', '#34c759', '#f2b84b', '#0073ec', '#c79adb'];
+
+  var me = null;
+  var editing = false;
+
+  function read(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function store(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* ignore */ } }
+  function drop(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
+  function byId(id) { return document.getElementById(id); }
+  function setText(el, text) { if (el) { el.textContent = text; } }
+
+  function goLogin() {
+    drop(cfg.TOKEN_KEY);
+    drop(cfg.USER_KEY);
+    drop(ROOM_KEY);
+    window.location.replace('login.html');
+  }
+
+  if (!read(cfg.TOKEN_KEY)) { goLogin(); return; }
+
+  async function api(path, method, payload) {
+    var opts = { method: method || 'GET', headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY) } };
+    if (payload !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(payload);
+    }
+    var res;
+    try {
+      res = await fetch(cfg.API_BASE + path, opts);
+    } catch (e) {
+      return { ok: false, status: 0, body: null };
+    }
+    if (res.status === 401) { goLogin(); return { ok: false, status: 401, body: null }; }
+    var body = null;
+    if (res.status !== 204) {
+      try { body = await res.json(); } catch (e) { body = null; }
+    }
+    return { ok: res.ok, status: res.status, body: body };
+  }
+
+  function errorText(r) {
+    if (r.status === 0) { return "Can't reach the server. Check your connection and try again."; }
+    if (r.body && typeof r.body.detail === 'string') { return r.body.detail; }
+    if (r.status === 422) { return 'Please check what you entered.'; }
+    return 'Something went wrong. Please try again.';
+  }
+
+  function showToast(message) {
+    var toast = document.createElement('div');
+    toast.className = 'abt-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function () { toast.classList.add('abt-toast-show'); });
+    setTimeout(function () {
+      toast.classList.remove('abt-toast-show');
+      setTimeout(function () { toast.remove(); }, 250);
+    }, 2400);
+  }
+
+  function statusLabel(status) {
+    if (!status) { return KIND_LABEL.working; }
+    if (status.kind === 'custom') { return status.text || 'Custom'; }
+    return KIND_LABEL[status.kind] || KIND_LABEL.working;
+  }
+
+  function formatJoined(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return ''; }
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' });
+  }
+
+  /* ---------- who I am ---------- */
+  function renderMe() {
+    if (!me) { return; }
+    setText(document.querySelector('.profile-name'), me.name);
+    setText(byId('sidebarStatusText'), statusLabel(me.status));
+    setText(document.querySelector('.profile-name-big'), me.name);
+    setText(document.querySelector('.profile-email'), me.email);
+    if (!editing) { setText(byId('acctName'), me.name); }
+    setText(byId('acctEmail'), me.email);
+    setText(byId('acctJoined'), formatJoined(me.joined_at));
+    var img = document.querySelector('.profile-photo');
+    if (img) { img.alt = me.name; }
+
+    var select = byId('statusSelect');
+    var input = byId('statusCustomInput');
+    if (select) { select.value = me.status.kind; }
+    if (input) {
+      input.hidden = me.status.kind !== 'custom';
+      if (me.status.kind === 'custom') { input.value = me.status.text || ''; }
+    }
+    store(cfg.USER_KEY, JSON.stringify({ id: me.id, email: me.email, name: me.name }));
+  }
+
+  /* ---------- rooms ---------- */
+  function renderRooms(rooms) {
+    var badges = document.querySelector('.profile-badges');
+    var grid = byId('profileRoomGrid');
+    if (badges) {
+      badges.textContent = '';
+      rooms.filter(function (r) { return r.role === 'admin'; }).forEach(function (r) {
+        var b = document.createElement('span');
+        b.className = 'profile-badge';
+        b.textContent = 'ADMIN • ' + r.name.toUpperCase();
+        badges.appendChild(b);
+      });
+    }
+    if (!grid) { return; }
+    grid.textContent = '';
+    if (!rooms.length) {
+      var empty = document.createElement('p');
+      empty.className = 'empty-day-note';
+      empty.textContent = 'You are not in any rooms yet. Join or create one from the home page.';
+      grid.appendChild(empty);
+      return;
+    }
+    rooms.forEach(function (r, i) {
+      var card = document.createElement('div');
+      card.className = 'profile-room-card';
+      var text = document.createElement('div');
+      var name = document.createElement('div');
+      name.className = 'profile-room-name';
+      name.textContent = r.name;
+      var role = document.createElement('div');
+      role.className = 'profile-room-role';
+      role.textContent = r.role === 'admin' ? 'Admin' : 'Member';
+      text.appendChild(name);
+      text.appendChild(role);
+      var dot = document.createElement('span');
+      dot.className = 'profile-room-dot';
+      dot.style.background = DOT_COLORS[i % DOT_COLORS.length];
+      card.appendChild(text);
+      card.appendChild(dot);
+      grid.appendChild(card);
+    });
+  }
+
+  /* ---------- activity ---------- */
+  function renderStats(s) {
+    var pending = Math.max(0, s.submitted - s.approved - s.rejected);
+    setText(byId('statSubmitted'), String(s.submitted));
+    setText(byId('statApproved'), String(s.approved));
+    setText(byId('statPending'), String(pending));
+  }
+
+  /* ---------- status picker ---------- */
+  async function saveStatus(payload) {
+    var r = await api('/users/me', 'PATCH', payload);
+    if (!r.ok) {
+      showToast(errorText(r));
+      renderMe(); // put the picker back to what the server has
+      return;
+    }
+    me = r.body;
+    renderMe();
+    showToast('Status updated.');
+  }
+
+  var select = byId('statusSelect');
+  var customInput = byId('statusCustomInput');
+  if (select) {
+    select.addEventListener('change', function () {
+      if (select.value === 'custom') {
+        customInput.hidden = false;
+        customInput.focus();
+      } else {
+        customInput.hidden = true;
+        saveStatus({ status_kind: select.value });
+      }
+    });
+  }
+  if (customInput) {
+    var sendCustom = function () {
+      var text = customInput.value.trim();
+      if (select.value !== 'custom' || !text) { return; }
+      if (me && me.status.kind === 'custom' && me.status.text === text) { return; }
+      saveStatus({ status_kind: 'custom', status_text: text });
+    };
+    customInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); sendCustom(); customInput.blur(); }
+    });
+    customInput.addEventListener('blur', sendCustom);
+  }
+
+  /* ---------- edit name ---------- */
+  var editBtn = byId('editProfileBtn');
+  function stopEditing() {
+    editing = false;
+    editBtn.textContent = 'Edit Profile';
+    renderMe();
+  }
+  if (editBtn) {
+    editBtn.addEventListener('click', async function () {
+      var cell = byId('acctName');
+      if (!cell || !me) { return; }
+      if (!editing) {
+        editing = true;
+        editBtn.textContent = 'Save';
+        var field = document.createElement('input');
+        field.type = 'text';
+        field.id = 'acctNameInput';
+        field.className = 'status-custom-input';
+        field.maxLength = 100;
+        field.value = me.name;
+        field.setAttribute('aria-label', 'Full name');
+        field.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); editBtn.click(); }
+          if (e.key === 'Escape') { stopEditing(); }
+        });
+        cell.textContent = '';
+        cell.appendChild(field);
+        field.focus();
+        return;
+      }
+      var value = byId('acctNameInput').value.trim();
+      if (!value) { showToast('Name cannot be empty.'); return; }
+      if (value === me.name) { stopEditing(); return; }
+      editBtn.disabled = true;
+      var r = await api('/users/me', 'PATCH', { name: value });
+      editBtn.disabled = false;
+      if (!r.ok) { showToast(errorText(r)); return; }
+      me = r.body;
+      stopEditing();
+      showToast('Name updated.');
+    });
+  }
+
+  /* ---------- log out ---------- */
+  var logoutBtn = byId('logoutBtn');
+  if (logoutBtn) { logoutBtn.addEventListener('click', goLogin); }
+
+  /* ---------- start ---------- */
+  async function init() {
+    var results = await Promise.all([api('/users/me'), api('/users/me/stats'), api('/rooms')]);
+    if (results[0].ok) { me = results[0].body; renderMe(); } else if (results[0].status !== 401) { showToast(errorText(results[0])); }
+    if (results[1].ok) { renderStats(results[1].body); }
+    if (results[2].ok) { renderRooms(results[2].body); }
+  }
+  init();
+})();

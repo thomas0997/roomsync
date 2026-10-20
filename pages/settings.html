@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
 </head>
-<body class="settings-page">
+<body class="settings-page" data-api-settings>
 
   <!-- ============================================================
        HEADER — same nav system as the rest of RoomSync.
@@ -190,7 +190,7 @@
               <span class="status-dot"></span>
             </div>
             <div class="profile-text profile-text-conditional">
-              <div class="profile-name">Tony Franks</div>
+              <div class="profile-name"></div>
               <div class="profile-status">Working!</div>
             </div>
           </a>
@@ -270,27 +270,7 @@
       <!-- ---------- ROOMS ---------- -->
       <fieldset class="settings-card">
         <legend>Rooms</legend>
-
-        <div class="settings-row">
-          <div class="settings-row-text">
-            <div class="settings-row-label settings-room-name">CYB201</div>
-          </div>
-          <button type="button" class="btn-leave-room">Leave Room</button>
-        </div>
-
-        <div class="settings-row">
-          <div class="settings-row-text">
-            <div class="settings-row-label settings-room-name">The Bozos</div>
-          </div>
-          <button type="button" class="btn-leave-room">Leave Room</button>
-        </div>
-
-        <div class="settings-row settings-row-last">
-          <div class="settings-row-text">
-            <div class="settings-row-label settings-room-name">Auron Inc.</div>
-          </div>
-          <button type="button" class="btn-leave-room">Leave Room</button>
-        </div>
+        <div id="settingsRooms"></div>
       </fieldset>
 
       <!-- ---------- DANGER ZONE ---------- -->
@@ -380,6 +360,8 @@
   </div>
 
   <script src="../js/rooms.js"></script>
+  <script src="../js/config.js"></script>
   <script src="../js/settings.js"></script>
+  <script src="../js/settings_api.js"></script>
 </body>
 </html>

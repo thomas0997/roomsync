@@ -58,8 +58,10 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 | POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing) and must include a time zone. Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
-| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). | T1 DONE |
+| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject can be cleared with null. Editing never changes the status. | T1 DONE |
 | DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 DONE |
+
+Task-id endpoints (PATCH and DELETE /tasks/{task_id}, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
 
 ## Approvals (Daniel)
 Rules:
@@ -67,6 +69,9 @@ Rules:
 - A task created by a member: any admin can decide it.
 - A task created by an admin: another admin must decide it. An admin cannot approve or reject their own task, UNLESS they are the room's only admin. If the room has exactly one admin, that admin's new tasks are auto-approved at creation.
 - The first admin decision is final.
+- Approving or rejecting a task that is not pending returns 409 "Task already decided".
+- The sole-admin check happens at decision time: if a room is down to one admin, that admin can decide their own older pending tasks.
+- The pending list is oldest first. History is newest decision first; `limit` defaults to 50 and must be 1 to 200 (422 otherwise).
 - The Approve tab = pending tasks in the room, admins only. History = tasks an admin explicitly decided (auto-approved tasks are not in history).
 
 | Method | Path | Body | Returns | Tier / Status |
@@ -83,6 +88,9 @@ Rules:
 - A user can delete ONLY their own messages. Room admins can NOT delete other users' messages (403).
 - Room discussion is NOT end-to-end encrypted (stored readable; disclosed in the privacy note). Never log message content.
 - The frontend renders message text with `textContent`, never `innerHTML`.
+- reply_to_id must point to a message in the same room, otherwise 422.
+- Deleting a message that has replies is a hard delete; those replies then show reply_to as null.
+- reply_to.snippet is the first 80 characters of the replied-to message.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 TODO |

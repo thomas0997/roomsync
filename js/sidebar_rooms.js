@@ -93,6 +93,10 @@
   }
   window.RoomSyncAvatars = { photoSrc: photoSrc, showMyPhoto: showMyPhoto };
 
+  function myId() {
+    try { return JSON.parse(read(cfg.USER_KEY) || 'null').id; } catch (e) { return null; }
+  }
+
   function errorText(r) {
     if (r.status === 0) { return "Can't reach the server. Check your connection and try again."; }
     if (r.body && typeof r.body.detail === 'string') { return r.body.detail; }
@@ -226,6 +230,8 @@
       li.dataset.name = m.name;
       li.dataset.initials = initials(m.name);
       li.dataset.online = '';
+      li.dataset.avatar = m.avatar_url || '';
+      li.dataset.self = String(m.user_id === myId());
 
       var avatar = document.createElement('span');
       avatar.className = 'online-user-avatar';

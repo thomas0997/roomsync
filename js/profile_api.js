@@ -98,6 +98,8 @@
     setText(byId('acctJoined'), formatJoined(me.joined_at));
     var img = document.querySelector('.profile-photo');
     if (img) { img.alt = me.name; }
+    if (window.RoomSyncAvatars) { window.RoomSyncAvatars.showMyPhoto(me.avatar_url); }
+    if (removeBtn) { removeBtn.hidden = !me.avatar_url; }
 
     var select = byId('statusSelect');
     var input = byId('statusCustomInput');
@@ -161,6 +163,85 @@
     setText(byId('statApproved'), String(s.approved));
     setText(byId('statPending'), String(pending));
   }
+
+  /* ---------- profile photo ---------- */
+  var MAX_PHOTO = 2 * 1024 * 1024;
+  var PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  var PHOTO_ERRORS = {
+    413: 'That picture is too big. The limit is 2 MB.',
+    422: "We couldn't read that picture. Use a JPEG, PNG or WebP photo.",
+    429: 'Too many photo changes. Try again in a while.'
+  };
+  var busy = false;
+  var editBtn = document.querySelector('.profile-photo-edit');
+
+  var picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = PHOTO_TYPES.join(',');
+  picker.hidden = true;
+  document.body.appendChild(picker);
+
+  var removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'profile-photo-remove';
+  removeBtn.textContent = 'Remove photo';
+  removeBtn.hidden = true;
+  var emailEl = document.querySelector('.profile-email');
+  if (emailEl && emailEl.parentNode) { emailEl.parentNode.insertBefore(removeBtn, emailEl.nextSibling); }
+
+  function setBusy(on) {
+    busy = on;
+    if (editBtn) { editBtn.disabled = on; }
+    removeBtn.disabled = on;
+  }
+  function photoChanged(message) {
+    renderMe();
+    document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));   // the sidebar member list shows photos too
+    showToast(message);
+  }
+
+  if (editBtn) {
+    editBtn.type = 'button';
+    editBtn.addEventListener('click', function () { if (!busy) { picker.click(); } });
+  }
+
+  picker.addEventListener('change', async function () {
+    var file = picker.files && picker.files[0];
+    picker.value = '';
+    if (!file || busy || !me) { return; }
+    if (PHOTO_TYPES.indexOf(file.type) === -1) { showToast('Choose a JPEG, PNG or WebP picture.'); return; }
+    if (file.size > MAX_PHOTO) { showToast(PHOTO_ERRORS[413]); return; }
+    setBusy(true);
+    var res;
+    try {
+      res = await fetch(cfg.API_BASE + '/users/me/avatar', {
+        method: 'PUT',
+        headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY), 'Content-Type': file.type },
+        body: file
+      });
+    } catch (e) {
+      setBusy(false);
+      showToast(errorText({ status: 0, body: null }));
+      return;
+    }
+    var body = null;
+    try { body = await res.json(); } catch (e) { body = null; }
+    setBusy(false);
+    if (res.status === 401) { goLogin(); return; }
+    if (!res.ok) { showToast(PHOTO_ERRORS[res.status] || errorText({ status: res.status, body: body })); return; }
+    me.avatar_url = body.avatar_url;
+    photoChanged('Photo updated.');
+  });
+
+  removeBtn.addEventListener('click', async function () {
+    if (busy || !me) { return; }
+    setBusy(true);
+    var r = await api('/users/me/avatar', 'DELETE');
+    setBusy(false);
+    if (!r.ok) { showToast(errorText(r)); return; }
+    me.avatar_url = null;
+    photoChanged('Photo removed.');
+  });
 
   /* ---------- status picker ---------- */
   async function saveStatus(payload) {

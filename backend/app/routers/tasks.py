@@ -196,10 +196,10 @@ def update_task(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    task, _ = _task_and_membership(db, user, task_id)  # 404 if missing or not in this room
+    task, membership = _task_and_membership(db, user, task_id)  # 404 if missing or not in this room
 
-    if task.created_by != user.id:
-        raise HTTPException(403, "Only the creator can edit this task")
+    if task.created_by != user.id and membership.role != "admin":  # Thomas's decision, Oct 21: admins can fix a task before deciding
+        raise HTTPException(403, "Only the creator or a room admin can edit this task")
     if task.status != "pending":
         raise HTTPException(403, "Only pending tasks can be edited")
     if "due_at" in body.model_fields_set:  # only a new due date has to be in the future

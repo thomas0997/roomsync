@@ -68,6 +68,7 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 | DELETE | /tasks/{task_id}/hidden | none | 200 task. Restores a removed task to my Home board. Same rules. | T1 DONE |
 | GET | /rooms/{room_id}/tasks/removed | none | `[task]` approved tasks of this room that I removed, sorted by due_at (403 if not a member). | T1 DONE |
 | GET | /rooms/{room_id}/tasks/mine?limit=50 | none | `[task]` the tasks I created in this room, any status, newest first (`limit` 1 to 100, default 50; 422 otherwise). Used for "My submissions" (pending and rejected). 403 if not a member. | T1 DONE |
+| GET | /rooms/{room_id}/tasks/search?q=&type=&limit=30 | none | `[task]` approved tasks of this room whose title, subject or type contains `q` (case-insensitive; `%` and `_` are plain characters). `q` is required, 1 to 50 characters, not blank (422 otherwise). `type` optionally keeps one exact type. Upcoming tasks first (soonest first), then past ones (most recent first). `limit` 1 to 100, default 30. Tasks I removed from Home are still found. `done` is marked for me. 403 if not a member. Used by the mobile search sheet. | T1 DONE |
 
 Done and removed are stored per user and per task and are deleted together with the task. `GET /rooms/{room_id}/tasks?week_start=` (the Home board) leaves out tasks I removed; `GET /rooms/{room_id}/calendar` still includes them. Both mark `done` for me.
 

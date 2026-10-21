@@ -48,7 +48,8 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | PUT | /rooms/{room_id}/avatar | multipart `image` | room. Admin only. Same image rules as profile pictures. | T2 TODO |
 
 ## Tasks (Daniel)
-Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?}`
+Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, done}`
+`done` is true when the CURRENT user ticked the task off. It is per user (nobody else sees it) and is filled in on the week, calendar, removed-list and done/hidden responses; on every other response it is false.
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.
 `all_day` is true when no time was given (`due_at` is then the end of that day in Asia/Manila, which is 15:59:00Z).
 Only `approved` tasks appear on the board and calendar.
@@ -61,8 +62,15 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
 | PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. Creator only, and only while `pending` (403 otherwise). Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject can be cleared with null. Editing never changes the status. If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 DONE |
 | DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 DONE |
+| PUT | /tasks/{task_id}/done | none | 200 task with `done: true`. Ticks the task off for me only. Approved tasks only (409 "Task is not approved yet" otherwise). Ticking twice is fine. | T1 DONE |
+| DELETE | /tasks/{task_id}/done | none | 200 task with `done: false`. Same rules; unticking a task that was never ticked is fine. | T1 DONE |
+| PUT | /tasks/{task_id}/hidden | none | 200 task. Removes the task from MY Home board only. The room, other members and the calendar are unaffected. Approved tasks only (409 otherwise). Doing it twice is fine. | T1 DONE |
+| DELETE | /tasks/{task_id}/hidden | none | 200 task. Restores a removed task to my Home board. Same rules. | T1 DONE |
+| GET | /rooms/{room_id}/tasks/removed | none | `[task]` approved tasks of this room that I removed, sorted by due_at (403 if not a member). | T1 DONE |
 
-Task-id endpoints (PATCH and DELETE /tasks/{task_id}, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
+Done and removed are stored per user and per task and are deleted together with the task. `GET /rooms/{room_id}/tasks?week_start=` (the Home board) leaves out tasks I removed; `GET /rooms/{room_id}/calendar` still includes them. Both mark `done` for me.
+
+Task-id endpoints (PATCH and DELETE /tasks/{task_id}, PUT and DELETE /tasks/{task_id}/done and /hidden, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
 
 ## Approvals (Daniel)
 Rules:

@@ -7,6 +7,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // When the page is wired to the API (js/approve_api.js), that file owns everything below.
+  if (document.body.hasAttribute('data-api-approve')) { return; }
+
   var list = document.getElementById('apprList');
   var emptyState = document.getElementById('apprEmpty');
 
@@ -63,4 +66,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-}); 
+});

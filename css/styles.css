@@ -1988,3 +1988,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .cal-empty-note { margin: 12px 4px 0; font-size: 14.4px; color: var(--gray-text-2); }
 .cal-empty-note[hidden] { display: none; }
 .exams-section[hidden] { display: none; }
+/* ---------- Approve page wired to the API ---------- */
+.appr-badge-custom { background: #8f8f97; }
+.appr-card.appr-card-leaving { opacity: 0; transform: translateY(-4px); transition: opacity 200ms ease, transform 200ms ease; pointer-events: none; }
+.appr-btn-approve:disabled, .appr-btn-reject:disabled { opacity: 0.5; cursor: default; }
+.appr-list[hidden], .profile-history-table[hidden], .notes-filter-row[hidden], .appr-empty[hidden] { display: none; }

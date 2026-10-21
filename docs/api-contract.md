@@ -107,9 +107,9 @@ Rules:
 - DELETE message: 404 when the message does not exist or is in a room the caller is not in (so ids cannot be probed); 403 for a room member who is not the author (admins included).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 TODO |
-| POST | /rooms/{room_id}/messages | `{body, reply_to_id?}` | 201 message | T1 TODO |
-| DELETE | /messages/{message_id} | none | 204. Author only; anyone else, including admins, gets 403. | T1 TODO |
+| GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 DONE |
+| POST | /rooms/{room_id}/messages | `{body, reply_to_id?}` | 201 message | T1 DONE |
+| DELETE | /messages/{message_id} | none | 204. Author only; anyone else, including admins, gets 403. | T1 DONE |
 T2 (not defined yet): @mentions, attachments, unread counts, "seen by". T3: WebSockets, DMs, calls (see Messaging).
 
 ## Files (Daniel): replaces Notes

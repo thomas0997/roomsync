@@ -1983,3 +1983,8 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
   flex-shrink: 0;
 }
 .status-cancel-btn:hover { background: var(--gray-bg); }
+/* ---------- Calendar page wired to the API ---------- */
+.cal-chip-custom { background: #8f8f97; }
+.cal-empty-note { margin: 12px 4px 0; font-size: 14.4px; color: var(--gray-text-2); }
+.cal-empty-note[hidden] { display: none; }
+.exams-section[hidden] { display: none; }

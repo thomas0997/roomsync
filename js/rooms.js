@@ -438,9 +438,23 @@ document.addEventListener('DOMContentLoaded', function () {
   var personModalClose = document.getElementById('personModalClose');
   var onlineUsersListEl = document.getElementById('onlineUsersList');
 
-  function openPersonModal(name, initials, online) {
+  function openPersonModal(name, initials, online, avatarUrl, isSelf) {
     if (!personModalOverlay) return;
-    document.getElementById('personModalAvatar').textContent = initials;
+    var avatarEl = document.getElementById('personModalAvatar');
+    avatarEl.textContent = initials;
+    personModalOverlay.dataset.self = isSelf ? 'true' : 'false';
+    var shown = avatarUrl || '';
+    avatarEl.dataset.shown = shown;
+    if (shown && window.RoomSyncAvatars) {
+      window.RoomSyncAvatars.photoSrc(shown).then(function (src) {
+        if (!src || avatarEl.dataset.shown !== shown) return;   // failed, or another person was opened meanwhile
+        var pic = document.createElement('img');
+        pic.className = 'online-user-photo';
+        pic.alt = '';
+        pic.src = src;
+        avatarEl.insertBefore(pic, avatarEl.firstChild);
+      });
+    }
     document.getElementById('personModalName').textContent = name;
     document.getElementById('personModalStatus').textContent =
       online === 'true' ? 'Online now' : (online === 'false' ? 'Offline' : '');
@@ -454,7 +468,16 @@ document.addEventListener('DOMContentLoaded', function () {
     onlineUsersListEl.addEventListener('click', function (e) {
       var item = e.target.closest('.online-user-clickable');
       if (!item) return;
-      openPersonModal(item.dataset.name, item.dataset.initials, item.dataset.online);
+      openPersonModal(item.dataset.name, item.dataset.initials, item.dataset.online, item.dataset.avatar, item.dataset.self === 'true');
+    });
+  }
+  // Other people's profile pages are not built yet (Tier 2). Your own row still opens your profile.
+  var personProfileLink = personModalOverlay && personModalOverlay.querySelector('a[href="profile.html"]');
+  if (personProfileLink) {
+    personProfileLink.addEventListener('click', function (e) {
+      if (personModalOverlay.dataset.self === 'true') return;
+      e.preventDefault();
+      showToast('Profile pages are coming soon.');
     });
   }
   if (personModalClose) personModalClose.addEventListener('click', closePersonModal);

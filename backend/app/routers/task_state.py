@@ -1,7 +1,10 @@
 """Per-user task views: tick a task off (done), remove it from your own Home board (hidden),
 and the list of the tasks I submitted (mine).
 Nobody else sees either one. Separate file so we don't collide with Daniel's tasks.py."""
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
@@ -93,3 +96,42 @@ def list_mine(
         .all()
     )
     return tasks_to_out(db, user, tasks)
+
+def _like_escape(text: str) -> str:
+    """Make % _ and \\ in what the user typed match themselves instead of acting as wildcards."""
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+@router.get("/rooms/{room_id}/tasks/search", response_model=list[TaskOut])
+def search_tasks(
+    room_id: int,
+    q: str = Query(..., min_length=1, max_length=50),
+    type: str | None = Query(None, min_length=1, max_length=30),
+    limit: int = Query(30, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Search the room's APPROVED tasks by title, subject or type (case-insensitive).
+    Upcoming tasks come first (soonest first), then past ones (most recent first)."""
+    require_member(db, user, room_id)  # 403 if not in this room
+    text = q.strip()
+    if not text:
+        raise HTTPException(422, "q must not be blank")
+    pattern = f"%{_like_escape(text)}%"
+    base = db.query(Task).filter(
+        Task.room_id == room_id,
+        Task.status == "approved",
+        or_(
+            Task.title.ilike(pattern, escape="\\"),
+            Task.subject.ilike(pattern, escape="\\"),
+            Task.type.ilike(pattern, escape="\\"),
+        ),
+    )
+    if type is not None:
+        base = base.filter(Task.type == type)
+    now = datetime.now(timezone.utc)
+    upcoming = base.filter(Task.due_at >= now).order_by(Task.due_at, Task.id).limit(limit).all()
+    past = []
+    if len(upcoming) < limit:
+        past = base.filter(Task.due_at < now).order_by(Task.due_at.desc(), Task.id.desc()).limit(limit - len(upcoming)).all()
+    return tasks_to_out(db, user, upcoming + past)

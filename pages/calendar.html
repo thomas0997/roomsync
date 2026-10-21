@@ -272,7 +272,7 @@
       <!-- ---------- CALENDAR CARD (month nav + grid, unified container) ---------- -->
       <div class="cal-card">
         <div class="cal-month-nav">
-          <h2 class="cal-month-title">August 2026</h2>
+          <h2 class="cal-month-title" id="calMonthTitle"></h2>
           <div class="cal-nav-group">
             <button class="cal-nav-btn" id="calPrevBtn" aria-label="Previous month">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -290,99 +290,11 @@
         <div class="cal-dow-row cal-dow-row-mobile">
           <div>Su</div><div>M</div><div>Tu</div><div>W</div><div>Th</div><div>F</div><div>Sa</div>
         </div>
-        <div class="cal-grid">
-
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell"><span class="cal-daynum">1</span></div>
-
-          <div class="cal-cell"><span class="cal-daynum">2</span></div>
-          <div class="cal-cell"><span class="cal-daynum">3</span></div>
-          <div class="cal-cell"><span class="cal-daynum">4</span></div>
-          <div class="cal-cell"><span class="cal-daynum">5</span></div>
-          <div class="cal-cell"><span class="cal-daynum">6</span></div>
-          <div class="cal-cell"><span class="cal-daynum">7</span></div>
-          <div class="cal-cell"><span class="cal-daynum">8</span></div>
-
-          <div class="cal-cell"><span class="cal-daynum">9</span></div>
-          <div class="cal-cell"><span class="cal-daynum">10</span></div>
-          <div class="cal-cell"><span class="cal-daynum">11</span></div>
-          <div class="cal-cell"><span class="cal-daynum">12</span></div>
-          <div class="cal-cell">
-            <span class="cal-daynum cal-daynum-today">13</span>
-            <span class="cal-chip cal-chip-seatwork">DSAL Seatwork</span>
-          </div>
-          <div class="cal-cell"><span class="cal-daynum">14</span></div>
-          <div class="cal-cell"><span class="cal-daynum">15</span></div>
-
-          <div class="cal-cell">
-            <span class="cal-daynum">16</span>
-            <span class="cal-chip cal-chip-assignment">DSAL Assignment</span>
-            <span class="cal-chip cal-chip-assignment">DSAL Assignment 2</span>
-          </div>
-          <div class="cal-cell">
-            <span class="cal-daynum">17</span>
-            <span class="cal-chip cal-chip-quiz">6IWEB Quiz</span>
-            <span class="cal-chip cal-chip-quiz">6DSAL Quiz</span>
-          </div>
-          <div class="cal-cell cal-cell-has-more">
-            <span class="cal-daynum">18</span>
-            <span class="cal-chip cal-chip-activity">6OOP CodeChum Activity</span>
-            <button type="button" class="cal-chip cal-chip-assignment cal-chip-more">+2 More</button>
-            <div class="cal-more-popover" hidden>
-              <span class="cal-chip cal-chip-quiz">6OOP Quiz</span>
-              <span class="cal-chip cal-chip-quiz">6ICYBER Case Study</span>
-            </div>
-          </div>
-          <div class="cal-cell">
-            <span class="cal-daynum">19</span>
-            <span class="cal-chip cal-chip-quiz">6OOP Quiz</span>
-          </div>
-          <div class="cal-cell"><span class="cal-daynum">20</span></div>
-          <div class="cal-cell">
-            <span class="cal-daynum">21</span>
-            <span class="cal-chip cal-chip-quiz">6IWEB Case Study</span>
-          </div>
-          <div class="cal-cell"><span class="cal-daynum">22</span></div>
-
-          <div class="cal-cell"><span class="cal-daynum">23</span></div>
-          <div class="cal-cell"><span class="cal-daynum">24</span></div>
-          <div class="cal-cell"><span class="cal-daynum">25</span></div>
-          <div class="cal-cell cal-cell-exam">
-            <span class="cal-daynum">26</span>
-            <span class="cal-chip cal-chip-exam">2Ethics Exam</span>
-          </div>
-          <div class="cal-cell cal-cell-exam">
-            <span class="cal-daynum">27</span>
-            <span class="cal-chip cal-chip-exam">6OOP Exam</span>
-            <span class="cal-chip cal-chip-exam">2ConWorld Midterm Output</span>
-          </div>
-          <div class="cal-cell cal-cell-exam">
-            <span class="cal-daynum">28</span>
-            <span class="cal-chip cal-chip-exam">6DSAL Exam</span>
-            <span class="cal-chip cal-chip-exam">6ICYBER Exam</span>
-            <span class="cal-chip cal-chip-exam">6OPSYS Exam</span>
-          </div>
-          <div class="cal-cell">
-            <span class="cal-daynum">29</span>
-            <span class="cal-chip cal-chip-quiz">2CONWORLD Quiz</span>
-          </div>
-
-          <div class="cal-cell"><span class="cal-daynum">30</span></div>
-          <div class="cal-cell"><span class="cal-daynum">31</span></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-          <div class="cal-cell cal-cell-empty"></div>
-
-        </div>
+        <div class="cal-grid" id="calGrid"></div>
       </div>
       </div>
+
+      <p class="cal-empty-note" id="calEmpty" role="status" hidden></p>
 
       <!-- Type color legend lives in the shared fixed footer bar sitewide — not duplicated inside this card -->
       <div class="task-colors" aria-label="Task type color legend">
@@ -407,132 +319,9 @@
         </div>
       </div>
 
-      <section class="exams-section">
-        <h2 class="week-label"><span class="week-label-accent">EXAMS</span> <span class="bullet">•</span> <span class="week-date">Sept 1 to Sept 3</span></h2>
-
-        <div class="board board-grid">
-          <article class="day-card">
-            <div class="day-card-head">
-              <div class="day-card-title-group">
-                <h3 class="day-name">Tuesday</h3>
-                <p class="day-date-sub">Sep 1</p>
-              </div>
-              <span class="task-count">1</span>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6OOP</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-                <span class="subject-tag">MGN305</span>
-              </div>
-              <p class="reminder-time">3:15 to 5:15 PM</p>
-              <p class="exam-proctor">Proctor: Caro, Carisma A.</p>
-            </div>
-          </article>
-
-          <article class="day-card">
-            <div class="day-card-head">
-              <div class="day-card-title-group">
-                <h3 class="day-name">Wednesday</h3>
-                <p class="day-date-sub">Sep 2</p>
-              </div>
-              <span class="task-count">2</span>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6ICYBER</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-                <span class="subject-tag">SJH507</span>
-              </div>
-              <p class="reminder-time">1:00 to 2:00 PM</p>
-              <p class="exam-proctor">Proctor: Cabo, Juniel</p>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6OPSYSFUN</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-                <span class="subject-tag">SJH501</span>
-              </div>
-              <p class="reminder-time">2:10 to 3:40 PM</p>
-              <p class="exam-proctor">Proctor: Rabena, Mary Jane</p>
-            </div>
-          </article>
-
-          <article class="day-card">
-            <div class="day-card-head">
-              <div class="day-card-title-group">
-                <h3 class="day-name">Thursday</h3>
-                <p class="day-date-sub">Sep 3</p>
-              </div>
-              <span class="task-count">2</span>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6DSAL</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-                <span class="subject-tag">SJH505</span>
-              </div>
-              <p class="reminder-time">9:15 to 10:45 AM</p>
-              <p class="exam-proctor">Proctor: Yu, Kahil Makisig I</p>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">2ETHICS</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-                <span class="subject-tag">SJH502</span>
-              </div>
-              <p class="reminder-time">4:30 to 6:00 PM</p>
-              <p class="exam-proctor">Proctor: Baluyut, Miguel</p>
-            </div>
-          </article>
-
-          <article class="day-card">
-            <div class="day-card-head">
-              <div class="day-card-title-group">
-                <h3 class="day-name">TBA</h3>
-                <p class="day-date-sub">Date pending</p>
-              </div>
-              <span class="task-count">2</span>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6IWEB</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-              </div>
-              <p class="reminder-time">TBA</p>
-              <p class="exam-proctor">Proctor: Rivera, Raquel B.</p>
-            </div>
-            <div class="reminder-card">
-              <div class="reminder-top">
-                <button class="reminder-bullet" aria-label="Mark task complete" type="button"></button>
-                <p class="reminder-title">6DSAL Lab and Badging Exam</p>
-              </div>
-              <div class="reminder-tags">
-                <span class="type-badge type-exam">EXAM</span>
-              </div>
-              <p class="reminder-time">TBA</p>
-              <p class="exam-proctor">Proctor: Napalit, Arcely</p>
-            </div>
-          </article>
-        </div>
+      <section class="exams-section" id="calExams" hidden>
+        <h2 class="week-label"><span class="week-label-accent">EXAMS</span> <span class="bullet">•</span> <span class="week-date" id="calExamsRange"></span></h2>
+        <div class="board board-grid" id="calExamsBoard"></div>
       </section>
 
     </main>
@@ -671,5 +460,7 @@
   <script src="../js/rooms.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/sidebar_rooms.js"></script>
+  <script src="../js/task_ui.js"></script>
+  <script src="../js/calendar_api.js"></script>
 </body>
 </html>

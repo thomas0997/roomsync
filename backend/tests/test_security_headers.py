@@ -44,6 +44,6 @@ def test_no_inline_scripts_left_in_pages():
 
     pages = Path(__file__).resolve().parents[2] / "pages"
     for page in pages.glob("*.html"):
-        for tag in re.findall(r"<script\b[^>]*>", page.read_text()):
+        for tag in re.findall(r"<script\b[^>]*>", page.read_text(encoding="utf-8")):
             assert "src=" in tag, f"inline <script> in {page.name}"
-        assert not re.search(r"\son[a-z]+=\"", page.read_text()), f"inline event handler in {page.name}"
+        assert not re.search(r"\son[a-z]+=\"", page.read_text(encoding="utf-8")), f"inline event handler in {page.name}"

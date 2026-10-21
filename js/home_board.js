@@ -113,6 +113,33 @@
     loadBoard(home.currentRoomId());
   }
 
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  function trashIcon() {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  // Admins can delete a task for the whole room. Asks first; it cannot be undone.
+  async function deleteTask(task) {
+    if (!window.confirm('Delete "' + task.title + '" for everyone in the room? This cannot be undone.')) { return; }
+    var r = await home.api('/tasks/' + task.id, 'DELETE');
+    if (!r.ok && r.status !== 404) {
+      if (r.status !== 401) { home.showToast(home.errorText(r)); }
+      return;
+    }
+    home.showToast('Task deleted.');
+    loadBoard(home.currentRoomId());
+  }
+
   function reminderCard(task) {
     var card = el('div', 'reminder-card');
     card.tabIndex = 0;
@@ -124,6 +151,18 @@
     bullet.setAttribute('aria-hidden', 'true');
     top.appendChild(bullet);
     top.appendChild(el('p', 'reminder-title', task.title));
+    if (home.isAdmin()) {
+      var del = el('button', 'reminder-delete');
+      del.type = 'button';
+      del.setAttribute('aria-label', 'Delete for everyone');
+      del.title = 'Delete for everyone (admin)';
+      del.appendChild(trashIcon());
+      del.addEventListener('click', function (e) {
+        e.stopPropagation();                        // do not tick the task
+        deleteTask(task);
+      });
+      top.appendChild(del);
+    }
     var remove = el('button', 'reminder-remove', '×');
     remove.type = 'button';
     remove.setAttribute('aria-label', 'Remove from my Home page');

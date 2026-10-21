@@ -3,7 +3,10 @@
    Approve page, wired to the API (admins only):
    - the room's pending tasks, oldest first, with Approve / Reject
    - filter by task type, sort by due date or name
+   - Edit: an admin can fix a pending task (title, type, date...) before deciding
    - History: the most recent decisions
+   - Members see MY SUBMISSIONS instead: their own pending and rejected tasks, with Edit and Delete
+   for the pending ones
    The server decides who may approve what (an admin can't decide their own
    task while another admin exists); its message is shown if a decision is refused.
    All user text is written with textContent (never innerHTML).
@@ -84,12 +87,90 @@
     reject.type = 'button';
     reject.appendChild(icon('M18 6L6 18M6 6l12 12'));
     reject.appendChild(document.createTextNode('Reject'));
+    var edit = T.el('button', 'appr-btn-edit', 'Edit');
+    edit.type = 'button';
+    edit.addEventListener('click', function () { openEdit(task); });
     approve.addEventListener('click', function () { decide(task, 'approve', article); });
     reject.addEventListener('click', function () { decide(task, 'reject', article); });
     actions.appendChild(approve);
     actions.appendChild(reject);
+    actions.appendChild(edit);
     article.appendChild(actions);
     return article;
+  }
+
+  // The shared form (js/new_todo.js) edits the task; onSaved reloads whatever list we are showing.
+  function openEdit(task) {
+    if (window.RoomSyncNewTodo) { window.RoomSyncNewTodo.openEdit(task, load); }
+  }
+
+  /* ---------- my submissions (members) ---------- */
+  function mineCard(task) {
+    var article = T.el('article', 'appr-card');
+    var top = T.el('div', 'appr-card-top');
+    var text = T.el('div', 'appr-card-text');
+    text.appendChild(T.el('h3', 'appr-card-title', task.title));
+    var meta = 'Due ' + dueText(task) + (task.subject ? ' \u2022 ' + task.subject : '');
+    if (task.status === 'rejected' && task.decided_by_name) { meta += ' \u2022 rejected by ' + task.decided_by_name; }
+    text.appendChild(T.el('p', 'appr-card-meta', meta));
+    top.appendChild(text);
+    var pill = T.el('span', 'history-status ' + (task.status === 'pending' ? 'history-status-pending' : 'history-status-rejected'),
+                    task.status.toUpperCase());
+    var right = T.el('div', 'appr-card-right');
+    right.appendChild(pill);
+    right.appendChild(T.el('span', 'appr-badge ' + (T.isKnownType(task.type) ? 'appr-badge-' + task.type : 'appr-badge-custom'),
+                           typeLabel(task.type)));
+    top.appendChild(right);
+    article.appendChild(top);
+
+    if (task.status === 'pending') {
+      var actions = T.el('div', 'appr-card-actions');
+      var edit = T.el('button', 'appr-btn-edit', 'Edit');
+      edit.type = 'button';
+      edit.addEventListener('click', function () { openEdit(task); });
+      var del = T.el('button', 'appr-btn-delete', 'Delete');
+      del.type = 'button';
+      del.addEventListener('click', async function () {
+        if (!window.confirm('Delete "' + task.title + '"? It will not go to the room.')) { return; }
+        del.disabled = true;
+        var r = await home.api('/tasks/' + task.id, 'DELETE');
+        if (!r.ok && r.status !== 404) {
+          del.disabled = false;
+          home.showToast(home.errorText(r));
+          return;
+        }
+        home.showToast('Submission deleted.');
+        load();
+        document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));   // the pending count changed
+      });
+      actions.appendChild(edit);
+      actions.appendChild(del);
+      article.appendChild(actions);
+    }
+    return article;
+  }
+
+  function showMineParts(show) {
+    ['apprMineHead', 'apprMineList'].forEach(function (id) {
+      var node = byId(id);
+      if (node) { node.hidden = !show; }
+    });
+    var empty = byId('apprMineEmpty');
+    if (empty && !show) { empty.hidden = true; }
+  }
+
+  async function loadMine(roomId, token) {
+    var r = await home.api('/rooms/' + roomId + '/tasks/mine?limit=100');
+    if (token !== loadCounter) { return; }
+    var box = byId('apprMineList');
+    if (!box) { return; }
+    T.clear(box);
+    if (!r.ok) { showMineParts(false); home.showToast(home.errorText(r)); return; }
+    var open = r.body.filter(function (t) { return t.status === 'pending' || t.status === 'rejected'; });
+    showMineParts(true);
+    open.forEach(function (t) { box.appendChild(mineCard(t)); });
+    var empty = byId('apprMineEmpty');
+    if (empty) { empty.hidden = open.length !== 0; }
   }
 
   function sorted(tasks) {
@@ -188,6 +269,7 @@
       pending = [];
       T.clear(list);
       showAdminParts(false);
+      showMineParts(false);
       setMessage('Join or create a room to review its tasks.');
       return;
     }
@@ -198,6 +280,7 @@
       T.clear(list);
       showAdminParts(false);
       setMessage('Only room admins can review submissions. An admin will approve or reject your tasks.');
+      loadMine(roomId, mine);
       return;
     }
     if (!r.ok) {
@@ -207,6 +290,7 @@
       return;
     }
     showAdminParts(true);
+    showMineParts(false);
     pending = r.body;
     renderPending();
     loadHistory(roomId);

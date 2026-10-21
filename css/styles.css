@@ -2043,3 +2043,22 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 }
 .cal-today-btn:hover { border-color: var(--blue); color: var(--blue); }
 .cal-today-btn[hidden] { display: none; }
+
+/* ---------- Approve: edit/delete, my submissions; Home: admin delete ---------- */
+.appr-btn-edit, .appr-btn-delete {
+  height: 28px; padding: 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--hairline);
+  background: #fff; color: var(--near-black); font-size: 13.2px; font-weight: 600; cursor: pointer;
+}
+.appr-btn-edit:hover { border-color: var(--blue); color: var(--blue); }
+.appr-btn-delete:hover:not(:disabled) { border-color: var(--exam); color: var(--exam); }
+.appr-btn-delete:disabled { opacity: 0.5; cursor: default; }
+#apprMineHead[hidden], #apprMineList[hidden] { display: none; }
+.reminder-delete {
+  flex-shrink: 0; width: 18px; height: 18px; margin: -2px 0 0; padding: 2px; box-sizing: border-box;
+  border: none; border-radius: 50%; background: transparent; color: var(--gray-text); cursor: pointer;
+  opacity: 0.55; transition: opacity 150ms, background 150ms, color 150ms;
+}
+.reminder-delete svg { width: 100%; height: 100%; display: block; }
+.reminder-delete:hover, .reminder-delete:focus-visible { opacity: 1; background: var(--gray-bg); color: var(--exam); }
+.reminder-card:hover .reminder-delete { opacity: 1; }
+.appr-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }

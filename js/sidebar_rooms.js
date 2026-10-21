@@ -459,7 +459,8 @@
     api: api,
     showToast: showToast,
     errorText: errorText,
-    currentRoomId: function () { return currentId; }
+    currentRoomId: function () { return currentId; },
+    isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); }
   };
 
   // Another script (for example Settings after Leave Room) can ask for a fresh room list.

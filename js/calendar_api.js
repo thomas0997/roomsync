@@ -113,7 +113,9 @@
     errorText: home.errorText,
     onChanged: function () { renderMonth(shown, lastTasks, lastRemoved); },
     onRemoved: function () { load(); },
-    onStale: function () { load(); }
+    onStale: function () { load(); },
+    canDelete: function () { return home.isAdmin(); },
+    onDeleted: function () { load(); }
   };
 
   function renderExams(m, byDay, today) {

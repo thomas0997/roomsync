@@ -55,7 +55,8 @@
 
   // `actions` is optional. Without it the card is read-only (Approve page).
   // With it the card can be ticked off and removed from your Home board, like on Home:
-  //   { api, toast, errorText, onChanged(), onRemoved(task), onStale() }
+  //   { api, toast, errorText, onChanged(), onRemoved(task), onStale(),
+  //     canDelete() (true for room admins), onDeleted(task) }
   function applyDone(card, bullet, task, done) {
     task.done = done;
     card.classList.toggle('is-complete', done);
@@ -88,6 +89,33 @@
     if (actions.onRemoved) { actions.onRemoved(task); }
   }
 
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  function trashIcon() {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  // Admins can delete a task for the whole room. Asks first; it cannot be undone.
+  async function deleteTask(task, actions) {
+    if (!window.confirm('Delete "' + task.title + '" for everyone in the room? This cannot be undone.')) { return; }
+    var r = await actions.api('/tasks/' + task.id, 'DELETE');
+    if (!r.ok && r.status !== 404) {
+      if (r.status !== 401) { actions.toast(actions.errorText(r)); }
+      return;
+    }
+    actions.toast('Task deleted.');
+    if (actions.onDeleted) { actions.onDeleted(task); }
+  }
+
   function reminderCard(task, actions) {
     var card = el('div', 'reminder-card');
     var top = el('div', 'reminder-top');
@@ -96,6 +124,18 @@
     top.appendChild(bullet);
     top.appendChild(el('p', 'reminder-title', task.title));
     if (actions) {
+      if (actions.canDelete && actions.canDelete()) {
+        var del = el('button', 'reminder-delete');
+        del.type = 'button';
+        del.setAttribute('aria-label', 'Delete for everyone');
+        del.title = 'Delete for everyone (admin)';
+        del.appendChild(trashIcon());
+        del.addEventListener('click', function (e) {
+          e.stopPropagation();                    // do not tick the task
+          deleteTask(task, actions);
+        });
+        top.appendChild(del);
+      }
       var remove = el('button', 'reminder-remove', '\u00d7');
       remove.type = 'button';
       remove.setAttribute('aria-label', 'Remove from my Home page');
@@ -156,6 +196,6 @@
     MONTHS: MONTHS, DAYS: DAYS, MANILA_MS: MANILA_MS, DAY_MS: DAY_MS,
     manilaToday: manilaToday, addDays: addDays, ymd: ymd, sameDay: sameDay,
     shortMonthDay: shortMonthDay, manilaDayOf: manilaDayOf, timeText: timeText,
-    isKnownType: isKnownType, el: el, clear: clear, reminderCard: reminderCard, dayCard: dayCard
+    isKnownType: isKnownType, el: el, clear: clear, trashIcon: trashIcon, reminderCard: reminderCard, dayCard: dayCard
   };
 })();

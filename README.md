@@ -1,5 +1,7 @@
 # RoomSync
 
+Live at roomsync.me!
+
 A peer-approval-gated deadline tracker, built around rooms instead of classrooms.
 
 RoomSync organizes deadlines the way students actually work: not one calendar per class, but "rooms" that map to whoever a person actually coordinates with (a friend group, a study team, an org). Every task carries a type (Exam, Quiz, Case Study, Activity, Seatwork, Assignment) with type-weighted priority, and nothing gets accepted into the room without a peer approving it first.

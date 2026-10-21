@@ -24,6 +24,14 @@ def _reject_past(due_at: datetime) -> None:
     if not ALLOW_PAST_DUE and due_at <= datetime.now(timezone.utc):
         raise HTTPException(422, "due_at must be in the future")
 
+
+def _check_all_day(all_day: bool, due_at: datetime) -> None:
+    """An all-day task is stored as 15:59:00Z (23:59 in Manila, the end of that day)."""
+    if all_day:
+        utc = due_at.astimezone(timezone.utc) if due_at.tzinfo else due_at  # SQLite gives naive UTC
+        if (utc.hour, utc.minute, utc.second, utc.microsecond) != (15, 59, 0, 0):
+            raise HTTPException(422, "All-day tasks must be due at 15:59:00Z (the end of the day in Manila)")
+
 # Weeks and months use Manila time until the T2 timezone setting exists (Thomas's decision, Oct 19).
 # The Philippines has no daylight saving, so a fixed UTC+8 offset is exact.
 MANILA = timezone(timedelta(hours=8))
@@ -130,6 +138,7 @@ def create_task(
 ):
     membership = require_member(db, user, room_id)  # 403 if not in this room
     _reject_past(body.due_at)
+    _check_all_day(body.all_day, body.due_at)
 
     status = "pending"
     if membership.role == "admin":
@@ -210,6 +219,11 @@ def update_task(
         raise HTTPException(403, "Only pending tasks can be edited")
     if "due_at" in body.model_fields_set:  # only a new due date has to be in the future
         _reject_past(body.due_at)
+    if "all_day" in body.model_fields_set or "due_at" in body.model_fields_set:  # check the final combination
+        _check_all_day(
+            body.all_day if "all_day" in body.model_fields_set else task.all_day,
+            body.due_at if "due_at" in body.model_fields_set else task.due_at,
+        )
 
     for field in body.model_fields_set:  # change only what the client sent; status is never touched
         setattr(task, field, getattr(body, field))

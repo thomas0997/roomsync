@@ -1,6 +1,7 @@
-"""Per-user task state: tick a task off (done) and remove it from your own Home board (hidden).
+"""Per-user task views: tick a task off (done), remove it from your own Home board (hidden),
+and the list of the tasks I submitted (mine).
 Nobody else sees either one. Separate file so we don't collide with Daniel's tasks.py."""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
@@ -71,6 +72,24 @@ def list_removed(room_id: int, db: Session = Depends(get_db), user: User = Depen
             Task.status == "approved",
         )
         .order_by(Task.due_at, Task.id)
+        .all()
+    )
+    return tasks_to_out(db, user, tasks)
+
+@router.get("/rooms/{room_id}/tasks/mine", response_model=list[TaskOut])
+def list_mine(
+    room_id: int,
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """The tasks I created in this room, every status, newest first (for "My submissions")."""
+    require_member(db, user, room_id)  # 403 if not in this room
+    tasks = (
+        db.query(Task)
+        .filter(Task.room_id == room_id, Task.created_by == user.id)
+        .order_by(Task.id.desc())
+        .limit(limit)
         .all()
     )
     return tasks_to_out(db, user, tasks)

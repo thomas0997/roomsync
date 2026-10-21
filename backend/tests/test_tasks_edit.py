@@ -70,12 +70,14 @@ def test_subject_can_be_cleared_with_null(client):
     assert r.json()["subject"] is None
 
 
-def test_only_the_creator_can_edit(client):
+def test_only_the_creator_or_an_admin_can_edit(client):
     alice, bob, carol, rid = _setup(client)
     t = _add(client, rid, bob, "Quiz 1")
     assert _patch(client, t["id"], carol, {"title": "Hacked"}).status_code == 403  # other member
-    assert _patch(client, t["id"], alice, {"title": "Hacked"}).status_code == 403  # even an admin
     assert _patch(client, t["id"], bob, {"title": "Fine"}).status_code == 200      # the creator
+    r = _patch(client, t["id"], alice, {"title": "Fixed by admin"})                # a room admin (Oct 21 decision)
+    assert r.status_code == 200 and r.json()["title"] == "Fixed by admin"
+    assert r.json()["status"] == "pending" and r.json()["created_by_name"] == "Bob"  # editing changes nothing else
 
 
 def test_approved_task_cannot_be_edited(client):

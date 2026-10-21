@@ -1,0 +1,100 @@
+/* ============================================================
+   ROOMSYNC — styles_discussion.css
+   Extra rules for the wired chat (js/discussion_api.js). Kept in its
+   own file so css/styles.css stays untouched.
+   ============================================================ */
+
+/* the messages wrapper must not change how the thread lays out its children */
+#discMessages { display: contents; }
+
+.disc-empty {
+  margin: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--gray-text-2, #6b7280);
+}
+
+.disc-load-row { display: flex; justify-content: center; margin: 4px 0 12px; }
+.disc-load-row[hidden] { display: none; }
+.disc-load-btn {
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.disc-load-btn:hover { background: rgba(127, 127, 127, 0.12); }
+.disc-load-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* long words and line breaks inside a bubble */
+.disc-bubble {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* Reply / Delete under each message */
+.disc-actions { display: flex; gap: 12px; margin: 2px 4px 0; }
+.disc-msg-own .disc-actions { justify-content: flex-end; }
+.disc-action-btn {
+  border: 0;
+  background: transparent;
+  color: var(--gray-text-2, #6b7280);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.disc-action-btn:hover { text-decoration: underline; }
+.disc-action-delete:hover { color: #c0392b; }
+.disc-load-btn:focus-visible,
+.disc-action-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* member photos inside the round initials avatar */
+.disc-avatar { position: relative; overflow: hidden; }
+.disc-avatar-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* quote bar above the input */
+.disc-reply-snippet {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* the input is a textarea now (Shift+Enter makes a new line) */
+.disc-input-bar textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.4;
+  resize: none;
+  padding: 6px 0;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.disc-counter {
+  font-size: 11px;
+  color: var(--gray-text-2, #6b7280);
+  white-space: nowrap;
+  margin: 0 8px;
+}
+.disc-counter[hidden] { display: none; }
+.disc-counter-near { color: #c0392b; }
+.disc-send-btn:disabled { opacity: 0.6; cursor: default; }

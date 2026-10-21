@@ -11,8 +11,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
+<link href="../css/styles_discussion.css" rel="stylesheet">
 </head>
-<body>
+<body data-api-discussion>
 
   <header class="topbar">
     <div class="topbar-brand">
@@ -255,93 +256,19 @@
 
       <hr class="section-rule desktop-tablet-only">
 
-      <!-- ---------- CHAT THREAD ---------- -->
+               <!-- ---------- CHAT THREAD ---------- -->
       <div class="disc-thread" id="discThread">
-
-        <div class="disc-msg-group">
-          <div class="disc-msg-meta">
-            <span class="disc-avatar">MB</span>
-            <span class="disc-name">Mary Rose Bayani</span>
-            <span class="disc-time">9:14 AM</span>
-          </div>
-          <div class="disc-bubble-row">
-            <button class="disc-bubble" data-reply-name="Mary Rose Bayani" data-reply-text="Ma'am caro moved the Java Bank Teller deadline to the 28th, can someone confirm this on the conflicts list">
-              Ma'am caro moved the Java Bank Teller deadline to the 28th, can someone confirm this on the conflicts list
-            </button>
-          </div>
+        <div class="disc-load-row" id="discLoadRow" hidden>
+          <button type="button" class="disc-load-btn" id="discLoadEarlier">Load earlier messages</button>
         </div>
-
-        <div class="disc-msg-group">
-          <div class="disc-msg-meta">
-            <span class="disc-avatar">DR</span>
-            <span class="disc-name">Daniel Rodriguez</span>
-            <span class="disc-time">9:15 AM</span>
-          </div>
-          <div class="disc-bubble-row">
-            <div class="disc-bubble-stack">
-              <button class="disc-bubble" data-reply-name="Daniel Rodriguez" data-reply-text="Thank god, I know nothing. I'll do it.">
-                Thank god, I know nothing. I'll do it.
-              </button>
-              <div class="disc-reply-tag">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5M4 9h11a4 4 0 0 1 4 4v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Replying to Mary Rose Bayani
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="disc-msg-group">
-          <div class="disc-msg-meta">
-            <span class="disc-avatar">DR</span>
-            <span class="disc-name">Daniel Rodriguez</span>
-            <span class="disc-time">9:15 AM</span>
-          </div>
-          <div class="disc-bubble-row">
-            <button class="disc-bubble" data-reply-name="Daniel Rodriguez" data-reply-text="I'm hungry">
-              I'm hungry
-            </button>
-          </div>
-        </div>
-
-        <div class="disc-msg-group disc-msg-own">
-          <div class="disc-msg-meta">
-            <span class="disc-name">Thomas Franco</span>
-            <span class="disc-time">9:16 AM</span>
-            <span class="disc-avatar">TF</span>
-          </div>
-          <div class="disc-bubble-row">
-            <button class="disc-bubble" data-reply-name="Thomas Franco" data-reply-text="Approved it, also heads up the Figma cert course link in the notes is down for maintenance rn">
-              Approved it, also heads up the Figma cert course link in the notes is down for maintenance rn
-            </button>
-          </div>
-          <div class="disc-bubble-row">
-            <button class="disc-bubble" data-reply-name="Thomas Franco" data-reply-text="Istg, Daniel is always hungry man.">
-              Istg, Daniel is always hungry man.
-            </button>
-          </div>
-        </div>
-
-        <div class="disc-msg-group">
-          <div class="disc-msg-meta">
-            <span class="disc-avatar">DR</span>
-            <span class="disc-name">Daniel Rodriguez</span>
-            <span class="disc-time">9:15 AM</span>
-          </div>
-          <div class="disc-bubble-row">
-            <span class="disc-typing" aria-label="Daniel Rodriguez is typing">
-              <span></span><span></span><span></span>
-            </span>
-          </div>
-        </div>
-
-        <p class="disc-seenby">Seen by Mary, Daniel, and 24 others.</p>
-
+        <p class="disc-empty" id="discEmpty">Loading messages...</p>
+        <div id="discMessages"></div>
       </div>
-
       <!-- ---------- REPLY INDICATOR (hidden until a message is clicked) ---------- -->
       <div class="disc-reply-indicator" id="discReplyIndicator" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5M4 9h11a4 4 0 0 1 4 4v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Replying to <strong id="discReplyName"></strong></span>
+        <span class="disc-reply-snippet" id="discReplySnippet"></span>
         <button type="button" id="discReplyCancel" aria-label="Cancel reply">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
         </button>
@@ -350,7 +277,8 @@
       <!-- ---------- MESSAGE INPUT ---------- -->
       <form class="disc-input-bar" id="discInputForm">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="disc-clip"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <input type="text" id="discMessageInput" placeholder="Message The Bozos..." autocomplete="off">
+        <textarea id="discMessageInput" rows="1" maxlength="2000" placeholder="Message your room..." autocomplete="off"></textarea>
+        <span class="disc-counter" id="discCounter" hidden></span>
         <button type="submit" class="disc-send-btn">Send</button>
       </form>
 
@@ -480,5 +408,6 @@
   <script src="../js/sidebar_rooms.js"></script>
   <script src="../js/new_todo.js"></script>
   <script src="../js/discussion.js"></script>
+  <script src="../js/discussion_api.js"></script>
 </body>
 </html>

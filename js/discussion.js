@@ -7,6 +7,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // When the page is wired to the API (js/discussion_api.js), that file owns the chat.
+  if (document.body.hasAttribute('data-api-discussion')) { return; }
+
   var thread = document.getElementById('discThread');
   var replyIndicator = document.getElementById('discReplyIndicator');
   var replyNameEl = document.getElementById('discReplyName');

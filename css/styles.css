@@ -2036,3 +2036,10 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .removed-restore:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
 .removed-restore:disabled { opacity: 0.5; cursor: default; }
 .cal-chip-done { opacity: 0.5; text-decoration: line-through; }
+/* ---------- Calendar: back-to-today button (shows only on another month) ---------- */
+.cal-today-btn {
+  height: 28px; padding: 0 12px; border-radius: var(--radius-pill); border: 1px solid var(--hairline);
+  background: #fff; color: var(--near-black); font-size: 13.2px; font-weight: 600; cursor: pointer;
+}
+.cal-today-btn:hover { border-color: var(--blue); color: var(--blue); }
+.cal-today-btn[hidden] { display: none; }

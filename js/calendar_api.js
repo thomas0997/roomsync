@@ -19,6 +19,8 @@
 
   var MAX_CHIPS = 3;      // a day with more than this shows two tasks and "+N more"
   var shown = null;       // { year, month } month being shown (month is 0 to 11)
+  var lastTasks = [];     // the month on screen, so a tick can redraw without asking the server again
+  var lastRemoved = {};   // ids of tasks I removed from my Home board (hidden from the Exams list)
   var loadCounter = 0;    // lets us ignore answers that arrive after you switched room or month
 
   function byId(id) { return document.getElementById(id); }
@@ -78,7 +80,9 @@
     note.hidden = !text;
   }
 
-  function renderMonth(m, tasks) {
+  function renderMonth(m, tasks, removedIds) {
+    lastTasks = tasks;
+    lastRemoved = removedIds || {};
     var today = T.manilaToday();
     var first = new Date(Date.UTC(m.year, m.month, 1));
     var daysInMonth = new Date(Date.UTC(m.year, m.month + 1, 0)).getUTCDate();
@@ -102,6 +106,16 @@
     renderExams(m, byDay, today);
   }
 
+  // Ticking or removing on the Exams list: tick redraws from what we have, remove asks the server again.
+  var actions = {
+    api: home.api,
+    toast: home.showToast,
+    errorText: home.errorText,
+    onChanged: function () { renderMonth(shown, lastTasks, lastRemoved); },
+    onRemoved: function () { load(); },
+    onStale: function () { load(); }
+  };
+
   function renderExams(m, byDay, today) {
     var section = byId('calExams');
     var board = byId('calExamsBoard');
@@ -111,11 +125,11 @@
     var keys = Object.keys(byDay).sort();
     var count = 0;
     keys.forEach(function (key) {
-      var exams = byDay[key].filter(function (t) { return t.type === 'exam'; });
+      var exams = byDay[key].filter(function (t) { return t.type === 'exam' && !lastRemoved[t.id]; });
       if (exams.length === 0) { return; }
       count += exams.length;
       var day = new Date(key + 'T00:00:00Z');
-      board.appendChild(T.dayCard(day, exams, T.sameDay(day, today)));
+      board.appendChild(T.dayCard(day, exams, T.sameDay(day, today), actions));
     });
     if (range) { range.textContent = T.MONTHS[m.month] + ' ' + m.year; }
     section.hidden = count === 0;
@@ -124,6 +138,9 @@
   function renderTitle(m) {
     var title = byId('calMonthTitle');
     if (title) { title.textContent = T.MONTHS[m.month] + ' ' + m.year; }
+    var now = startMonth();
+    var todayBtn = byId('calTodayBtn');   // only shown when you are looking at another month
+    if (todayBtn) { todayBtn.hidden = (m.year === now.year && m.month === now.month); }
   }
 
   function blankGrid(m, text) {
@@ -139,14 +156,26 @@
       blankGrid(shown, 'Join or create a room to see its calendar.');
       return;
     }
-    var r = await home.api('/rooms/' + roomId + '/calendar?month=' + monthParam(shown));
+    var results = await Promise.all([
+      home.api('/rooms/' + roomId + '/calendar?month=' + monthParam(shown)),
+      home.api('/rooms/' + roomId + '/tasks/removed')
+    ]);
     if (mine !== loadCounter) { return; }   // you switched room or month while this loaded
-    if (!r.ok) {
+    var r = results[0];
+    if (!r.ok || !results[1].ok) {
+      r = r.ok ? results[1] : r;
       blankGrid(shown, "Couldn't load this month's tasks.");
       home.showToast(home.errorText(r));
       return;
     }
-    renderMonth(shown, r.body);
+    var removedIds = {};
+    results[1].body.forEach(function (t) { removedIds[t.id] = true; });
+    renderMonth(shown, results[0].body, removedIds);
+  }
+
+  function goToday() {
+    shown = startMonth();
+    load();
   }
 
   function step(delta) {
@@ -159,6 +188,10 @@
   var next = byId('calNextBtn');
   if (prev) { prev.addEventListener('click', function () { step(-1); }); }
   if (next) { next.addEventListener('click', function () { step(1); }); }
+  var todayBtn = byId('calTodayBtn');
+  if (todayBtn) { todayBtn.addEventListener('click', goToday); }
+  var fabToday = document.querySelector('.fab-pill');   // the phone TODAY button
+  if (fabToday) { fabToday.addEventListener('click', goToday); }
 
   shown = startMonth();
   document.addEventListener('roomsync:room', load);

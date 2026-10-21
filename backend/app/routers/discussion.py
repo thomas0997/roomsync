@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..models import Membership, Message, User
+from ..ratelimit import limit_by_user
 from ..schemas_messages import MessageCreate, MessageOut, ReplyToOut
 
 router = APIRouter(tags=["discussion"])
@@ -78,7 +79,12 @@ def list_messages(
     return _to_out(db, page)
 
 
-@router.post("/rooms/{room_id}/messages", response_model=MessageOut, status_code=201)
+@router.post(
+    "/rooms/{room_id}/messages",
+    response_model=MessageOut,
+    status_code=201,
+    dependencies=[Depends(limit_by_user("post_message", 30, 60))],
+)
 def post_message(
     room_id: int,
     data: MessageCreate,

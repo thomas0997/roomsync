@@ -290,3 +290,6 @@ button {
     max-width: 100%;
   }
 }
+
+.legal-note { font-size: 13px; line-height: 1.5; color: #6e6e75; text-align: center; max-width: 320px; }
+.legal-note a { color: #1d1d1f; text-decoration: underline; }

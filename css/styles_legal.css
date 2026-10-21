@@ -1,0 +1,27 @@
+/* Privacy and Terms pages (static text). Same look as the login page. */
+:root { --page-bg: #f5f5f7; --ink: #1d1d1f; --muted: #6e6e75; --line: #d2d2d9; --blue: #0073ec; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
+  background: var(--page-bg); color: var(--ink); line-height: 1.65; padding: 40px 20px 56px;
+}
+a { color: var(--blue); }
+.legal-wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.legal-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
+  font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 26px; }
+.legal-logo img { width: 44px; height: 44px; border-radius: 10px; }
+.legal-logo .room { color: #a8a8ab; }
+.legal-card { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 36px 36px 32px; }
+.legal-card h1 { font-family: 'Manrope', sans-serif; font-size: 28px; line-height: 1.25; margin-bottom: 6px; }
+.legal-card h2 { font-family: 'Manrope', sans-serif; font-size: 18px; margin: 28px 0 8px; }
+.legal-card p { margin-bottom: 12px; font-size: 16px; }
+.legal-card ul { margin: 0 0 12px 22px; }
+.legal-card li { margin-bottom: 6px; font-size: 16px; }
+.legal-date { color: var(--muted); font-size: 14.4px; }
+.legal-last { margin-top: 28px; margin-bottom: 0 !important; }
+.legal-links { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; font-size: 15px; }
+@media (max-width: 640px) {
+  body { padding: 24px 14px 40px; }
+  .legal-card { padding: 24px 20px; border-radius: 16px; }
+  .legal-card h1 { font-size: 24px; }
+}

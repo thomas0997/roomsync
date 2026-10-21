@@ -71,6 +71,19 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     approvals = relationship("Approval", cascade="all, delete-orphan")
+    user_states = relationship("TaskUserState", cascade="all, delete-orphan")
+
+
+class TaskUserState(Base):
+    """Per-user view of a task: ticked off (done) and/or removed from that user's Home board (hidden).
+    Nobody else sees these. One row per (user, task); the row is deleted when both flags are false."""
+    __tablename__ = "task_user_state"
+    __table_args__ = (UniqueConstraint("user_id", "task_id", name="uq_user_task_state"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    done: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Approval(Base):

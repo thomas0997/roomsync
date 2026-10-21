@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .routers import approvals, auth, discussion, notes, profile, rooms, tasks
+from .routers import approvals, auth, discussion, notes, profile, rooms, task_state, tasks
 
 load_dotenv()
 
@@ -70,7 +70,7 @@ async def security_headers(request: Request, call_next):
 
 # Tables are created and changed by Alembic migrations, not by the app: run `alembic upgrade head`.
 
-for module in (auth, rooms, tasks, approvals, notes, discussion, profile):
+for module in (auth, rooms, tasks, task_state, approvals, notes, discussion, profile):
     app.include_router(module.router)
 
 

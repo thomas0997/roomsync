@@ -78,6 +78,7 @@ class TaskOut(BaseModel):
     created_by_name: str
     decided_by_name: str | None
     decided_at: datetime | None
+    done: bool = False  # ticked off by the CURRENT user (per-user, never shared)
 
     @field_serializer("due_at", "decided_at")
     def as_utc_z(self, value: datetime | None):

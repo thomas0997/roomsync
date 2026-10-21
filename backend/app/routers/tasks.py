@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
 from ..db import get_db
-from ..models import Membership, Task, User
+from ..models import Membership, Task, TaskUserState, User
 from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
 
 router = APIRouter(tags=["tasks"])
@@ -37,7 +37,7 @@ def _name(db: Session, user_id: int | None) -> str | None:
     return u.name
 
 
-def task_to_out(db: Session, task: Task) -> TaskOut:
+def task_to_out(db: Session, task: Task, done: bool = False) -> TaskOut:
     return TaskOut(
         id=task.id,
         room_id=task.room_id,
@@ -51,10 +51,38 @@ def task_to_out(db: Session, task: Task) -> TaskOut:
         created_by_name=_name(db, task.created_by),
         decided_by_name=_name(db, task.decided_by),
         decided_at=task.decided_at,
+        done=done,
     )
 
 
-def _approved_between(db: Session, room_id: int, start: datetime, end: datetime) -> list[TaskOut]:
+def _states_for(db: Session, user: User, task_ids: list[int]) -> dict[int, TaskUserState]:
+    """The current user's done/hidden rows for these tasks, by task id."""
+    if not task_ids:
+        return {}
+    rows = (
+        db.query(TaskUserState)
+        .filter(TaskUserState.user_id == user.id, TaskUserState.task_id.in_(task_ids))
+        .all()
+    )
+    return {r.task_id: r for r in rows}
+
+
+def tasks_to_out(db: Session, user: User, tasks: list[Task], hide_removed: bool = False) -> list[TaskOut]:
+    """Turn tasks into JSON with the current user's `done` flag. hide_removed drops the tasks
+    this user removed from their Home board (the calendar keeps showing them)."""
+    states = _states_for(db, user, [t.id for t in tasks])
+    out = []
+    for t in tasks:
+        st = states.get(t.id)
+        if hide_removed and st is not None and st.hidden:
+            continue
+        out.append(task_to_out(db, t, done=bool(st and st.done)))
+    return out
+
+
+def _approved_between(
+    db: Session, user: User, room_id: int, start: datetime, end: datetime, hide_removed: bool = False
+) -> list[TaskOut]:
     """Approved tasks of one room due from start (included) up to end (not included), earliest first."""
     tasks = (
         db.query(Task)
@@ -67,7 +95,7 @@ def _approved_between(db: Session, room_id: int, start: datetime, end: datetime)
         .order_by(Task.due_at, Task.id)
         .all()
     )
-    return [task_to_out(db, t) for t in tasks]
+    return tasks_to_out(db, user, tasks, hide_removed=hide_removed)
 
 
 def _task_and_membership(db: Session, user: User, task_id: int) -> tuple[Task, Membership]:
@@ -138,7 +166,7 @@ def list_week_tasks(
     # Sunday 00:00 Manila time, converted to UTC, up to (but not including) the next Sunday 00:00
     start = datetime.combine(week_start, time.min, tzinfo=MANILA).astimezone(timezone.utc)
     end = start + timedelta(days=7)
-    return _approved_between(db, room_id, start, end)
+    return _approved_between(db, user, room_id, start, end, hide_removed=True)  # Home board hides removed tasks
 
 
 @router.get("/rooms/{room_id}/calendar", response_model=list[TaskOut])
@@ -158,7 +186,7 @@ def list_month_tasks(
     next_year, next_month = (year + 1, 1) if month_number == 12 else (year, month_number + 1)
     start = datetime(year, month_number, 1, tzinfo=MANILA).astimezone(timezone.utc)
     end = datetime(next_year, next_month, 1, tzinfo=MANILA).astimezone(timezone.utc)
-    return _approved_between(db, room_id, start, end)
+    return _approved_between(db, user, room_id, start, end)  # the calendar still shows removed tasks
 
 
 @router.patch("/tasks/{task_id}", response_model=TaskOut)

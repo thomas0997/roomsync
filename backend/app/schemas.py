@@ -84,6 +84,7 @@ class MemberOut(BaseModel):
     name: str
     role: str
     status: StatusOut | None = None
+    avatar_url: str | None = None  # null when the member has no photo
     joined_at: datetime
 
 
@@ -98,11 +99,15 @@ class InviteCodeOut(BaseModel):
 StatusKind = Literal["working", "brb", "away", "custom"]
 
 
+class AvatarOut(BaseModel):
+    avatar_url: str
+
+
 class ProfileOut(BaseModel):
     id: int
     email: EmailStr
     name: str
-    avatar_url: str | None = None  # T2
+    avatar_url: str | None = None  # null when there is no photo
     status: StatusOut
     joined_at: datetime
 

@@ -11,6 +11,7 @@ from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..models import Membership, Task, TaskUserState, User
 from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
+from ..ratelimit import limit_by_user
 
 router = APIRouter(tags=["tasks"])
 
@@ -115,7 +116,12 @@ def _task_and_membership(db: Session, user: User, task_id: int) -> tuple[Task, M
     return task, membership
 
 
-@router.post("/rooms/{room_id}/tasks", response_model=TaskOut, status_code=201)
+@router.post(
+    "/rooms/{room_id}/tasks",
+    response_model=TaskOut,
+    status_code=201,
+    dependencies=[Depends(limit_by_user("create_task", 20, 3600))],
+)
 def create_task(
     room_id: int,
     body: TaskCreate,

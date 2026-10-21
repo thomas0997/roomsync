@@ -69,6 +69,30 @@
     return { ok: res.ok, status: res.status, body: body };
   }
 
+  /* ---------- profile photos ---------- */
+  // <img> tags cannot send the login token, so a photo is downloaded with fetch()
+  // and shown from a blob: address. Each photo is downloaded once per page.
+  var PLACEHOLDER = '../assets/profile_photo.png';
+  var photoCache = {};
+  function photoSrc(url) {
+    if (!url) { return Promise.resolve(''); }
+    if (!photoCache[url]) {
+      photoCache[url] = fetch(cfg.API_BASE + url, { headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY) } })
+        .then(function (res) { return res.ok ? res.blob() : null; })
+        .then(function (blob) { return blob ? URL.createObjectURL(blob) : ''; })
+        .catch(function () { return ''; })
+        .then(function (src) { if (!src) { delete photoCache[url]; } return src; });
+    }
+    return photoCache[url];
+  }
+  function showMyPhoto(url) {
+    var imgs = document.querySelectorAll('.avatar-img, .profile-photo');
+    photoSrc(url).then(function (src) {
+      imgs.forEach(function (img) { img.src = src || PLACEHOLDER; });
+    });
+  }
+  window.RoomSyncAvatars = { photoSrc: photoSrc, showMyPhoto: showMyPhoto };
+
   function errorText(r) {
     if (r.status === 0) { return "Can't reach the server. Check your connection and try again."; }
     if (r.body && typeof r.body.detail === 'string') { return r.body.detail; }
@@ -206,6 +230,14 @@
       var avatar = document.createElement('span');
       avatar.className = 'online-user-avatar';
       avatar.textContent = initials(m.name);
+      if (m.avatar_url) {
+        var pic = document.createElement('img');
+        pic.className = 'online-user-photo';
+        pic.alt = '';
+        photoSrc(m.avatar_url).then(function (src) {
+          if (src) { pic.src = src; avatar.insertBefore(pic, avatar.firstChild); }
+        });
+      }
       li.appendChild(avatar);
 
       var name = document.createElement('span');
@@ -428,6 +460,7 @@
     if (nameEl) { nameEl.textContent = r.body.name; }
     if (statusEl) { statusEl.textContent = statusLabel(r.body.status); }
     if (img) { img.alt = r.body.name; }
+    showMyPhoto(r.body.avatar_url);
   }
 
   var logoutBtn = byId('logoutBtn');

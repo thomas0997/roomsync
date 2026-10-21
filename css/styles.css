@@ -1993,3 +1993,46 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .appr-card.appr-card-leaving { opacity: 0; transform: translateY(-4px); transition: opacity 200ms ease, transform 200ms ease; pointer-events: none; }
 .appr-btn-approve:disabled, .appr-btn-reject:disabled { opacity: 0.5; cursor: default; }
 .appr-list[hidden], .profile-history-table[hidden], .notes-filter-row[hidden], .appr-empty[hidden] { display: none; }
+/* ---------- Home: tick, remove, earlier weeks, removed tasks ---------- */
+.reminder-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.reminder-top { position: relative; }
+.reminder-title { flex: 1; min-width: 0; }
+.reminder-remove {
+  flex-shrink: 0; width: 18px; height: 18px; margin: -2px -4px 0 0; padding: 0;
+  border: none; border-radius: 50%; background: transparent; color: var(--gray-text);
+  font-size: 16.8px; line-height: 18px; text-align: center; cursor: pointer;
+  opacity: 0.55; transition: opacity 150ms, background 150ms, color 150ms;
+}
+.reminder-remove:hover, .reminder-remove:focus-visible { opacity: 1; background: var(--gray-bg); color: var(--exam); }
+.reminder-card:hover .reminder-remove { opacity: 1; }
+.earlier-bar { margin: 0 0 14px; }
+.earlier-bar[hidden], #earlierWeeks:empty { display: none; }
+.earlier-btn {
+  height: 32px; padding: 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--hairline);
+  background: #fff; color: var(--near-black); font-size: 13.2px; font-weight: 600; cursor: pointer;
+}
+.earlier-btn:hover { border-color: var(--blue); color: var(--blue); }
+.earlier-btn:disabled { opacity: 0.5; cursor: default; }
+.week-overdue { margin-left: 8px; color: var(--exam); font-weight: 800; }
+.removed-section { margin-top: 18px; padding-bottom: 8px; }
+.removed-section[hidden], .removed-list[hidden] { display: none; }
+.removed-toggle {
+  border: none; background: transparent; padding: 0; cursor: pointer;
+  font-size: 14.4px; font-weight: 600; color: var(--gray-text-2);
+}
+.removed-toggle:hover { color: var(--blue); }
+.removed-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
+.removed-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: #fff; border: 0.5px solid var(--hairline); border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.removed-text { min-width: 0; }
+.removed-title { margin: 0 0 6px; font-size: 13.2px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.removed-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.removed-restore {
+  flex-shrink: 0; height: 28px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--hairline);
+  background: #fff; font-size: 13.2px; font-weight: 600; cursor: pointer;
+}
+.removed-restore:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.removed-restore:disabled { opacity: 0.5; cursor: default; }
+.cal-chip-done { opacity: 0.5; text-decoration: line-through; }

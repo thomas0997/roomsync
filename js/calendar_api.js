@@ -37,7 +37,7 @@
   }
 
   function chip(task) {
-    var c = T.el('span', chipClass(task), task.title);
+    var c = T.el('span', chipClass(task) + (task.done ? ' cal-chip-done' : ''), task.title);
     var tip = task.title + (task.subject ? ' · ' + task.subject : '') + ' · ' + T.timeText(task);
     c.title = tip;
     return c;

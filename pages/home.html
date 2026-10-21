@@ -266,6 +266,12 @@
         </div>
       </div>
 
+      <!-- Earlier weeks: hidden once everything in them is ticked; this button brings them back -->
+      <div class="earlier-bar" id="earlierBar" hidden>
+        <button type="button" class="earlier-btn" id="earlierBtn">Show earlier weeks</button>
+      </div>
+      <div id="earlierWeeks"></div>
+
       <!-- ============================================================
            THIS WEEK
       ============================================================ -->
@@ -289,6 +295,12 @@
         <h2 class="week-label week-label-muted" id="weekAfterLabel"><span class="week-label-accent-muted">WEEK AFTER</span> <span class="bullet">&bull;</span> <span id="weekRange2"></span></h2>
         <div class="board board-grid" id="board-weekafter"></div>
         <p class="empty-week-note" id="weekNote2" hidden></p>
+      </section>
+
+      <!-- Tasks you removed from your own board (only you see this) -->
+      <section class="removed-section" id="removedSection" hidden>
+        <button type="button" class="removed-toggle" id="removedToggle" aria-expanded="false">Removed tasks (<span id="removedCount">0</span>)</button>
+        <div class="removed-list" id="removedList" hidden></div>
       </section>
 
       <!-- Type color legend -->

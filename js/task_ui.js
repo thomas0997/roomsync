@@ -1,6 +1,7 @@
 /* ============================================================
    ROOMSYNC — task_ui.js
    Small helpers shared by the pages that show tasks (Calendar, Approve):
+   the task / day cards can be ticked off and removed when the page passes `actions`.
    Manila dates, and the task / day cards. Exposes window.RoomSyncTasks.
    All user text is written with textContent (never innerHTML).
    Weeks and months run in Manila time (UTC+8, no daylight saving), same as the server.
@@ -52,13 +53,59 @@
 
   function clear(node) { while (node.firstChild) { node.removeChild(node.firstChild); } }
 
-  function reminderCard(task) {
+  // `actions` is optional. Without it the card is read-only (Approve page).
+  // With it the card can be ticked off and removed from your Home board, like on Home:
+  //   { api, toast, errorText, onChanged(), onRemoved(task), onStale() }
+  function applyDone(card, bullet, task, done) {
+    task.done = done;
+    card.classList.toggle('is-complete', done);
+    bullet.classList.toggle('is-complete', done);
+    card.setAttribute('aria-checked', done ? 'true' : 'false');
+  }
+
+  async function toggleDone(card, bullet, task, actions) {
+    if (card.dataset.busy) { return; }
+    var want = !task.done;
+    applyDone(card, bullet, task, want);          // show it straight away, undo if the server says no
+    card.dataset.busy = '1';
+    var r = await actions.api('/tasks/' + task.id + '/done', want ? 'PUT' : 'DELETE');
+    delete card.dataset.busy;
+    if (r.ok) { if (actions.onChanged) { actions.onChanged(); } return; }
+    applyDone(card, bullet, task, !want);
+    if (r.status === 401) { return; }
+    actions.toast(actions.errorText(r));
+    if ((r.status === 404 || r.status === 409) && actions.onStale) { actions.onStale(); }
+  }
+
+  async function removeTask(task, actions) {
+    var r = await actions.api('/tasks/' + task.id + '/hidden', 'PUT');
+    if (!r.ok) {
+      if (r.status !== 401) { actions.toast(actions.errorText(r)); }
+      if ((r.status === 404 || r.status === 409) && actions.onStale) { actions.onStale(); }
+      return;
+    }
+    actions.toast('Removed from your Home page. Restore it under Removed tasks on Home.');
+    if (actions.onRemoved) { actions.onRemoved(task); }
+  }
+
+  function reminderCard(task, actions) {
     var card = el('div', 'reminder-card');
     var top = el('div', 'reminder-top');
     var bullet = el('span', 'reminder-bullet');
     bullet.setAttribute('aria-hidden', 'true');
     top.appendChild(bullet);
     top.appendChild(el('p', 'reminder-title', task.title));
+    if (actions) {
+      var remove = el('button', 'reminder-remove', '\u00d7');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', 'Remove from my Home page');
+      remove.title = 'Remove from my Home page';
+      remove.addEventListener('click', function (e) {
+        e.stopPropagation();                      // do not tick the task
+        removeTask(task, actions);
+      });
+      top.appendChild(remove);
+    }
     card.appendChild(top);
 
     var tags = el('div', 'reminder-tags');
@@ -68,10 +115,23 @@
     card.appendChild(tags);
 
     card.appendChild(el('p', 'reminder-time', timeText(task)));
+
+    if (actions) {
+      card.tabIndex = 0;
+      card.setAttribute('role', 'checkbox');
+      applyDone(card, bullet, task, !!task.done);
+      card.addEventListener('click', function () { toggleDone(card, bullet, task, actions); });
+      card.addEventListener('keydown', function (e) {
+        if (e.target === card && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          toggleDone(card, bullet, task, actions);
+        }
+      });
+    }
     return card;
   }
 
-  function dayCard(day, tasks, isToday) {
+  function dayCard(day, tasks, isToday, actions) {
     var card = el('article', 'day-card' + (isToday ? ' day-card-today' : '') + (tasks.length === 0 ? ' day-card-empty' : ''));
     var head = el('div', 'day-card-head');
     var group = el('div', 'day-card-title-group');
@@ -88,7 +148,7 @@
     }
     card.appendChild(head);
     if (tasks.length === 0) { card.appendChild(el('p', 'empty-day-note', 'No tasks')); }
-    tasks.forEach(function (t) { card.appendChild(reminderCard(t)); });
+    tasks.forEach(function (t) { card.appendChild(reminderCard(t, actions)); });
     return card;
   }
 

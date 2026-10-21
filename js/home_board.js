@@ -7,7 +7,7 @@
    - weeks that are over disappear once everything in them is ticked or removed;
      a past week with unticked tasks stays as OVERDUE; "Show earlier weeks" brings the rest back
    - Removed tasks list with Restore
-   - New TODO sends a real task; a member's task waits for an admin to approve it
+   (the New TODO form lives in js/new_todo.js and works on every page)
    Weeks run Sunday to Saturday in Manila time (UTC+8), same as the server.
    All user text is written with textContent (never innerHTML).
    Needs: js/sidebar_rooms.js loaded first (it exposes window.RoomSyncHome).
@@ -447,89 +447,6 @@
       var open = removedToggle.getAttribute('aria-expanded') !== 'true';
       removedToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (list) { list.hidden = !open; }
-    });
-  }
-
-  /* ---------- New TODO form ---------- */
-  var form = byId('todoModalForm');
-  var errorBox = byId('todoFormError');
-  var busy = false;
-
-  function showFormError(text) {
-    if (!errorBox) { return; }
-    errorBox.textContent = text;
-    errorBox.hidden = !text;
-  }
-
-  function closeModal() {
-    var overlay = byId('todoModalOverlay');
-    if (overlay) { overlay.hidden = true; }
-  }
-
-  // Opening the form: pick the room you are looking at and clear old errors.
-  ['newTodoBtnDesktop', 'newTodoBtnTablet', 'newTodoBtnMobile'].forEach(function (id) {
-    var btn = byId(id);
-    if (!btn) { return; }
-    btn.addEventListener('click', function () {
-      showFormError('');
-      byId('todoDate').min = ymd(manilaToday());   // the date picker greys out days that are over
-      var select = byId('todoModalRoom');
-      var current = home.currentRoomId();
-      if (select && current !== null && current !== undefined) { select.value = String(current); }
-    });
-  });
-
-  if (form) {
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      if (busy) { return; }
-      var title = byId('todoTitle').value.trim();
-      var type = byId('todoType').value;
-      var date = byId('todoDate').value;
-      var time = byId('todoTime').value;
-      var subject = byId('todoSubject').value.trim();
-      var roomId = Number(byId('todoModalRoom').value);
-
-      if (!title || !type || !date || !roomId) {
-        showFormError('Please fill in the title, type, due date and room.');
-        return;
-      }
-      // The date and time you typed are Manila time. No time means "all day" (end of that day).
-      var dueAt = date + 'T' + (time ? time.slice(0, 5) : '23:59') + ':00+08:00';
-      if (new Date(dueAt).getTime() <= Date.now()) {
-        showFormError(time ? 'That time has already passed. Pick a time in the future.'
-                           : 'That date has already passed. Pick today or a later day.');
-        return;
-      }
-      showFormError('');
-
-      var payload = {
-        title: title,
-        type: type,
-        due_at: dueAt,
-        all_day: !time
-      };
-      if (subject) { payload.subject = subject; }
-
-      busy = true;
-      var button = form.querySelector('button[type="submit"]');
-      if (button) { button.disabled = true; }
-      var r = await home.api('/rooms/' + roomId + '/tasks', 'POST', payload);
-      busy = false;
-      if (button) { button.disabled = false; }
-
-      if (!r.ok) {
-        if (r.status !== 401) { showFormError(home.errorText(r)); }
-        return;
-      }
-      closeModal();
-      form.reset();
-      if (r.body.status === 'approved') {
-        home.showToast('TODO created!');
-      } else {
-        home.showToast('Sent for approval. It shows on the board once an admin approves it.');
-      }
-      if (roomId === home.currentRoomId()) { loadBoard(roomId); }
     });
   }
 })();

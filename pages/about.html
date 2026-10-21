@@ -456,6 +456,57 @@
     </div>
   </div>
 
+  <!-- ---------- NEW TODO MODAL (shared) ---------- -->
+  <div class="todo-modal-overlay" id="todoModalOverlay" hidden>
+    <div class="todo-modal abt-form-card">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title">New TODO</h2>
+        <button type="button" class="todo-modal-close" id="todoModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form id="todoModalForm">
+        <label class="abt-field">
+          <span class="abt-field-label">Title</span>
+          <input type="text" id="todoTitle" maxlength="200" placeholder="e.g. Linked List Partner Activity 2" required>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Type</span>
+          <select id="todoType" required>
+            <option value="">Select a type</option>
+            <option value="exam">Exam</option>
+            <option value="quiz">Quiz</option>
+            <option value="case-study">Case Study</option>
+            <option value="activity">Activity</option>
+            <option value="seatwork">Seatwork</option>
+            <option value="assignment">Assignment</option>
+          </select>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Subject (optional)</span>
+          <input type="text" id="todoSubject" maxlength="50" placeholder="e.g. 6DSAL">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Due Date</span>
+          <input type="date" id="todoDate" required>
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Time (optional, leave empty for all day)</span>
+          <input type="time" id="todoTime">
+        </label>
+        <label class="abt-field">
+          <span class="abt-field-label">Room</span>
+          <select id="todoModalRoom"></select>
+        </label>
+        <p class="abt-form-error" id="todoFormError" role="alert" hidden></p>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit">Create</button>
+          <button type="button" class="abt-btn-reset" id="todoModalCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ---------- NEW ROOM MODAL (shared) ---------- -->
   <div class="todo-modal-overlay" id="newRoomModalOverlay" hidden>
     <div class="todo-modal abt-form-card">
@@ -526,6 +577,7 @@
   <script src="../js/rooms.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/sidebar_rooms.js"></script>
+  <script src="../js/new_todo.js"></script>
   <script src="../js/about.js"></script>
 </body>
 </html>

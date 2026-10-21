@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function openTodoModal() {
     if (!todoModalOverlay) return;
-    if (todoModalRoom && !API_MODE) {   // in API mode home_board.js picks the room
+    if (todoModalRoom && !API_MODE && !window.RoomSyncNewTodo) {   // new_todo.js picks the room
       var currentRoom = document.querySelector('[data-room-name]');
       if (currentRoom) todoModalRoom.value = currentRoom.textContent.trim();
     }
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   if (todoModalForm) {
     todoModalForm.addEventListener('submit', function (e) {
-      if (API_MODE) { return; }   // home_board.js sends the real task
+      if (API_MODE || window.RoomSyncNewTodo) { return; }   // new_todo.js sends the real task
       e.preventDefault();
       // TODO: actually create the TODO once there's a backend — for now just confirm and close
       console.log('New TODO submitted (not persisted anywhere yet).');

@@ -27,12 +27,44 @@ app.add_middleware(
 # changed file (after a deploy) is picked up straight away instead of staying stale.
 STATIC_PREFIXES = ("/pages/", "/css/", "/js/", "/assets/")
 
+# Content Security Policy: the browser only runs OUR scripts, so injected code (XSS) is blocked.
+# Styles may be inline (the pages use style="..."); fonts come from Google Fonts; images from us
+# plus data: (small SVGs inside the CSS). The API is on the same address, so connect-src is 'self'.
+CSP = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+# The built-in API docs load their page from a CDN, so they are exempt from the CSP above.
+NO_CSP_PATHS = ("/docs", "/redoc", "/openapi.json")
+
 
 @app.middleware("http")
-async def no_stale_frontend_files(request: Request, call_next):
+async def security_headers(request: Request, call_next):
     response = await call_next(request)
-    if request.url.path.startswith(STATIC_PREFIXES):
-        response.headers["Cache-Control"] = "no-cache"
+    path = request.url.path
+    h = response.headers
+    h["X-Content-Type-Options"] = "nosniff"
+    h["X-Frame-Options"] = "DENY"
+    h["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if not path.startswith(NO_CSP_PATHS):
+        h["Content-Security-Policy"] = CSP
+    if request.headers.get("x-forwarded-proto") == "https":
+        h["Strict-Transport-Security"] = "max-age=31536000"  # the browser will only use HTTPS for a year
+    if path.startswith(STATIC_PREFIXES):
+        h["Cache-Control"] = "no-cache"
+    elif not path.startswith(NO_CSP_PATHS) and path != "/health":
+        h["Cache-Control"] = "no-store"  # API answers hold personal data: never cache them
     return response
 
 

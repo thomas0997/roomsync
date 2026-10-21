@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .routers import approvals, auth, discussion, notes, profile, rooms, task_state, tasks
+from .routers import approvals, auth, avatar, discussion, notes, profile, rooms, task_state, tasks
 
 load_dotenv()
 
@@ -29,14 +29,14 @@ STATIC_PREFIXES = ("/pages/", "/css/", "/js/", "/assets/")
 
 # Content Security Policy: the browser only runs OUR scripts, so injected code (XSS) is blocked.
 # Styles may be inline (the pages use style="..."); fonts come from Google Fonts; images from us
-# plus data: (small SVGs inside the CSS). The API is on the same address, so connect-src is 'self'.
+# plus data: (small SVGs inside the CSS) and blob: (profile photos the page downloads with the login token). The API is on the same address, so connect-src is 'self'.
 CSP = "; ".join(
     [
         "default-src 'self'",
         "script-src 'self'",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "img-src 'self' data:",
+        "img-src 'self' data: blob:",
         "connect-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
@@ -70,7 +70,7 @@ async def security_headers(request: Request, call_next):
 
 # Tables are created and changed by Alembic migrations, not by the app: run `alembic upgrade head`.
 
-for module in (auth, rooms, tasks, task_state, approvals, notes, discussion, profile):
+for module in (auth, rooms, tasks, task_state, approvals, notes, discussion, profile, avatar):
     app.include_router(module.router)
 
 

@@ -1,7 +1,7 @@
 """All database tables. Edit carefully: both of us touch this file, keep changes small."""
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -25,6 +25,15 @@ class User(Base):
 
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
     task_types = relationship("CustomTaskType", cascade="all, delete-orphan")
+
+
+class UserAvatar(Base):
+    """A user's profile photo: already shrunk to a 256x256 JPEG by the server (see routers/avatar.py).
+    Own table so loading a User never loads the picture. One row per user; no row means no photo."""
+    __tablename__ = "user_avatars"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class Room(Base):

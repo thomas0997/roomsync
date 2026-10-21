@@ -8,21 +8,23 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..db import get_db
-from ..models import Membership, Room, Task, User
+from ..models import Membership, Room, Task, User, UserAvatar
 from ..schemas import ProfileOut, ProfileUpdate, StatsOut, status_of
+from .avatar import avatar_url_for
 
 router = APIRouter(prefix="/users", tags=["profile"])
 
 
-def _profile(user: User) -> ProfileOut:
+def _profile(user: User, db: Session) -> ProfileOut:
     return ProfileOut(
-        id=user.id, email=user.email, name=user.name, status=status_of(user), joined_at=user.created_at
+        id=user.id, email=user.email, name=user.name, status=status_of(user), joined_at=user.created_at,
+        avatar_url=avatar_url_for(db, user.id),
     )
 
 
 @router.get("/me", response_model=ProfileOut)
-def get_me(user: User = Depends(get_current_user)):
-    return _profile(user)
+def get_me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _profile(user, db)
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -44,7 +46,7 @@ def update_me(data: ProfileUpdate, user: User = Depends(get_current_user), db: S
             user.status_kind, user.status_text = kind, None  # text only exists for "custom"
     db.commit()
     db.refresh(user)
-    return _profile(user)
+    return _profile(user, db)
 
 
 @router.get("/me/stats", response_model=StatsOut)
@@ -73,6 +75,7 @@ def delete_me(user: User = Depends(get_current_user), db: Session = Depends(get_
             db.delete(m)
         else:
             db.delete(db.get(Room, m.room_id))  # last person out: the room goes too
+    db.query(UserAvatar).filter(UserAvatar.user_id == user.id).delete()  # the photo goes with the account
     # Soft delete: keep the row so their tasks and messages stay (shown as "Deleted user")
     user.name = "Deleted user"
     user.email = f"deleted-{user.id}@deleted.invalid"  # frees the real email for a new signup

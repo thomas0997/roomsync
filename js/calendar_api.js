@@ -39,7 +39,8 @@
   }
 
   function chip(task) {
-    var c = T.el('span', chipClass(task) + (task.done ? ' cal-chip-done' : ''), task.title);
+    var late = window.RoomSyncAlert && window.RoomSyncAlert.isPastDue(task);
+    var c = T.el('span', chipClass(task) + (task.done ? ' cal-chip-done' : '') + (late ? ' cal-chip-alert' : ''), task.title);
     var tip = task.title + (task.subject ? ' · ' + task.subject : '') + ' · ' + T.timeText(task);
     c.title = tip;
     return c;

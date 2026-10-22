@@ -1,0 +1,21 @@
+/* ROOMSYNC - styles_alert.css
+   The ALERT look for past-due, unticked tasks. Deliberately different from the Exam red:
+   Exam = solid bright red (#DF0000) pill. Alert = rose card, dark crimson (#B42318) outline. */
+.reminder-card.is-alert {
+  background: #FFF4F2 !important;
+  border: 1.5px solid #B42318 !important;
+  box-shadow: inset 4px 0 0 #B42318;
+}
+.reminder-card.is-alert:hover { border-color: #8E1B12 !important; }
+.reminder-card.is-alert .reminder-title { color: #7A1A12; }
+.alert-tag {
+  display: inline-block; width: fit-content; margin: 0 0 8px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 9.6px; font-weight: 800; letter-spacing: 0.6px;
+  color: #B42318; background: #fff; border: 1px solid #B42318;
+}
+.cal-chip.cal-chip-alert {
+  background: #fff !important; color: #B42318 !important;
+  box-shadow: inset 0 0 0 1.5px #B42318; font-weight: 800;
+}
+.cal-chip.cal-chip-alert::before { content: "\26A0\00a0"; }

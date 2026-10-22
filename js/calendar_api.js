@@ -45,6 +45,26 @@
     return c;
   }
 
+  function closeMore() {
+    document.querySelectorAll('.cal-more-popover').forEach(function (p) { p.hidden = true; });
+  }
+
+  // On phones the calendar box clips anything inside it, so the "+N More" list is pinned
+  // to the screen right under its button instead (same small size, can go past the border).
+  function placeMore(btn, pop) {
+    if (window.innerWidth >= 768) { return; }
+    var r = btn.getBoundingClientRect();
+    var w = pop.offsetWidth;
+    var h = pop.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+    var top = r.bottom + 4;
+    if (top + h > window.innerHeight - 8) { top = Math.max(8, r.top - h - 4); }
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+  }
+  window.addEventListener('scroll', closeMore, true);
+  window.addEventListener('resize', closeMore);
+
   function dayCell(day, tasks, today) {
     var hasExam = tasks.some(function (t) { return t.type === 'exam'; });
     var cell = T.el('div', 'cal-cell' + (hasExam ? ' cal-cell-exam' : ''));
@@ -71,8 +91,9 @@
     more.addEventListener('click', function (e) {
       e.stopPropagation();
       var wasOpen = !pop.hidden;
-      document.querySelectorAll('.cal-more-popover').forEach(function (p) { p.hidden = true; });
+      closeMore();
       pop.hidden = wasOpen;
+      if (!wasOpen) { placeMore(more, pop); }
     });
     cell.appendChild(more);
     cell.appendChild(pop);

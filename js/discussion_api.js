@@ -147,7 +147,7 @@
 
   function autosize() {
     input.style.height = 'auto';
-    if (input.value) { input.style.height = Math.min(input.scrollHeight, 140) + 'px'; }
+    if (input.value) { input.style.height = Math.min(input.scrollHeight, Math.round(window.innerHeight * 0.4)) + 'px'; }
   }
 
   function setReply(m) {
@@ -192,25 +192,22 @@
     else { meta.appendChild(avatar); meta.appendChild(name); meta.appendChild(time); }
     group.appendChild(meta);
 
-    var bubble = el('button', 'disc-bubble', m.body);
+    // One bubble holds both the quote (on top) and the message text, so they always stay together.
+    var bubble = el('button', 'disc-bubble' + (m.reply_to ? ' disc-bubble-has-quote' : ''));
     bubble.type = 'button';
     bubble.title = 'Reply';
     bubble.addEventListener('click', function () { setReply(m); });
+    if (m.reply_to) {
+      var quote = el('span', 'disc-quote');
+      quote.appendChild(replyIcon());
+      quote.appendChild(el('span', 'disc-quote-text',
+        'Replying to ' + m.reply_to.author_name + ': ' + snippetText(m.reply_to.snippet)));
+      bubble.appendChild(quote);
+    }
+    bubble.appendChild(el('span', 'disc-text', m.body));
 
     var row = el('div', 'disc-bubble-row');
-    if (m.reply_to) {
-      var stack = el('div', 'disc-bubble-stack');
-      stack.appendChild(bubble);
-      var tag = el('div', 'disc-reply-tag');
-      tag.appendChild(replyIcon());
-      tag.appendChild(document.createTextNode(
-        'Replying to ' + m.reply_to.author_name + ': ' + snippetText(m.reply_to.snippet)
-      ));
-      stack.appendChild(tag);
-      row.appendChild(stack);
-    } else {
-      row.appendChild(bubble);
-    }
+    row.appendChild(bubble);
     group.appendChild(row);
 
     var actions = el('div', 'disc-actions');

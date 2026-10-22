@@ -28,6 +28,15 @@
 
   if (!read(cfg.TOKEN_KEY)) { goLogin(); return; }
 
+  // "Show empty days": kept in this browser; the Home board reads the same key.
+  var emptyDaysBox = document.getElementById('showEmptyDays');
+  if (emptyDaysBox) {
+    emptyDaysBox.checked = read('roomsync.showEmptyDays') === '1';
+    emptyDaysBox.addEventListener('change', function () {
+      try { localStorage.setItem('roomsync.showEmptyDays', emptyDaysBox.checked ? '1' : '0'); } catch (e) { /* ignore */ }
+    });
+  }
+
   async function api(path, method, payload) {
     var opts = { method: method || 'GET', headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY) } };
     if (payload !== undefined) {

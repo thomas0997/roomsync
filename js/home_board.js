@@ -244,10 +244,13 @@
     }
     var shown = 0;
     var cards = [];
+    var showEmpty = false;   // Settings > "Show empty days" (off by default); today always stays
+    try { showEmpty = localStorage.getItem('roomsync.showEmptyDays') === '1'; } catch (e) { showEmpty = false; }
     for (var i = firstDay; i < 7; i++) {
       var day = addDays(sunday, i);
       var list = byDay[ymd(day)] || [];
       shown += list.length;
+      if (list.length === 0 && !showEmpty && !sameDay(day, today)) { continue; }
       cards.push(dayCard(day, list, sameDay(day, today)));
     }
     // A week with nothing in it shows one short note instead of seven empty cards.

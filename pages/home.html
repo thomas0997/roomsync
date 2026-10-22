@@ -254,6 +254,10 @@
       </div>
 
       <div class="board-controls">
+        <!-- Earlier weeks: hidden once everything in them is ticked; this button brings them back -->
+        <div class="earlier-bar" id="earlierBar" hidden>
+          <button type="button" class="earlier-btn" id="earlierBtn">Show earlier weeks</button>
+        </div>
         <div class="layout-toggle">
           <button class="layout-btn layout-btn-active" data-view="grid">
             <!-- PLACEHOLDER ICON: grid layout icon -->
@@ -266,10 +270,6 @@
         </div>
       </div>
 
-      <!-- Earlier weeks: hidden once everything in them is ticked; this button brings them back -->
-      <div class="earlier-bar" id="earlierBar" hidden>
-        <button type="button" class="earlier-btn" id="earlierBtn">Show earlier weeks</button>
-      </div>
       <div id="earlierWeeks"></div>
 
       <!-- ============================================================

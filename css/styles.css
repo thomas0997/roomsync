@@ -2141,3 +2141,14 @@ body.srch-lock { overflow: hidden; }
   .room-pill-floating .room-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .page-header-row .page-title { margin-bottom: 0; }
 }
+/* Home: "Show earlier weeks" (left) and Grid / Scroll (right) share one row */
+.board-controls:has(> .earlier-bar) {
+  display: flex !important; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 10px; margin-bottom: 16px;
+}
+.board-controls > .earlier-bar { margin: 0; }
+.board-controls > .layout-toggle { margin-left: auto; }
+@media (max-width: 767px) {
+  .board-controls:has(> .earlier-bar) > .layout-toggle { display: none; }
+  .board-controls:has(> .earlier-bar[hidden]) { display: none !important; }
+}

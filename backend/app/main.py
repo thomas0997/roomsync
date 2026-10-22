@@ -11,7 +11,17 @@ from .routers import approvals, auth, avatar, discussion, notes, profile, rooms,
 
 load_dotenv()
 
-app = FastAPI(title="RoomSync API")
+
+
+def docs_settings(env: str) -> dict:
+    """In production the interactive docs and the API map (openapi.json) are switched off,
+    so strangers cannot read how the API works. Locally (ENV not 'production') they stay on."""
+    if env == "production":
+        return {"docs_url": None, "redoc_url": None, "openapi_url": None}
+    return {}
+
+
+app = FastAPI(title="RoomSync API", **docs_settings(os.getenv("ENV", "development")))
 
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5500").split(",") if o.strip()]
 app.add_middleware(

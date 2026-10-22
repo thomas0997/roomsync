@@ -126,3 +126,28 @@
   .disc-input-bar { position: static; margin-top: 8px; flex-shrink: 0; }
   .disc-reply-indicator { flex-shrink: 0; }
 }
+
+/* ---- reply bar + typing box: one block, pinned to the bottom together ---- */
+.disc-composer {
+  position: sticky; bottom: 0; margin-top: auto; z-index: 5;
+  display: flex; flex-direction: column;
+  background: #fff; padding: 6px 0 12px; flex-shrink: 0;
+}
+.disc-composer .disc-input-bar { position: static; margin-top: 0; }
+.disc-composer .disc-reply-indicator { margin-bottom: 8px; }
+@media (max-width: 767px) {
+  .disc-composer { position: static; padding-top: 0; margin-top: 8px; }
+}
+
+/* ---- reply bar + typing box: one block, pinned to the bottom together ---- */
+.disc-composer {
+  position: sticky; bottom: 0; margin-top: auto; z-index: 5;
+  display: flex; flex-direction: column;
+  background: #fff; padding: 6px 0 12px; flex-shrink: 0;
+}
+.disc-composer .disc-input-bar { position: static; margin-top: 0; }
+.disc-composer .disc-reply-indicator { margin-bottom: 8px; }
+@media (max-width: 767px) {
+  .disc-composer { position: static; padding-top: 0; margin-top: 8px; }
+}
+

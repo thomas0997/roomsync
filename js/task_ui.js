@@ -62,6 +62,7 @@
     card.classList.toggle('is-complete', done);
     bullet.classList.toggle('is-complete', done);
     card.setAttribute('aria-checked', done ? 'true' : 'false');
+    if (window.RoomSyncAlert) { window.RoomSyncAlert.applyCard(card, task); }
   }
 
   async function toggleDone(card, bullet, task, actions) {

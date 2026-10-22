@@ -1,0 +1,21 @@
+/* ============================================================
+   ROOMSYNC - styles_calendar_sheet.css
+   The calendar's "+N More" list. On a computer it stays a small popover.
+   On a phone it opens as a bottom sheet so nothing is cut off.
+   ============================================================ */
+.cal-more-title, .cal-more-meta { display: none; }
+
+@media (max-width: 767px) {
+  .cal-more-popover {
+    position: fixed; top: auto; left: 12px; right: 12px; bottom: 84px;
+    max-height: 55vh; overflow-y: auto; overscroll-behavior: contain;
+    z-index: 200; padding: 14px; gap: 10px;
+    border-radius: 18px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.28);
+  }
+  .cal-more-title { display: block; font-size: 15px; font-weight: 700; color: var(--near-black, #1d1d1f); }
+  .cal-more-popover .cal-chip {
+    font-size: 14px; padding: 9px 12px; border-radius: 10px;
+    white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3;
+  }
+  .cal-more-meta { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; opacity: 0.85; }
+}

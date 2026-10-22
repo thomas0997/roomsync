@@ -61,7 +61,13 @@
     more.type = 'button';
     var pop = T.el('div', 'cal-more-popover');
     pop.hidden = true;
-    hidden.forEach(function (t) { pop.appendChild(chip(t)); });
+    // On phones the popover is a bottom sheet: a date heading, then each task with its time.
+    pop.appendChild(T.el('div', 'cal-more-title', T.DAYS[day.getUTCDay()] + ', ' + T.shortMonthDay(day)));
+    hidden.forEach(function (t) {
+      var c = chip(t);
+      c.appendChild(T.el('span', 'cal-more-meta', (t.subject ? t.subject + ' · ' : '') + T.timeText(t)));
+      pop.appendChild(c);
+    });
     more.addEventListener('click', function (e) {
       e.stopPropagation();
       var wasOpen = !pop.hidden;

@@ -1,0 +1,8 @@
+/* ROOMSYNC - styles_calendar_more.css
+   Phone only: the "+N More" list escapes the calendar box (js/calendar_api.js places it). */
+@media (max-width: 767px) {
+  .cal-more-popover {
+    position: fixed; top: 0; left: 0; z-index: 200;
+    width: max-content; max-width: 70vw; max-height: 60vh; overflow-y: auto;
+  }
+}

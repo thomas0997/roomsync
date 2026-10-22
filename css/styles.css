@@ -2126,3 +2126,18 @@ body.srch-lock { overflow: hidden; }
 .profile-photo-remove { background: none; border: none; padding: 0; font-size: 13.2px; font-weight: 590; color: var(--gray-text-2); cursor: pointer; text-decoration: underline; }
 .profile-photo-remove:hover { color: var(--blue); }
 .profile-photo-remove[hidden] { display: none; }
+
+/* ---- phone clean-up: equal calendar columns, no page descriptions, title on the room pill's row ---- */
+.cal-dow-row, .cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal-cell { min-width: 0; }
+
+@media (max-width: 767px) {
+  .page-subtitle, .abt-subtitle { display: none; }
+  .content:not(.disc-content):has(> .page-header-row) { position: relative; }
+  .content:not(.disc-content):has(> .page-header-row) > .room-switcher.mobile-only {
+    position: absolute; top: 23px; right: 18px; margin: 0; z-index: 20;
+  }
+  .content:not(.disc-content) .room-pill-floating { max-width: 52vw; margin-bottom: 0; }
+  .room-pill-floating .room-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .page-header-row .page-title { margin-bottom: 0; }
+}

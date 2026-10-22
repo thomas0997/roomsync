@@ -1,6 +1,6 @@
 # RoomSync
 
-Live at roomsync.me!
+## Live at roomsync.me!
 
 A peer-approval-gated deadline tracker, built around rooms instead of classrooms.
 

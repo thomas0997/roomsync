@@ -16,7 +16,7 @@
   var grid = document.getElementById('notesGrid');
   if (!home || !grid) { return; }
 
-  var MAX_BYTES = 5 * 1024 * 1024;
+  var MAX_BYTES = 10 * 1024 * 1024;
   var BINARY = { pdf: 1, docx: 1 };
   var TEXT = { txt: 1, md: 1, csv: 1, json: 1, sql: 1, py: 1, java: 1, c: 1, cc: 1, cpp: 1, cxx: 1, h: 1, hpp: 1, cs: 1, js: 1, ts: 1 };
 
@@ -216,7 +216,7 @@
       var ext = extOf(file.name);
       if (!BINARY[ext] && !TEXT[ext]) { home.showToast('"' + file.name + '" is not an allowed file type.'); continue; }
       if (file.size === 0) { home.showToast('"' + file.name + '" is empty.'); continue; }
-      if (file.size > MAX_BYTES) { home.showToast('"' + file.name + '" is over 5 MB.'); continue; }
+      if (file.size > MAX_BYTES) { home.showToast('"' + file.name + '" is over 10 MB.'); continue; }
       title.textContent = 'Uploading ' + (i + 1) + ' of ' + picked.length + '...';
       var res = await authFetch('/rooms/' + roomId + '/files?name=' + encodeURIComponent(file.name), {
         method: 'POST',

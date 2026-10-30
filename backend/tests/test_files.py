@@ -238,8 +238,8 @@ def test_long_names_are_shortened_but_keep_their_extension(client):
 # ---------------------------------------------------------------- size and quota
 def test_file_over_5mb_is_413_and_exactly_5mb_is_fine(client):
     alice, _, rid = _setup(client)
-    assert _up(client, alice, rid, "big.txt", b"a" * (5 * 1024 * 1024 + 1)).status_code == 413
-    assert _up(client, alice, rid, "edge.txt", b"a" * (5 * 1024 * 1024)).status_code == 201
+    assert _up(client, alice, rid, "big.txt", b"a" * (10 * 1024 * 1024 + 1)).status_code == 413
+    assert _up(client, alice, rid, "edge.txt", b"a" * (10 * 1024 * 1024)).status_code == 201
 
 
 def test_room_file_space_is_limited(client, monkeypatch):

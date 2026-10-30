@@ -1,0 +1,29 @@
+/* ROOMSYNC - styles_notes.css
+   Notes page: real files (cards with a delete button), empty messages, and the text/code viewer. */
+.notes-file-item { position: relative; display: flex; min-width: 0; }
+.notes-file-item .notes-file-card { width: 100%; min-width: 0; padding-right: 36px; cursor: pointer; }
+.notes-file-name { overflow-wrap: anywhere; }
+.notes-file-icon.notes-icon-generic { font-size: 11px; letter-spacing: -0.02em; }
+.notes-file-delete {
+  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-text); opacity: 0; transition: opacity 0.15s;
+}
+.notes-file-delete svg { width: 14px; height: 14px; }
+.notes-file-item:hover .notes-file-delete, .notes-file-delete:focus-visible { opacity: 1; }
+.notes-file-delete:hover { background: var(--gray-bg); color: var(--exam); }
+@media (hover: none) { .notes-file-delete { opacity: 1; } }   /* phones have no hover */
+
+.notes-empty { color: var(--gray-text); font-size: 13.2px; padding: 8px 0 24px; }
+.notes-empty[hidden] { display: none; }
+.notes-quick-card:disabled { opacity: 0.6; cursor: progress; }
+
+.notes-view-modal { max-width: 760px; }
+.notes-view-text {
+  max-height: 58vh; overflow: auto; margin: 12px 0;
+  background: var(--gray-bg); border: 1px solid var(--hairline); border-radius: 10px; padding: 12px 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5;
+  white-space: pre; tab-size: 4;
+}
+.notes-view-note { font-size: 11.5px; color: var(--gray-text); margin: -4px 0 10px; }
+.notes-view-note[hidden] { display: none; }

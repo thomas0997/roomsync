@@ -6,7 +6,8 @@ A classmate could upload anything, so we trust nothing:
  - The server never opens, unpacks or runs an uploaded file. It only stores the bytes.
  - Files come back ONLY as a download ("attachment", generic type, nosniff), never as a web page.
  - Only room members can list or fetch files. A file in someone else's room looks exactly like a missing one (404).
- - The bytes live in the database (table room_files): 10 MB per file, 25 MB per room, 20 uploads an hour per user."""
+ - The bytes live in Cloudflare R2 (private bucket; see app/storage.py), or in the database table room_files when R2 is
+   not configured. Limits: 10 MB per file, 500 MB per room, 8 GB for the whole app, 20 uploads an hour per user."""
 from typing import Literal
 from urllib.parse import quote
 
@@ -15,6 +16,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
+from .. import storage
 from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..filecheck import ALLOWED, ALLOWED_LIST, TEXT_EXTENSIONS, check_content, clean_name, extension_of
@@ -25,7 +27,8 @@ from ..schemas_files import FileOut, FileTextOut
 router = APIRouter(tags=["notes"])
 
 MAX_FILE_BYTES = 10 * 1024 * 1024     # biggest single file
-MAX_ROOM_BYTES = 25 * 1024 * 1024     # all files in one room together
+MAX_ROOM_BYTES = 500 * 1024 * 1024    # all files in one room together
+MAX_TOTAL_BYTES = 8 * 1024 * 1024 * 1024  # every room together (stays under R2's 10 GB free tier)
 PREVIEW_BYTES = 200_000               # how much of a text/code file the in-page viewer shows
 
 
@@ -82,6 +85,16 @@ def _precheck(db: Session, user: User, room_id: int, raw_name: str) -> tuple[str
     return name, ext
 
 
+def _bytes_of(f: RoomFile, limit: int | None = None) -> bytes:
+    """The file's bytes (or just the first `limit`), from R2 or from the database."""
+    if f.storage_key is None:
+        return f.data if limit is None else f.data[:limit]
+    try:
+        return storage.get(f.storage_key, limit)
+    except storage.StorageError:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Couldn't fetch that file right now. Try again in a minute.")
+
+
 def _store(db: Session, user: User, room_id: int, name: str, ext: str, raw: bytes) -> FileOut:
     if not raw:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "That file is empty.")
@@ -91,11 +104,33 @@ def _store(db: Session, user: User, room_id: int, name: str, ext: str, raw: byte
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(problem))
     used = db.query(func.coalesce(func.sum(RoomFile.size), 0)).filter(RoomFile.room_id == room_id).scalar()
     if used + len(raw) > MAX_ROOM_BYTES:
-        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "This room's file space is full (25 MB). Delete a file first.")
+        raise HTTPException(
+            status.HTTP_413_CONTENT_TOO_LARGE,
+            f"This room's file space is full ({MAX_ROOM_BYTES // (1024 * 1024)} MB). Delete a file first.",
+        )
+    everything = db.query(func.coalesce(func.sum(RoomFile.size), 0)).scalar()
+    if everything + len(raw) > MAX_TOTAL_BYTES:
+        raise HTTPException(status.HTTP_507_INSUFFICIENT_STORAGE, "RoomSync's file storage is full right now. Please tell the team.")
     kind, mime = ALLOWED[ext]
-    row = RoomFile(room_id=room_id, created_by=user.id, name=name, kind=kind, mime=mime, size=len(raw), data=raw)
+    row = RoomFile(room_id=room_id, created_by=user.id, name=name, kind=kind, mime=mime, size=len(raw))
+    key = None
+    if storage.enabled():
+        key = storage.new_key(room_id)
+        try:
+            storage.put(key, raw)
+        except storage.StorageError:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "File storage is not available right now. Try again in a minute.")
+        row.storage_key = key
+    else:
+        row.data = raw
     db.add(row)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        if key:
+            storage.delete_many([key])  # don't leave an orphan in R2
+        raise
     db.refresh(row)
     return _out(row, user)
 
@@ -149,7 +184,7 @@ def download_file(file_id: int, db: Session = Depends(get_db), user: User = Depe
     f, _ = _file_for_member(db, user, file_id)
     # Always a generic download, never shown as a page: the browser can't run or render it from our site.
     return Response(
-        content=f.data,
+        content=_bytes_of(f),
         media_type="application/octet-stream",
         headers={"Content-Disposition": _disposition(f.name), "X-Content-Type-Options": "nosniff"},
     )
@@ -161,9 +196,8 @@ def file_text(file_id: int, db: Session = Depends(get_db), user: User = Depends(
     f, _ = _file_for_member(db, user, file_id)
     if extension_of(f.name) not in TEXT_EXTENSIONS:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "No text preview for this kind of file. Download it instead.")
-    data = f.data
-    text = data[:PREVIEW_BYTES].decode("utf-8-sig", errors="replace")
-    return FileTextOut(name=f.name, text=text, truncated=len(data) > PREVIEW_BYTES)
+    text = _bytes_of(f, PREVIEW_BYTES).decode("utf-8-sig", errors="replace")
+    return FileTextOut(name=f.name, text=text, truncated=f.size > PREVIEW_BYTES)
 
 
 @router.delete("/files/{file_id}", status_code=status.HTTP_204_NO_CONTENT)

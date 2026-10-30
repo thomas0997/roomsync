@@ -161,7 +161,8 @@ class ContactMessage(Base):
 
 
 class RoomFile(Base):
-    """A file shared in a room's Notes (see routers/notes.py). The bytes are stored right here in `data`.
+    """A file shared in a room's Notes (see routers/notes.py). The bytes are in Cloudflare R2 (`storage_key` is set)
+    or, for local development and files from before R2, right here in `data`.
     `data` is deferred, so listing files never loads the file contents."""
     __tablename__ = "room_files"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -171,5 +172,6 @@ class RoomFile(Base):
     kind: Mapped[str] = mapped_column(String(10))  # "docs" | "sheets" | "files"
     mime: Mapped[str] = mapped_column(String(100))  # what the file is; it is always SERVED as a generic download
     size: Mapped[int] = mapped_column(Integer)
-    data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    data: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True, nullable=True)
+    storage_key: Mapped[str | None] = mapped_column(String(200), nullable=True)  # set = bytes are in R2
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

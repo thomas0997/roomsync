@@ -103,6 +103,23 @@ class AvatarOut(BaseModel):
     avatar_url: str
 
 
+class FeedbackIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    name: str = Field(min_length=1, max_length=100)
+    room: str | None = Field(default=None, max_length=100)
+    rating: int = Field(ge=1, le=5)
+    message: str = Field(min_length=1, max_length=2000)
+    website: str | None = Field(default=None, max_length=500)  # hidden bot trap: people leave it empty
+
+
+class ContactIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    name: str = Field(min_length=1, max_length=100)
+    email: EmailStr
+    message: str = Field(min_length=1, max_length=2000)
+    website: str | None = Field(default=None, max_length=500)  # hidden bot trap: people leave it empty
+
+
 class ProfileOut(BaseModel):
     id: int
     email: EmailStr

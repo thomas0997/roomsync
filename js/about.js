@@ -1,8 +1,7 @@
 /* ============================================================
    ROOMSYNC — about.js
    Switches between the three About panels client-side (no page
-   reload). Feedback/Contact forms are stubbed until there's a
-   backend to actually send anything.
+   reload). Feedback and Contact send to the API.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -71,25 +70,56 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 2200);
   }
 
+  // Feedback and Contact send to the API (POST /feedback, POST /contact). No login needed.
+  var apiBase = (window.ROOMSYNC && window.ROOMSYNC.API_BASE) || '';
+
+  async function sendForm(form, path, fields, okMessage) {
+    var button = form.querySelector('.abt-btn-submit');
+    var payload = {};
+    fields.forEach(function (name) {
+      var input = form.elements[name];
+      var value = input ? input.value.trim() : '';
+      if (name === 'rating') { payload[name] = parseInt(value, 10); return; }
+      if (name === 'room' && !value) { return; }          // the room is optional
+      payload[name] = value;
+    });
+    button.disabled = true;
+    try {
+      var res = await fetch(apiBase + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.status === 204) { form.reset(); showToast(okMessage); }
+      else if (res.status === 429) { showToast('Too many messages. Please try again in a while.'); }
+      else if (res.status === 422) { showToast('Please check the form and try again.'); }
+      else { showToast('Something went wrong. Please try again.'); }
+    } catch (e) {
+      showToast("Couldn't reach the server. Check your connection.");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  // If you are logged in, start with your name filled in (Reset keeps it).
+  var knownName = '';
+  try { knownName = (JSON.parse(localStorage.getItem('roomsync_user') || '{}').name || ''); } catch (e) { knownName = ''; }
+
   var feedbackForm = document.getElementById('feedbackForm');
   if (feedbackForm) {
+    if (knownName) { feedbackForm.elements.name.defaultValue = knownName; feedbackForm.elements.name.value = knownName; }
     feedbackForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      // TODO: send this to a real backend once one exists
-      console.log('Feedback submitted (not actually sent anywhere yet).');
-      showToast('Thanks for the feedback!');
-      feedbackForm.reset();
+      sendForm(feedbackForm, '/feedback', ['name', 'room', 'rating', 'message', 'website'], 'Thanks for the feedback!');
     });
   }
 
   var contactForm = document.getElementById('contactForm');
   if (contactForm) {
+    if (knownName) { contactForm.elements.name.defaultValue = knownName; contactForm.elements.name.value = knownName; }
     contactForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      // TODO: send this to a real backend once one exists
-      console.log('Contact message submitted (not actually sent anywhere yet).');
-      showToast("Message sent — we'll get back to you soon!");
-      contactForm.reset();
+      sendForm(contactForm, '/contact', ['name', 'email', 'message', 'website'], "Message sent. We'll get back to you soon!");
     });
   }
 

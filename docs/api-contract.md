@@ -154,12 +154,12 @@ Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
 - A background job emails users before an APPROVED task is due: defaults 3 days, 1 day and 3 hours before `due_at`.
 - Each user, task and offset is emailed at most once. Respects `notify_deadline_reminders`. Every email has an unsubscribe link: GET `/unsubscribe?token=` turns the setting off.
 
-## About (T2)
+## About (T1 DONE)
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | POST | /feedback | `{name, room?, rating(1-5), message(max 2000), website?}` | 204 |
 | POST | /contact | `{name, email, message(max 2000), website?}` | 204 |
-Public endpoints: rate-limited. `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing.
+Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); no email is sent until the T2 email service exists.
 
 ## Messaging (T3: AFTER LAUNCH, do NOT build yet)
 Listed so nobody invents conflicting endpoints. Exact endpoints are added here BEFORE any code is written.

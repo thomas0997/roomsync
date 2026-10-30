@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
+<link href="../css/styles_about_form.css" rel="stylesheet">
 </head>
 <body>
 
@@ -334,30 +335,34 @@
 
           <label class="abt-field">
             <span class="abt-field-label">Name</span>
-            <input type="text" placeholder="Tony Franks">
+            <input type="text" name="name" maxlength="100" required placeholder="Tony Franks">
           </label>
 
           <label class="abt-field">
             <span class="abt-field-label">Room</span>
-            <input type="text" placeholder="The Bozos">
+            <input type="text" name="room" maxlength="100" placeholder="The Bozos">
           </label>
 
           <label class="abt-field">
             <span class="abt-field-label">Rating</span>
-            <select>
+            <select name="rating" required>
               <option value="">Select a rating</option>
-              <option>5 - Excellent</option>
-              <option>4 - Good</option>
-              <option>3 - Okay</option>
-              <option>2 - Needs work</option>
-              <option>1 - Poor</option>
+              <option value="5">5 - Excellent</option>
+              <option value="4">4 - Good</option>
+              <option value="3">3 - Okay</option>
+              <option value="2">2 - Needs work</option>
+              <option value="1">1 - Poor</option>
             </select>
           </label>
 
           <label class="abt-field">
             <span class="abt-field-label">Comment</span>
-            <textarea rows="6" placeholder="What's working, what isn't..."></textarea>
+            <textarea name="message" rows="6" maxlength="2000" required placeholder="What's working, what isn't..."></textarea>
           </label>
+
+          <div class="abt-hp" aria-hidden="true">
+            <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+          </div>
 
           <div class="abt-form-actions">
             <button type="submit" class="abt-btn-submit">Submit</button>
@@ -374,7 +379,7 @@
           <div class="abt-contact-info">
             <div class="abt-info-card">
               <div class="abt-info-label">Email</div>
-              <a href="mailto:contact.us@roomsync.com" class="abt-info-value abt-info-link">contact.us@roomsync.com</a>
+              <a href="mailto:thomas@roomsync.me" class="abt-info-value abt-info-link">thomas@roomsync.me</a>
             </div>
             <div class="abt-info-card">
               <div class="abt-info-label">Phone</div>
@@ -391,18 +396,22 @@
 
             <label class="abt-field">
               <span class="abt-field-label">Name</span>
-              <input type="text" placeholder="Tony Franks">
+              <input type="text" name="name" maxlength="100" required placeholder="Tony Franks">
             </label>
 
             <label class="abt-field">
               <span class="abt-field-label">Email</span>
-              <input type="email" placeholder="you@roomsync.com">
+              <input type="email" name="email" maxlength="255" required placeholder="you@example.com">
             </label>
 
             <label class="abt-field">
               <span class="abt-field-label">Message</span>
-              <textarea rows="6" placeholder="What's up?"></textarea>
+              <textarea name="message" rows="6" maxlength="2000" required placeholder="What's up?"></textarea>
             </label>
+
+            <div class="abt-hp" aria-hidden="true">
+              <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
 
             <div class="abt-form-actions">
               <button type="submit" class="abt-btn-submit">Submit</button>

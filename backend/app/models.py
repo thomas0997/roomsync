@@ -136,3 +136,24 @@ class CustomTaskType(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(20))
     color: Mapped[str] = mapped_column(String(7))  # "#rrggbb"
+
+
+class Feedback(Base):
+    """A message from the About page's Feedback form (sent without logging in)."""
+    __tablename__ = "feedback"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    room: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    rating: Mapped[int] = mapped_column(Integer)  # 1 to 5
+    message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ContactMessage(Base):
+    """A message from the About page's Contact form (sent without logging in)."""
+    __tablename__ = "contact_messages"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    email: Mapped[str] = mapped_column(String(255))
+    message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

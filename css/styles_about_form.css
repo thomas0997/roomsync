@@ -1,0 +1,3 @@
+/* ROOMSYNC - styles_about_form.css
+   The hidden "website" field on the About forms is a trap for bots. People never see it. */
+.abt-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

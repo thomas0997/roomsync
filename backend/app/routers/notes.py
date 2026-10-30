@@ -6,7 +6,7 @@ A classmate could upload anything, so we trust nothing:
  - The server never opens, unpacks or runs an uploaded file. It only stores the bytes.
  - Files come back ONLY as a download ("attachment", generic type, nosniff), never as a web page.
  - Only room members can list or fetch files. A file in someone else's room looks exactly like a missing one (404).
- - The bytes live in the database (table room_files): 5 MB per file, 25 MB per room, 20 uploads an hour per user."""
+ - The bytes live in the database (table room_files): 10 MB per file, 25 MB per room, 20 uploads an hour per user."""
 from typing import Literal
 from urllib.parse import quote
 
@@ -24,7 +24,7 @@ from ..schemas_files import FileOut, FileTextOut
 
 router = APIRouter(tags=["notes"])
 
-MAX_FILE_BYTES = 5 * 1024 * 1024      # biggest single file
+MAX_FILE_BYTES = 10 * 1024 * 1024     # biggest single file
 MAX_ROOM_BYTES = 25 * 1024 * 1024     # all files in one room together
 PREVIEW_BYTES = 200_000               # how much of a text/code file the in-page viewer shows
 
@@ -59,7 +59,7 @@ def _file_for_member(db: Session, user: User, file_id: int) -> tuple[RoomFile, M
 
 async def _read_limited_body(request: Request) -> bytes:
     """Read the upload, but stop as soon as it is over the limit (never load a huge file)."""
-    too_big = HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "That file is too big (5 MB maximum).")
+    too_big = HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "That file is too big (10 MB maximum).")
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > MAX_FILE_BYTES:
         raise too_big

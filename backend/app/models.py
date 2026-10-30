@@ -49,6 +49,7 @@ class Room(Base):
     tasks = relationship("Task", cascade="all, delete-orphan")
     notes = relationship("Note", cascade="all, delete-orphan")
     messages = relationship("Message", cascade="all, delete-orphan")
+    files = relationship("RoomFile", cascade="all, delete-orphan")
 
 
 class Membership(Base):
@@ -156,4 +157,19 @@ class ContactMessage(Base):
     name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(255))
     message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class RoomFile(Base):
+    """A file shared in a room's Notes (see routers/notes.py). The bytes are stored right here in `data`.
+    `data` is deferred, so listing files never loads the file contents."""
+    __tablename__ = "room_files"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), index=True)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    name: Mapped[str] = mapped_column(String(100))  # cleaned display name (never used as a path on disk)
+    kind: Mapped[str] = mapped_column(String(10))  # "docs" | "sheets" | "files"
+    mime: Mapped[str] = mapped_column(String(100))  # what the file is; it is always SERVED as a generic download
+    size: Mapped[int] = mapped_column(Integer)
+    data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

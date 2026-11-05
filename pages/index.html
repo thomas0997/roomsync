@@ -156,7 +156,17 @@
     .land-card-stack .reminder-card { padding: 6px 8px; }
     .land-card-stack .reminder-top { margin-bottom: 3px; }
     .land-card-stack .reminder-card span[style*="15.6px"] { font-size: 13px !important; }
+
+    /* APPROVE section: same idea, smaller cards that fit the screen width */
+    .land-approve-stack .appr-card { padding: 10px 12px !important; }
+    .land-approve-stack .appr-card-top { gap: 8px; }
+    .land-approve-stack .appr-card-title { font-size: 14px; }
+    .land-approve-stack .appr-card-meta { font-size: 9.6px; margin-top: 2px; }
+    .land-approve-stack .appr-badge { font-size: 9px; padding: 3px 8px; flex-shrink: 0; }
+    .land-approve-stack .appr-card-actions { gap: 8px; margin-top: 8px; }
+    .land-approve-stack .appr-card-actions button { height: 26px; font-size: 12px; padding: 0 12px; }
   }
+  .land-approve-stack { width: min(520px, 88vw); }
 
   /* ---------- ROOMS: dots scale in on scroll ---------- */
   .land-rooms {
@@ -370,7 +380,7 @@
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>APPROVE</p>
       <h2 class="land-feature-h2" data-f-title>Nothing goes live unchecked.</h2>
-      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:520px;">
+      <div class="land-feature-shot land-card-stack land-approve-stack" data-f-cardstack style="box-shadow:none; border:none; background:none;">
         <div class="appr-card" data-card style="padding:16px 18px;">
           <div class="appr-card-top">
             <div class="appr-card-text">

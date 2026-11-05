@@ -2152,3 +2152,72 @@ body.srch-lock { overflow: hidden; }
   .board-controls:has(> .earlier-bar) > .layout-toggle { display: none; }
   .board-controls:has(> .earlier-bar[hidden]) { display: none !important; }
 }
+
+
+/* ============================================================
+   Nov 5: custom tag, note, add another title, task details, Approve all, room icon
+   ============================================================ */
+.todo-custom-type[hidden], .todo-extra-titles[hidden], .todo-add-title[hidden], .todo-hint[hidden] { display: none; }
+.todo-extra-titles { display: flex; flex-direction: column; gap: 8px; }
+.todo-extra-titles:empty { display: none; }
+.todo-extra-row { display: flex; align-items: center; gap: 8px; }
+.todo-extra-row input {
+  flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--hairline);
+  background: #fff; font-family: inherit; font-size: 15.6px; color: var(--near-black); box-sizing: border-box;
+}
+.todo-extra-row input:focus { outline: none; border-color: var(--blue); }
+.todo-extra-remove {
+  flex-shrink: 0; width: 32px; height: 32px; border: none; border-radius: 50%; background: transparent;
+  color: var(--gray-text); font-size: 20px; line-height: 1; cursor: pointer;
+}
+.todo-extra-remove:hover { background: var(--gray-bg); color: var(--exam); }
+.todo-add-title {
+  align-self: flex-start; margin: -4px 0 0; padding: 4px 0; border: none; background: transparent;
+  color: var(--blue); font-family: inherit; font-size: 14.4px; font-weight: 700; cursor: pointer;
+}
+.todo-add-title:hover:not(:disabled) { text-decoration: underline; }
+.todo-add-title:disabled { opacity: 0.45; cursor: default; }
+.todo-hint { margin: -4px 0 0; font-size: 12.6px; color: var(--gray-text); }
+
+.reminder-info {
+  flex-shrink: 0; width: 18px; height: 18px; margin: -2px 2px 0 0; padding: 0; box-sizing: border-box;
+  border: 1.2px solid var(--gray-text); border-radius: 50%; background: transparent; color: var(--gray-text);
+  font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-style: italic; font-weight: 700; line-height: 1;
+  cursor: pointer; opacity: 0.55; transition: opacity 150ms, background 150ms, color 150ms, border-color 150ms;
+}
+.reminder-info.has-note { opacity: 1; border-color: var(--blue); background: var(--blue); color: #fff; }
+.reminder-info:hover, .reminder-info:focus-visible { opacity: 1; border-color: var(--blue); color: var(--blue); background: #fff; }
+.reminder-info.has-note:hover { background: #0064cc; color: #fff; }
+.reminder-card:hover .reminder-info { opacity: 1; }
+.cal-chip[role="button"] { cursor: pointer; }
+
+.task-detail { max-width: 420px; }
+.task-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.task-detail-title { margin: 0; overflow-wrap: anywhere; }
+.task-detail-tags { margin-bottom: 10px; }
+.task-detail-row { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--hairline); font-size: 14.4px; }
+.task-detail-label { flex: 0 0 76px; font-size: 12.6px; font-weight: 700; color: var(--gray-text-2); letter-spacing: 0.3px; text-transform: uppercase; }
+.task-detail-value { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.task-detail-note .task-detail-label { flex: none; }
+.task-detail-note { display: flex; flex-direction: column; gap: 6px; padding: 10px 0 14px; border-top: 1px solid var(--hairline); }
+.task-detail-note-text { margin: 0; font-size: 14.4px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-detail-note-empty { margin: 0; font-size: 14.4px; color: var(--gray-text); }
+
+.appr-card-note { margin: 6px 0 0; font-size: 13.2px; color: var(--gray-text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.appr-btn-approve-all {
+  align-self: flex-start; height: 32px; padding: 0 16px; margin: 0 0 12px; border-radius: var(--radius-pill);
+  border: none; background: var(--blue); color: #fff; font-family: inherit; font-size: 13.2px; font-weight: 700; cursor: pointer;
+}
+.appr-btn-approve-all:hover:not(:disabled) { background: #0064cc; }
+.appr-btn-approve-all:disabled { opacity: 0.5; cursor: default; }
+.appr-btn-approve-all[hidden] { display: none; }
+
+.room-avatar-letter { overflow: hidden; }
+.room-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+.settings-room-icon { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.btn-room-icon {
+  height: 30px; padding: 0 12px; border-radius: var(--radius-pill); border: 1px solid var(--hairline);
+  background: #fff; color: var(--near-black); font-family: inherit; font-size: 13.2px; font-weight: 600; cursor: pointer;
+}
+.btn-room-icon:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.btn-room-icon:disabled { opacity: 0.5; cursor: default; }

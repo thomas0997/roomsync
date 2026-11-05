@@ -17,14 +17,15 @@ class TaskCreate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     title: str = Field(min_length=1, max_length=200)
-    type: str = Field(min_length=1, max_length=30)
+    type: str = Field(min_length=1, max_length=15)  # custom tag names are 15 characters at most
     subject: str | None = Field(default=None, max_length=50)
+    note: str | None = Field(default=None, max_length=300)
     due_at: datetime  # REQUIRED (Thomas's decision, Oct 19): no default means a missing due_at gives 422
     all_day: bool = False
 
-    @field_validator("subject")
+    @field_validator("subject", "note")
     @classmethod
-    def blank_subject_is_none(cls, v):
+    def blank_is_none(cls, v):
         return v or None
 
     @field_validator("due_at")
@@ -39,14 +40,15 @@ class TaskUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     title: str | None = Field(default=None, min_length=1, max_length=200)
-    type: str | None = Field(default=None, min_length=1, max_length=30)
+    type: str | None = Field(default=None, min_length=1, max_length=15)
     subject: str | None = Field(default=None, max_length=50)  # null or "" clears the subject
+    note: str | None = Field(default=None, max_length=300)  # null or "" clears the note
     due_at: datetime | None = None
     all_day: bool | None = None
 
-    @field_validator("subject")
+    @field_validator("subject", "note")
     @classmethod
-    def blank_subject_is_none(cls, v):
+    def blank_is_none(cls, v):
         return v or None
 
     @field_validator("due_at")
@@ -65,6 +67,11 @@ class TaskUpdate(BaseModel):
         return self
 
 
+class ApproveAllOut(BaseModel):
+    approved: int
+    skipped: int
+
+
 class TaskOut(BaseModel):
     id: int
     room_id: int
@@ -78,9 +85,12 @@ class TaskOut(BaseModel):
     created_by_name: str
     decided_by_name: str | None
     decided_at: datetime | None
+    note: str | None = None
+    edited_by_name: str | None = None
+    edited_at: datetime | None = None
     done: bool = False  # ticked off by the CURRENT user (per-user, never shared)
 
-    @field_serializer("due_at", "decided_at")
+    @field_serializer("due_at", "decided_at", "edited_at")
     def as_utc_z(self, value: datetime | None):
         # SQLite drops the timezone, so we re-attach UTC and print it as "...Z" like the contract says
         if value is None:

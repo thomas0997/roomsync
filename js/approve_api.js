@@ -73,6 +73,7 @@
     var who = task.created_by === myId ? 'you' : task.created_by_name;
     var meta = 'submitted by ' + who + ' • Due ' + dueText(task) + (task.subject ? ' • ' + task.subject : '');
     text.appendChild(T.el('p', 'appr-card-meta', meta));
+    if (task.note) { text.appendChild(T.el('p', 'appr-card-note', task.note)); }
     top.appendChild(text);
     top.appendChild(T.el('span', 'appr-badge ' + (T.isKnownType(task.type) ? 'appr-badge-' + task.type : 'appr-badge-custom'),
                          typeLabel(task.type)));
@@ -113,6 +114,7 @@
     var meta = 'Due ' + dueText(task) + (task.subject ? ' \u2022 ' + task.subject : '');
     if (task.status === 'rejected' && task.decided_by_name) { meta += ' \u2022 rejected by ' + task.decided_by_name; }
     text.appendChild(T.el('p', 'appr-card-meta', meta));
+    if (task.note) { text.appendChild(T.el('p', 'appr-card-note', task.note)); }
     top.appendChild(text);
     var pill = T.el('span', 'history-status ' + (task.status === 'pending' ? 'history-status-pending' : 'history-status-rejected'),
                     task.status.toUpperCase());
@@ -185,8 +187,34 @@
     return copy;
   }
 
+  // "Approve all": one button above the list when two or more tasks are waiting.
+  var approveAll = null;
+  function syncApproveAll() {
+    if (!approveAll) {
+      approveAll = T.el('button', 'appr-btn-approve-all');
+      approveAll.type = 'button';
+      approveAll.hidden = true;
+      list.parentNode.insertBefore(approveAll, list);
+      approveAll.addEventListener('click', async function () {
+        if (!window.confirm('Approve all ' + pending.length + ' waiting tasks? They will show on the board and calendar.')) { return; }
+        approveAll.disabled = true;
+        var r = await home.api('/rooms/' + home.currentRoomId() + '/approvals/approve-all', 'POST');
+        approveAll.disabled = false;
+        if (!r.ok) { home.showToast(home.errorText(r)); load(); return; }
+        var msg = r.body.approved + ' approved.';
+        if (r.body.skipped > 0) { msg += ' ' + r.body.skipped + ' of your own left for another admin.'; }
+        home.showToast(msg);
+        load();
+        document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));   // refresh the pending counts in the sidebar
+      });
+    }
+    approveAll.hidden = list.hidden || pending.length < 2;
+    approveAll.textContent = 'Approve all (' + pending.length + ')';
+  }
+
   function renderPending() {
     T.clear(list);
+    syncApproveAll();
     var visible = sorted(pending).filter(function (t) { return filter === 'all' || t.type === filter; });
     visible.forEach(function (t) { list.appendChild(card(t)); });
     if (pending.length === 0) {
@@ -260,6 +288,7 @@
       if (node) { node.hidden = !show; }
     });
     list.hidden = !show;
+    syncApproveAll();
   }
 
   async function load() {

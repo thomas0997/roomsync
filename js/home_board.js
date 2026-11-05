@@ -152,6 +152,15 @@
     bullet.setAttribute('aria-hidden', 'true');
     top.appendChild(bullet);
     top.appendChild(el('p', 'reminder-title', task.title));
+    var info = el('button', 'reminder-info' + (task.note ? ' has-note' : ''), 'i');
+    info.type = 'button';
+    info.setAttribute('aria-label', task.note ? 'Task details and note' : 'Task details');
+    info.title = task.note ? 'Details and note' : 'Details';
+    info.addEventListener('click', function (e) {
+      e.stopPropagation();                          // do not tick the task
+      if (window.RoomSyncTaskDetail) { window.RoomSyncTaskDetail.open(task, { canEdit: home.isAdmin() }); }
+    });
+    top.appendChild(info);
     if (home.isAdmin()) {
       var del = el('button', 'reminder-delete');
       del.type = 'button';

@@ -43,6 +43,16 @@
     var c = T.el('span', chipClass(task) + (task.done ? ' cal-chip-done' : '') + (late ? ' cal-chip-alert' : ''), task.title);
     var tip = task.title + (task.subject ? ' · ' + task.subject : '') + ' · ' + T.timeText(task);
     c.title = tip;
+    c.tabIndex = 0;
+    c.setAttribute('role', 'button');
+    function showDetail(e) {
+      e.stopPropagation();
+      if (window.RoomSyncTaskDetail) {
+        window.RoomSyncTaskDetail.open(task, { canEdit: !!(window.RoomSyncHome && window.RoomSyncHome.isAdmin()) });
+      }
+    }
+    c.addEventListener('click', showDetail);
+    c.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showDetail(e); } });
     return c;
   }
 

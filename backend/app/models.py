@@ -36,6 +36,15 @@ class UserAvatar(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class RoomAvatar(Base):
+    """A room's icon: a clean 256x256 JPEG made by the server (same pipeline as profile photos).
+    Own table so loading a Room never loads the picture. No row means the default icon."""
+    __tablename__ = "room_avatars"
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Room(Base):
     __tablename__ = "rooms"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -50,6 +59,7 @@ class Room(Base):
     notes = relationship("Note", cascade="all, delete-orphan")
     messages = relationship("Message", cascade="all, delete-orphan")
     files = relationship("RoomFile", cascade="all, delete-orphan")
+    avatar = relationship("RoomAvatar", cascade="all, delete-orphan", uselist=False)
 
 
 class Membership(Base):
@@ -78,6 +88,9 @@ class Task(Base):
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     decided_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    note: Mapped[str | None] = mapped_column(String(300), nullable=True)  # optional plain-text note
+    edited_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)  # admin who edited it after approval
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     approvals = relationship("Approval", cascade="all, delete-orphan")

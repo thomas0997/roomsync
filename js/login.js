@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var tabSignup = document.getElementById('tabSignup');
   var cardSub = document.getElementById('cardSub');
   var switchRow = document.getElementById('switchRow');
+  var forgotRow = document.getElementById('forgotRow');
 
   var mode = 'login';
   var busy = false;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     nameField.hidden = !signup;
     pwHint.hidden = !signup;
+    forgotRow.hidden = signup;
     pwInput.setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
     pwInput.placeholder = signup ? 'Choose a password' : 'Your password';
     submitBtn.textContent = signup ? 'Create account' : 'Log in';

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RoomSync | Choose a new password</title>
+  <link rel="icon" href="../assets/roomsync_logo.png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+  <link href="../css/styles_login.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="login-wrap">
+    <a href="index.html" class="logo-head" aria-label="RoomSync home">
+      <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="logo-mark">
+      <div class="logo-word"><span class="room">room</span><span class="sync">sync</span></div>
+    </a>
+
+    <div class="card">
+      <h1 class="auth-title">Choose a new password</h1>
+      <p class="card-sub" id="cardSub">Pick something at least 8 characters long.</p>
+
+      <div id="auth-error" class="login-error" role="alert" hidden></div>
+      <div id="auth-done" class="login-done" role="status" hidden></div>
+
+      <form id="resetForm" class="auth-form" novalidate>
+        <div class="field">
+          <label for="password">NEW PASSWORD</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" placeholder="New password" autocomplete="new-password" maxlength="128">
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+          <p class="hint">At least 8 characters.</p>
+        </div>
+        <div class="field">
+          <label for="password2">CONFIRM PASSWORD</label>
+          <input type="password" id="password2" name="password2" placeholder="Type it again" autocomplete="new-password" maxlength="128">
+        </div>
+        <button class="btn-login" id="submitBtn" type="submit">Change password</button>
+      </form>
+
+      <p class="switch-row" id="switchRow"><a class="link-btn" href="login.html">Back to log in</a></p>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/reset.js"></script>
+</body>
+</html>

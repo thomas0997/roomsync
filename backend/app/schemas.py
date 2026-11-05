@@ -24,6 +24,22 @@ class LoginIn(BaseModel):
     password: str = Field(max_length=128)
 
 
+class ForgotIn(BaseModel):
+    email: EmailStr
+
+
+class ResetIn(BaseModel):
+    token: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_fits_bcrypt(cls, v):
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password is too long (72 bytes at most)")
+        return v
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

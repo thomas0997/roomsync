@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RoomSync | Forgot password</title>
+  <link rel="icon" href="../assets/roomsync_logo.png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+  <link href="../css/styles_login.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="login-wrap">
+    <a href="index.html" class="logo-head" aria-label="RoomSync home">
+      <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="logo-mark">
+      <div class="logo-word"><span class="room">room</span><span class="sync">sync</span></div>
+    </a>
+
+    <div class="card">
+      <h1 class="auth-title">Forgot your password?</h1>
+      <p class="card-sub" id="cardSub">Enter your email and we’ll send you a link to choose a new one.</p>
+
+      <div id="auth-error" class="login-error" role="alert" hidden></div>
+      <div id="auth-done" class="login-done" role="status" hidden></div>
+
+      <form id="forgotForm" class="auth-form" novalidate>
+        <div class="field">
+          <label for="email">EMAIL</label>
+          <input type="email" id="email" name="email" placeholder="you@school.edu" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+        </div>
+        <button class="btn-login" id="submitBtn" type="submit">Send reset link</button>
+      </form>
+
+      <p class="switch-row">Remembered it? <a class="link-btn" href="login.html">Log in</a></p>
+    </div>
+
+    <a href="index.html" class="back-link">&larr; Back to home</a>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/forgot.js"></script>
+</body>
+</html>

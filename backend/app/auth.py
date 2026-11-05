@@ -35,9 +35,9 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
-def create_token(user_id: int) -> str:
+def create_token(user_id: int, token_version: int = 0) -> str:
     exp = datetime.now(timezone.utc) + timedelta(hours=TOKEN_HOURS)
-    return jwt.encode({"sub": str(user_id), "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode({"sub": str(user_id), "tv": token_version, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def get_current_user(
@@ -53,6 +53,8 @@ def get_current_user(
     except (jwt.PyJWTError, KeyError, ValueError):
         raise unauthorized
     if user is None or user.deleted_at is not None:
+        raise unauthorized
+    if payload.get("tv", 0) != user.token_version:  # password was reset since this login: it no longer counts
         raise unauthorized
     return user
 

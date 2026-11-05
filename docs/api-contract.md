@@ -23,10 +23,12 @@ Rules for every endpoint: validate input, check membership/admin first, never lo
 | POST | /auth/signup | `{email, name, password(min 8)}` | 201 `{access_token, token_type, user:{id,email,name}}` | T1 DONE |
 | POST | /auth/login | `{email, password}` | `{access_token, token_type, user}` | T1 DONE |
 | GET | /auth/me | none | `{id,email,name}` | T1 DONE |
-| POST | /auth/forgot | `{email}` | 204 always (never reveal whether the email exists) | T2 TODO |
-| POST | /auth/reset | `{token, new_password}` | 204. Token is single-use and expires in 1 hour | T2 TODO |
+| POST | /auth/forgot | `{email}` | 204 always, same answer and similar speed whether or not the email exists. Sends a reset email only to a real, active account. | T2 TODO |
+| POST | /auth/reset | `{token, new_password(min 8)}` | 204. 400 "Invalid or expired link" for any bad, used or expired token. | T2 TODO |
 | POST | /auth/verify | `{token}` | 204 | T2 TODO |
 | GET | /auth/google, /auth/github (+ `/callback`) | none | redirect flow, then the same token response as login | T2 TODO |
+
+Password reset rules: the emailed link is `APP_URL/pages/reset.html#token=...` (the token is in the URL fragment so it never reaches server logs or Referer headers). Only a SHA-256 hash of the token is stored. A token works once, expires after 30 minutes, and a newer request replaces the older one. Rate limits: forgot 5/hour per address and 3/hour per email; reset 10/hour per address. A successful reset bumps the user's `token_version`, so every older login token stops working (401), and a "Your password was changed" email is sent. The reset response does NOT log the user in.
 
 Log out = the client deletes the token (no endpoint). Rate-limit signup, login, forgot and reset (429). Social accounts link to an existing account only by a VERIFIED email. No Apple sign-in.
 
@@ -157,6 +159,12 @@ User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
 | PUT | /users/me/settings | `{theme:"light|dark|system", show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone:"Asia/Manila", task_colors?:{type:"#rrggbb"}}` | settings | T2 TODO |
 Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
 
+## Email (T2)
+Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas@roomsync.me`. Settings live only in environment variables: `RESEND_API_KEY` (a Sending-access key limited to roomsync.me), `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `APP_URL`. With no `RESEND_API_KEY` set (local dev, tests) emails are not sent. Nothing is ever logged about an email except the kind and a success or failure flag.
+- Sending never blocks or breaks a request: it runs in the background, and a failed send does not turn the API answer into an error.
+- Free plan limits: 100 emails per day, 3,000 per month. Emails that are not time-critical (reminders) are batched; password-reset and security emails always go first.
+- Emails we send: password reset link, "password changed" notice, Contact and Feedback forwards to `CONTACT_INBOX` (later: deadline reminders, email verification).
+
 ## Deadline reminders (T2, no public endpoints except unsubscribe)
 - A background job emails users before an APPROVED task is due: defaults 3 days, 1 day and 3 hours before `due_at`.
 - Each user, task and offset is emailed at most once. Respects `notify_deadline_reminders`. Every email has an unsubscribe link: GET `/unsubscribe?token=` turns the setting off.
@@ -166,7 +174,7 @@ Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
 |---|---|---|---|
 | POST | /feedback | `{name, room?, rating(1-5), message(max 2000), website?}` | 204 |
 | POST | /contact | `{name, email, message(max 2000), website?}` | 204 |
-Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); no email is sent until the T2 email service exists.
+Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); once the Email service is configured, each saved message is also forwarded to `CONTACT_INBOX` (Reply-To is the sender's address for Contact). A failed forward never fails the request.
 
 ## Messaging (T3: AFTER LAUNCH, do NOT build yet)
 Listed so nobody invents conflicting endpoints. Exact endpoints are added here BEFORE any code is written.

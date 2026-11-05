@@ -130,7 +130,13 @@
   }
   .land-feature-shot img { width: 100%; display: block; }
 
-  .land-card-stack { display: flex; flex-direction: column; gap: 16px; opacity: 1 !important; }
+  .land-card-stack { display: flex; flex-direction: column; gap: 8px; opacity: 1 !important; width: min(340px, 86vw); margin-top: 24px; }
+  .land-card-stack .day-card { padding: 10px 11px 11px; }
+  .land-card-stack .day-card-head { margin-bottom: 7px; }
+  .land-card-stack .day-name { font-size: 15px; }
+  .land-card-stack .day-date-sub { font-size: 10px; margin-top: 0; }
+  .land-card-stack .reminder-card { padding: 8px 10px; }
+  .land-card-stack .reminder-top { margin-bottom: 5px; }
   .land-card-stack [data-card] {
     opacity: 0; transform: translateY(28px) scale(0.97);
     transition: none; /* driven by scroll progress, not CSS transition */
@@ -269,7 +275,7 @@
     <div class="land-feature-sticky">
       <p class="land-feature-label" data-f-label>HOME</p>
       <h2 class="land-feature-h2" data-f-title>Every deadline, laid out by day.</h2>
-      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none; width:420px;">
+      <div class="land-feature-shot land-card-stack" data-f-cardstack style="box-shadow:none; border:none; background:none;">
         <div class="day-card" data-card>
           <div class="day-card-head">
             <div>

@@ -80,11 +80,13 @@ def test_only_the_creator_or_an_admin_can_edit(client):
     assert r.json()["status"] == "pending" and r.json()["created_by_name"] == "Bob"  # editing changes nothing else
 
 
-def test_approved_task_cannot_be_edited(client):
+def test_approved_task_can_only_be_edited_by_an_admin(client):
     alice, bob, carol, rid = _setup(client)
     t = _add(client, rid, alice, "Approved quiz")  # sole admin, so auto-approved
     assert t["status"] == "approved"
-    assert _patch(client, t["id"], alice, {"title": "Changed"}).status_code == 403
+    assert _patch(client, t["id"], bob, {"title": "Changed"}).status_code == 403  # members: no
+    r = _patch(client, t["id"], alice, {"title": "Changed"})  # admins: yes, status stays approved
+    assert r.status_code == 200 and r.json()["status"] == "approved"
 
 
 def test_edit_by_non_member_gets_404(client):

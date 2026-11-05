@@ -1,13 +1,15 @@
 import secrets
 import string
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_admin, require_member
 from ..db import get_db
-from ..models import Membership, Room, Task, User
-from .avatar import avatar_urls_for
+from ..models import Membership, Room, RoomAvatar, Task, User, utcnow
+from ..ratelimit import limit_by_user
+from ..schemas import AvatarOut
+from .avatar import BAD_IMAGE, _version, avatar_urls_for, make_avatar, read_limited_body
 from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate, status_of
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
@@ -36,7 +38,13 @@ def _room_out(room: Room, role: str, db: Session) -> RoomOut:
         role=role,
         member_count=count,
         pending_count=pending,
+        avatar_url=_room_avatar_url(db, room.id),
     )
+
+
+def _room_avatar_url(db: Session, room_id: int) -> str | None:
+    row = db.query(RoomAvatar.updated_at).filter(RoomAvatar.room_id == room_id).first()
+    return f"/rooms/{room_id}/avatar?v={_version(row[0])}" if row else None
 
 def _check_room_limit(db: Session, user: User) -> None:
     if db.query(Membership).filter(Membership.user_id == user.id).count() >= MAX_ROOMS_PER_USER:
@@ -177,3 +185,51 @@ def reset_invite_code(room_id: int, user: User = Depends(get_current_user), db: 
     room.invite_code = _new_code(db)
     db.commit()
     return InviteCodeOut(invite_code=room.invite_code)
+
+
+@router.put(
+    "/{room_id}/avatar",
+    response_model=AvatarOut,
+    dependencies=[Depends(limit_by_user("room_avatar", 10, 3600))],
+)
+def upload_room_avatar(
+    room_id: int,
+    raw: bytes = Depends(read_limited_body),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Admin only. The body is the raw image file; it is re-drawn as a clean 256x256 JPEG."""
+    require_admin(db, user, room_id)
+    if not raw:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, BAD_IMAGE)
+    data = make_avatar(raw)
+    row = db.get(RoomAvatar, room_id)
+    if row is None:
+        row = RoomAvatar(room_id=room_id, data=data, updated_at=utcnow())
+        db.add(row)
+    else:
+        row.data, row.updated_at = data, utcnow()
+    db.commit()
+    return AvatarOut(avatar_url=_room_avatar_url(db, room_id))
+
+
+@router.delete("/{room_id}/avatar", status_code=status.HTTP_204_NO_CONTENT)
+def delete_room_avatar(room_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    require_admin(db, user, room_id)
+    db.query(RoomAvatar).filter(RoomAvatar.room_id == room_id).delete()
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{room_id}/avatar")
+def get_room_avatar(room_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Members only (403 otherwise). 404 when the room has no icon."""
+    require_member(db, user, room_id)
+    row = db.get(RoomAvatar, room_id)
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No icon")
+    return Response(
+        content=row.data,
+        media_type="image/jpeg",  # fixed: never taken from the upload
+        headers={"Content-Disposition": 'inline; filename="room.jpg"'},
+    )

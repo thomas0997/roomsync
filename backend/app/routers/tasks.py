@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
 from ..db import get_db
-from ..models import Membership, Task, TaskUserState, User
+from ..models import Membership, Task, TaskUserState, User, utcnow
 from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
 from ..ratelimit import limit_by_user
 
@@ -60,6 +60,9 @@ def task_to_out(db: Session, task: Task, done: bool = False) -> TaskOut:
         created_by_name=_name(db, task.created_by),
         decided_by_name=_name(db, task.decided_by),
         decided_at=task.decided_at,
+        note=task.note,
+        edited_by_name=_name(db, task.edited_by),
+        edited_at=task.edited_at,
         done=done,
     )
 
@@ -155,6 +158,7 @@ def create_task(
         title=body.title,
         type=body.type,
         subject=body.subject,
+        note=body.note,
         due_at=body.due_at,
         all_day=body.all_day,
         status=status,
@@ -213,10 +217,15 @@ def update_task(
 ):
     task, membership = _task_and_membership(db, user, task_id)  # 404 if missing or not in this room
 
-    if task.created_by != user.id and membership.role != "admin":  # Thomas's decision, Oct 21: admins can fix a task before deciding
-        raise HTTPException(403, "Only the creator or a room admin can edit this task")
-    if task.status != "pending":
-        raise HTTPException(403, "Only pending tasks can be edited")
+    is_admin = membership.role == "admin"
+    if task.status == "pending":
+        if task.created_by != user.id and not is_admin:  # Thomas's decision, Oct 21: admins can fix a task before deciding
+            raise HTTPException(403, "Only the creator or a room admin can edit this task")
+    elif task.status == "approved":  # Nov 5: only admins edit an approved task (no re-approval)
+        if not is_admin:
+            raise HTTPException(403, "Only a room admin can edit an approved task")
+    else:
+        raise HTTPException(403, "Rejected tasks cannot be edited")
     if "due_at" in body.model_fields_set:  # only a new due date has to be in the future
         _reject_past(body.due_at)
     if "all_day" in body.model_fields_set or "due_at" in body.model_fields_set:  # check the final combination
@@ -227,6 +236,8 @@ def update_task(
 
     for field in body.model_fields_set:  # change only what the client sent; status is never touched
         setattr(task, field, getattr(body, field))
+    if task.status == "approved":  # remember who changed an approved task, shown as "Edited by"
+        task.edited_by, task.edited_at = user.id, utcnow()
     db.commit()
     db.refresh(task)
     return task_to_out(db, task)

@@ -69,6 +69,7 @@ class RoomOut(BaseModel):
     role: str  # the caller's role in this room
     member_count: int
     pending_count: int  # tasks waiting for an admin decision
+    avatar_url: str | None = None  # the room icon, null = default icon
 
 class StatusOut(BaseModel):
     kind: str

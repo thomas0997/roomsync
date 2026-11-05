@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_user, require_admin
 from ..db import get_db
 from ..models import Membership, Task, User
-from ..schemas_tasks import TaskOut
+from ..schemas_tasks import ApproveAllOut, TaskOut
 from .tasks import _task_and_membership, task_to_out
 
 router = APIRouter(tags=["approvals"])
@@ -85,6 +85,29 @@ def _decide(db: Session, user: User, task_id: int, new_status: str) -> TaskOut:
     db.commit()
     db.refresh(task)
     return task_to_out(db, task)
+
+
+@router.post("/rooms/{room_id}/approvals/approve-all", response_model=ApproveAllOut)
+def approve_all(
+    room_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Approve every pending task in the room in one go. Your own tasks are skipped when the room
+    has another admin (same rule as deciding one task)."""
+    require_admin(db, user, room_id)  # 403 unless the caller is an admin of this room
+    admin_count = db.query(Membership).filter(Membership.room_id == room_id, Membership.role == "admin").count()
+    pending = db.query(Task).filter(Task.room_id == room_id, Task.status == "pending").all()
+    approved = skipped = 0
+    now = datetime.now(timezone.utc)
+    for task in pending:
+        if task.created_by == user.id and admin_count > 1:
+            skipped += 1
+            continue
+        task.status, task.decided_by, task.decided_at = "approved", user.id, now
+        approved += 1
+    db.commit()
+    return ApproveAllOut(approved=approved, skipped=skipped)
 
 
 @router.post("/tasks/{task_id}/approve", response_model=TaskOut)

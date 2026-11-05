@@ -137,11 +137,26 @@
   }
 
   /* ---------- rendering: rooms ---------- */
-  function letterAvatar(name, outlined) {
+  // If the room has an icon, draw it over the letter once it has downloaded (the letter shows meanwhile).
+  function paintRoomIcon(el, avatarUrl) {
+    if (!avatarUrl) { return; }
+    photoSrc(avatarUrl).then(function (src) {
+      if (!src) { return; }
+      var img = document.createElement('img');
+      img.className = 'room-avatar-img';
+      img.alt = '';
+      img.src = src;
+      el.textContent = '';
+      el.appendChild(img);
+    });
+  }
+
+  function letterAvatar(name, outlined, avatarUrl) {
     var el = document.createElement('span');
     el.className = 'room-avatar room-avatar-letter' + (outlined ? ' room-avatar-outline' : '');
     el.textContent = firstChar(name);
     el.setAttribute('aria-hidden', 'true');
+    paintRoomIcon(el, avatarUrl);
     return el;
   }
 
@@ -156,7 +171,7 @@
       btn.type = 'button';
       btn.className = 'room-pill' + (active ? ' room-pill-active' : '');
       btn.dataset.roomId = String(r.id);
-      btn.appendChild(letterAvatar(r.name, !active));
+      btn.appendChild(letterAvatar(r.name, !active, r.avatar_url));
       var name = document.createElement('span');
       name.className = 'room-name';
       name.textContent = r.name;
@@ -184,7 +199,7 @@
         item.type = 'button';
         item.className = 'room-dropdown-item' + (active ? ' active' : '');
         item.dataset.roomId = String(r.id);
-        item.appendChild(letterAvatar(r.name, !active));
+        item.appendChild(letterAvatar(r.name, !active, r.avatar_url));
         item.appendChild(document.createTextNode(' ' + r.name));
         dd.insertBefore(item, newItem);
       });
@@ -212,6 +227,7 @@
     });
     document.querySelectorAll('[data-room-avatar]').forEach(function (el) {
       el.textContent = room ? firstChar(room.name) : '+';
+      if (room) { paintRoomIcon(el, room.avatar_url); }
     });
     var discInput = byId('discMessageInput');
     if (discInput && room) { discInput.placeholder = 'Message ' + room.name + '...'; }

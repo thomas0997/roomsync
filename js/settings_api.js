@@ -117,10 +117,75 @@
       btn.className = 'btn-leave-room';
       btn.textContent = 'Leave Room';
       btn.addEventListener('click', function () { leave(r, btn); });
+      if (r.role === 'admin') { text.appendChild(iconControls(r)); }   // only admins change the icon (shown under the name)
       row.appendChild(text);
       row.appendChild(btn);
       list.appendChild(row);
     });
+  }
+
+  /* ---------- room icon (admins) ---------- */
+  var ICON_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  var MAX_ICON = 2 * 1024 * 1024;   // same as the server
+
+  function iconControls(room) {
+    var box = document.createElement('div');
+    box.className = 'settings-room-icon';
+    var picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/jpeg,image/png,image/webp';
+    picker.hidden = true;
+    var change = document.createElement('button');
+    change.type = 'button';
+    change.className = 'btn-room-icon';
+    change.textContent = room.avatar_url ? 'Change icon' : 'Add icon';
+    change.addEventListener('click', function () { picker.click(); });
+    box.appendChild(picker);
+    box.appendChild(change);
+    if (room.avatar_url) {
+      var remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn-room-icon';
+      remove.textContent = 'Remove icon';
+      remove.addEventListener('click', async function () {
+        remove.disabled = true;
+        var r = await api('/rooms/' + room.id + '/avatar', 'DELETE');
+        if (!r.ok) { remove.disabled = false; showToast(errorText(r)); return; }
+        showToast('Room icon removed.');
+        loadRooms();
+        document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));
+      });
+      box.appendChild(remove);
+    }
+    picker.addEventListener('change', async function () {
+      var file = picker.files && picker.files[0];
+      picker.value = '';
+      if (!file) { return; }
+      if (ICON_TYPES.indexOf(file.type) === -1) { showToast('Choose a JPEG, PNG or WebP picture.'); return; }
+      if (file.size > MAX_ICON) { showToast('That picture is too big (2 MB maximum).'); return; }
+      change.disabled = true;
+      var res;
+      try {
+        res = await fetch(cfg.API_BASE + '/rooms/' + room.id + '/avatar', {
+          method: 'PUT',
+          headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY), 'Content-Type': file.type },
+          body: file
+        });
+      } catch (e) {
+        change.disabled = false;
+        showToast(errorText({ status: 0, body: null }));
+        return;
+      }
+      var body = null;
+      try { body = await res.json(); } catch (e) { body = null; }
+      change.disabled = false;
+      if (res.status === 401) { goLogin(); return; }
+      if (!res.ok) { showToast(errorText({ status: res.status, body: body })); return; }
+      showToast('Room icon updated.');
+      loadRooms();
+      document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));
+    });
+    return box;
   }
 
   async function leave(room, btn) {

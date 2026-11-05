@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var heroText = {
     aboutus: {
       eyebrow: 'ABOUT',
-      title: 'The team behind <span class="dim">room</span>sync',
-      subtitle: 'A group of students from Holy Angel University who joined forces to comply with requirements.<br>Built for the course 6IWEB.'
+      title: 'One place for your class\'s <span class="dim">deadlines</span>',
+      subtitle: 'RoomSync helps students share deadlines, files and approvals in one room.<br>A student project from Holy Angel University.'
     },
     feedback: {
       eyebrow: 'FEEDBACK',

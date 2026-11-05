@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from ..auth import get_current_user
 from ..db import get_db
 from ..models import Membership, Room, Task, User, UserAvatar
-from ..schemas import ProfileOut, ProfileUpdate, StatsOut, status_of
+from ..schemas import ProfileOut, ProfileUpdate, PublicProfileOut, SharedRoomOut, StatsOut, status_of
 from .avatar import avatar_url_for
 
 router = APIRouter(prefix="/users", tags=["profile"])
@@ -83,3 +83,28 @@ def delete_me(user: User = Depends(get_current_user), db: Session = Depends(get_
     user.status_kind, user.status_text = "working", None
     user.deleted_at = datetime.now(timezone.utc)
     db.commit()
+
+
+@router.get("/{user_id}", response_model=PublicProfileOut)
+def get_user(user_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Me, or someone who shares a room with me: name, photo, status, join date and the rooms we are both in.
+    There is no email here. Anyone I share no room with, a user that does not exist and a deleted user all give
+    the same 404, so nobody can probe which accounts exist. (Registered after /me, so /users/me still wins.)"""
+    not_found = HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    target = db.get(User, user_id)
+    if target is None or target.deleted_at is not None:
+        raise not_found
+    mine = db.query(Membership.room_id).filter(Membership.user_id == user.id)
+    shared = (
+        db.query(Room)
+        .join(Membership, Membership.room_id == Room.id)
+        .filter(Membership.user_id == user_id, Membership.room_id.in_(mine))
+        .order_by(func.lower(Room.name), Room.id)
+        .all()
+    )
+    if user_id != user.id and not shared:
+        raise not_found
+    return PublicProfileOut(
+        id=target.id, name=target.name, avatar_url=avatar_url_for(db, target.id), status=status_of(target),
+        joined_at=target.created_at, rooms=[SharedRoomOut(id=r.id, name=r.name) for r in shared],
+    )

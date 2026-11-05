@@ -438,11 +438,12 @@ document.addEventListener('DOMContentLoaded', function () {
   var personModalClose = document.getElementById('personModalClose');
   var onlineUsersListEl = document.getElementById('onlineUsersList');
 
-  function openPersonModal(name, initials, online, avatarUrl, isSelf) {
+  function openPersonModal(name, initials, online, avatarUrl, isSelf, userId) {
     if (!personModalOverlay) return;
     var avatarEl = document.getElementById('personModalAvatar');
     avatarEl.textContent = initials;
     personModalOverlay.dataset.self = isSelf ? 'true' : 'false';
+    personModalOverlay.dataset.userid = userId || '';
     var shown = avatarUrl || '';
     avatarEl.dataset.shown = shown;
     if (shown && window.RoomSyncAvatars) {
@@ -468,16 +469,19 @@ document.addEventListener('DOMContentLoaded', function () {
     onlineUsersListEl.addEventListener('click', function (e) {
       var item = e.target.closest('.online-user-clickable');
       if (!item) return;
-      openPersonModal(item.dataset.name, item.dataset.initials, item.dataset.online, item.dataset.avatar, item.dataset.self === 'true');
+      openPersonModal(item.dataset.name, item.dataset.initials, item.dataset.online, item.dataset.avatar, item.dataset.self === 'true', item.dataset.userid);
     });
   }
-  // Other people's profile pages are not built yet (Tier 2). Your own row still opens your profile.
+  // Your own row opens your profile. Anyone else opens their profile page (profile.html?id=...), which only
+  // works for people you share a room with.
   var personProfileLink = personModalOverlay && personModalOverlay.querySelector('a[href="profile.html"]');
   if (personProfileLink) {
     personProfileLink.addEventListener('click', function (e) {
       if (personModalOverlay.dataset.self === 'true') return;
+      var id = personModalOverlay.dataset.userid || '';
+      if (!/^[0-9]+$/.test(id)) return;
       e.preventDefault();
-      showToast('Profile pages are coming soon.');
+      window.location.href = 'profile.html?id=' + id;
     });
   }
   if (personModalClose) personModalClose.addEventListener('click', closePersonModal);

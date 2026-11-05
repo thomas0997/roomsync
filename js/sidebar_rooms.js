@@ -232,6 +232,7 @@
       li.dataset.online = '';
       li.dataset.avatar = m.avatar_url || '';
       li.dataset.self = String(m.user_id === myId());
+      li.dataset.userid = String(m.user_id);
 
       var avatar = document.createElement('span');
       avatar.className = 'online-user-avatar';

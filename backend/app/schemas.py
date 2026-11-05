@@ -129,6 +129,21 @@ class ProfileOut(BaseModel):
     joined_at: datetime
 
 
+class SharedRoomOut(BaseModel):
+    id: int
+    name: str
+
+
+class PublicProfileOut(BaseModel):
+    """What a room-mate can see about someone: no email, only the rooms the two of them share."""
+    id: int
+    name: str
+    avatar_url: str | None = None  # null when there is no photo
+    status: StatusOut
+    joined_at: datetime
+    rooms: list[SharedRoomOut]
+
+
 class ProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str | None = Field(default=None, min_length=1, max_length=100)

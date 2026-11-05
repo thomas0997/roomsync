@@ -12,6 +12,7 @@
 
   var cfg = window.ROOMSYNC;
   if (!cfg || !document.body.hasAttribute('data-api-profile')) { return; }
+  if (new URLSearchParams(window.location.search).has('id')) { return; }   // someone else's profile: js/user_view.js
 
   var ROOM_KEY = 'roomsync_room';
   var KIND_LABEL = { working: 'Working!', brb: 'BRB!', away: 'Somewhere Else' };

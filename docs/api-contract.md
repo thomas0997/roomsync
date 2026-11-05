@@ -141,6 +141,7 @@ User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
 | GET | /users/me | none | user | T1 DONE |
 | PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom` (max 40); it is cleared when the kind is not `custom`. Send at least one field; unknown fields give 422. The members list also returns each member's `status`. | T1 DONE |
 | GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 DONE |
+| GET | /users/{user_id} | none | `{id, name, avatar_url, status, joined_at, rooms:[{id,name}]}` for me or someone who shares a room with me; `rooms` are only the rooms we are both in; no email. Anyone else, a missing user and a deleted user all give the same 404. Non-number id gives 422. | T1 DONE |
 | DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". I leave all my rooms (a room with no one left is deleted), the email is freed for a new signup, and the old token stops working (401). | T1 DONE |
 | PUT | /users/me/avatar | multipart `image` | user. png/jpg/webp, max 2 MB, resized to 256x256, re-encoded. | T2 TODO |
 | DELETE | /users/me/avatar | none | 204 | T2 TODO |

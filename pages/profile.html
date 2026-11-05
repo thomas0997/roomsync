@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link href="../css/styles.css" rel="stylesheet">
+<link href="../css/styles_user.css" rel="stylesheet">
 </head>
 <body data-api-profile>
 
@@ -210,7 +211,7 @@
         <div class="profile-photo-wrap">
           <!-- PLACEHOLDER PROFILE PHOTO: replace ../assets/profile_photo.png with the real photo — this one file updates it everywhere -->
           <img src="../assets/profile_photo.png" alt="Tony Franks" class="profile-photo">
-          <button class="profile-photo-edit" aria-label="Change photo">
+          <button class="profile-photo-edit own-only" aria-label="Change photo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           </button>
         </div>
@@ -223,7 +224,7 @@
       </div>
 
       <!-- ---------- STATUS CONTROL — below profile identity, above Account ---------- -->
-      <div class="status-control-row">
+      <div class="status-control-row own-only">
         <label for="statusSelect" class="status-control-label">Your status</label>
         <div class="status-select-wrap">
           <select id="statusSelect">
@@ -238,7 +239,7 @@
       </div>
 
       <!-- ---------- ACCOUNT ---------- -->
-      <section class="profile-section">
+      <section class="profile-section own-only">
         <h2 class="profile-section-title">Account</h2>
         <div class="profile-info-box">
           <div class="profile-info-row">
@@ -258,13 +259,13 @@
 
       <!-- ---------- ROOMS ---------- -->
       <section class="profile-section">
-        <h2 class="profile-section-title">Rooms</h2>
+        <h2 class="profile-section-title" id="profileRoomsTitle">Rooms</h2>
         <div class="profile-room-grid" id="profileRoomGrid">
         </div>
       </section>
 
       <!-- ---------- ACTIVITY ---------- -->
-      <section class="profile-section">
+      <section class="profile-section own-only">
         <h2 class="profile-section-title">Activity</h2>
         <div class="profile-stats-box">
           <div class="profile-stat">
@@ -282,7 +283,7 @@
         </div>
       </section>
 
-      <div class="profile-actions">
+      <div class="profile-actions own-only">
         <button class="btn-edit-profile" id="editProfileBtn">Edit Profile</button>
         <button class="btn-logout" id="logoutBtn">Log out</button>
       </div>
@@ -414,5 +415,6 @@
   <script src="../js/sidebar_rooms.js"></script>
   <script src="../js/profile.js"></script>
   <script src="../js/profile_api.js"></script>
+  <script src="../js/user_view.js"></script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+/* ROOMSYNC - styles_user.css
+   Someone else's profile (profile.html?id=...): hide everything that only belongs to your own profile. */
+.profile-viewing .own-only { display: none !important; }
+.profile-viewing .profile-badges:empty { display: none; }

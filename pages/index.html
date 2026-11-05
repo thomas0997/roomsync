@@ -141,6 +141,22 @@
     opacity: 0; transform: translateY(28px) scale(0.97);
     transition: none; /* driven by scroll progress, not CSS transition */
   }
+  .land-card-stack .reminder-card { color: var(--near-black); }  /* phone browsers paint buttons link-blue */
+
+  /* Phones: the pinned section must fit the visible screen (svh = with the browser bars showing). */
+  @media (max-width: 860px) {
+    .land-feature-sticky { height: 100vh; height: 100svh; padding: 64px 20px 0; justify-content: center; }
+    .land-feature-label { font-size: 12px; margin-bottom: 8px; }
+    .land-feature-h2 { font-size: 26px; letter-spacing: -0.6px; line-height: 1.15; }
+    .land-card-stack { gap: 6px; width: min(300px, 82vw); margin-top: 14px; }
+    .land-card-stack .day-card { padding: 7px 9px 8px; }
+    .land-card-stack .day-card-head { margin-bottom: 5px; }
+    .land-card-stack .day-name { font-size: 13px; }
+    .land-card-stack .day-date-sub { font-size: 9px; }
+    .land-card-stack .reminder-card { padding: 6px 8px; }
+    .land-card-stack .reminder-top { margin-bottom: 3px; }
+    .land-card-stack .reminder-card span[style*="15.6px"] { font-size: 13px !important; }
+  }
 
   /* ---------- ROOMS: dots scale in on scroll ---------- */
   .land-rooms {

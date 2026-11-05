@@ -40,7 +40,7 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 |---|---|---|---|---|
 | POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
 | GET | /rooms | none | `[room]` (rooms I'm in), including `type` and `pending_count` | T1 DONE |
-| POST | /rooms/join | `{invite_code}` | room. Invalid code gives 404 "Invalid invite code". Joining a room you are already in just returns the room. Codes are case-insensitive. | T1 DONE |
+| POST | /rooms/join | `{invite_code}` | room. Invalid code gives 404 "Invalid invite code". Joining a room you are already in just returns the room. Codes are case-insensitive. Limited to 10 tries per minute per user: after that 429 with a Retry-After header (stops invite-code guessing). | T1 DONE |
 | GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
 | POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |

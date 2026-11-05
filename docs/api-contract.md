@@ -45,22 +45,25 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only (403 otherwise). Send at least one field and no unknown fields, otherwise 422. | T1 DONE |
 | DELETE | /rooms/{room_id}/members/{user_id} | none | 204. Admin only (403 otherwise). 404 if the user is not in the room. Admins can remove members; only the creator can remove another admin (403 otherwise); the creator can never be removed (400). The removed user gets 403 on every room endpoint. | T1 DONE |
 | POST | /rooms/{room_id}/invite-code/reset | none | `{invite_code}` (new code, the old one stops working). Admin only (403 otherwise). | T1 DONE |
-| PUT | /rooms/{room_id}/avatar | multipart `image` | room. Admin only. Same image rules as profile pictures. | T2 TODO |
+| PUT | /rooms/{room_id}/avatar | multipart `image` | room with `avatar_url`. Admin only (403). Same image rules as profile pictures (png/jpg/webp, max 2 MB, resized to 256x256, re-encoded). | T1 TODO (was T2) |
+| DELETE | /rooms/{room_id}/avatar | none | 204. Admin only (403). Back to the default icon. | T1 TODO |
 
 ## Tasks (Daniel)
-Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, done}`
+Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, note?, edited_by_name?, edited_at?, done}`
+`note` is an optional plain-text note, max 300 characters. `edited_by_name` and `edited_at` are set when an admin edits an approved task; the frontend shows "Edited by <name>".
 `done` is true when the CURRENT user ticked the task off. It is per user (nobody else sees it) and is filled in on the week, calendar, removed-list and done/hidden responses; on every other response it is false.
-`type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name.
+`type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name of 1 to 15 characters (was 30; every built-in type fits). Custom types show as a neutral grey chip.
+"Add another title" in the New TODO form needs no endpoint: the form shares subject, type, date and time and sends one POST /rooms/{room_id}/tasks per title, so every title is its own separate task and card.
 `all_day` is true when no time was given (`due_at` is then the end of that day in Asia/Manila, which is 15:59:00Z).
 Only `approved` tasks appear on the board and calendar.
 A task cannot be due in the past (decided Oct 20). Admins can still approve or reject a task whose date has passed while it waited.
 Time zone: until the T2 timezone setting exists, weeks and months are calculated in Asia/Manila (UTC+8).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?}` | 201 task. `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?, note?}` | 201 task. `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
-| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?}` | task. The creator OR a room admin (decided Oct 21, so an admin can fix a task before deciding on it), and only while `pending` (403 otherwise). The creator and status are never changed by an edit. Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject can be cleared with null. Editing never changes the status. If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 DONE |
+| PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?, note?}` | task. While `pending`: the creator OR a room admin (decided Oct 21). While `approved`: room admins ONLY (members get 403); no re-approval, the status stays `approved`, and `edited_by_name` and `edited_at` are recorded. `rejected` tasks cannot be edited (403). The creator and status are never changed by an edit. Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject and note can be cleared with null. `type` is 1 to 15 characters, `note` max 300 (422 otherwise). If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 TODO (approved-task edit, note, 15-char type) |
 | DELETE | /tasks/{task_id} | none | 204 (creator or room admin only) | T1 DONE |
 | PUT | /tasks/{task_id}/done | none | 200 task with `done: true`. Ticks the task off for me only. Approved tasks only (409 "Task is not approved yet" otherwise). Ticking twice is fine. | T1 DONE |
 | DELETE | /tasks/{task_id}/done | none | 200 task with `done: false`. Same rules; unticking a task that was never ticked is fine. | T1 DONE |
@@ -90,6 +93,7 @@ Rules:
 | GET | /rooms/{room_id}/approvals | none | `[task]` with status `pending` (admin only) | T1 DONE |
 | GET | /rooms/{room_id}/approvals/history?limit=50 | none | `[task]` tasks an admin explicitly approved or rejected, newest decision first, with `decided_by_name` and `decided_at` (admin only). Auto-approved tasks (sole admin) are NOT included. | T1 DONE |
 | POST | /tasks/{task_id}/approve | none | task (updated). Admin only. | T1 DONE |
+| POST | /rooms/{room_id}/approvals/approve-all | none | `{approved: n, skipped: n}`. Admin only (403). Approves every pending task in the room, except the caller's own tasks when the room has more than one admin (same rule as above; those are counted in `skipped`). Used by the Approve all button for batches. | T1 TODO |
 | POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 DONE |
 
 ## Discussion (Daniel): room chat, text only

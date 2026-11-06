@@ -72,7 +72,7 @@ def my_rooms(user: User = Depends(get_current_user), db: Session = Depends(get_d
     return [_room_out(m.room, m.role, db) for m in rows]
 
 
-@router.post("/join", response_model=RoomOut)
+@router.post("/join", response_model=RoomOut, dependencies=[Depends(limit_by_user("join_room", 10, 60))])  # stops invite-code guessing
 def join_room(data: RoomJoin, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     room = db.query(Room).filter(Room.invite_code == data.invite_code.strip().upper()).first()
     if room is None:

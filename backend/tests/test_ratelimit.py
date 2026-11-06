@@ -90,3 +90,13 @@ def test_limit_by_user_is_per_user_and_needs_login(client):
     assert c.post("/ping", headers=alice).status_code == 200
     assert c.post("/ping", headers=alice).status_code == 429
     assert c.post("/ping", headers=bob).status_code == 200  # Bob has his own count
+
+
+def test_joining_a_room_is_limited_per_user(client):
+    headers = signup(client)
+    codes = [
+        client.post("/rooms/join", json={"invite_code": "ZZZZZZZZ"}, headers=headers).status_code for _ in range(11)
+    ]
+    assert codes == [404] * 10 + [429]
+    other = signup(client, email="b@example.com")  # somebody else is not affected
+    assert client.post("/rooms/join", json={"invite_code": "ZZZZZZZZ"}, headers=other).status_code == 404

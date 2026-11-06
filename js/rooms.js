@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var sidebar = document.getElementById('sidebar');
   var overlay = document.getElementById('sidebarOverlay');
   var hamburgerBtn = document.getElementById('hamburgerBtn');
+  var moreTabBtn = document.getElementById('moreTabBtn');   // phone bottom bar: opens the side menu
 
   function isTabletWidth() {
     return window.innerWidth >= 768 && window.innerWidth < 1200;
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
       hamburgerBtn.classList.add('open');
       hamburgerBtn.setAttribute('aria-expanded', 'true');
     }
+    if (moreTabBtn) { moreTabBtn.setAttribute('aria-expanded', 'true'); }
   }
 
   function closeSidebar() {
@@ -42,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
       hamburgerBtn.classList.remove('open');
       hamburgerBtn.setAttribute('aria-expanded', 'false');
     }
+    if (moreTabBtn) { moreTabBtn.setAttribute('aria-expanded', 'false'); }
   }
 
   function toggleSidebar() {
@@ -56,6 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // Mobile hamburger button
   if (hamburgerBtn) {
     hamburgerBtn.addEventListener('click', toggleSidebar);
+  }
+  if (moreTabBtn) {
+    moreTabBtn.addEventListener('click', toggleSidebar);
   }
 
   // Tablet: clicking the collapsed icon rail expands it
@@ -320,6 +326,11 @@ document.addEventListener('DOMContentLoaded', function () {
   todoButtons.forEach(function (btn) {
     if (btn) btn.addEventListener('click', openTodoModal);
   });
+  // The "+" on pages without the form links to home.html#new: open the form once the room is known.
+  if (window.location.hash === '#new' && todoButtons[2]) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    document.addEventListener('roomsync:room', function () { todoButtons[2].click(); }, { once: true });
+  }
   if (todoModalClose) todoModalClose.addEventListener('click', closeTodoModal);
   if (todoModalCancel) todoModalCancel.addEventListener('click', closeTodoModal);
   if (todoModalOverlay) {

@@ -49,6 +49,8 @@
         </div>
       </div>
 
+      <button type="button" class="fab-round topbar-search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg></button>
+
       <button class="hamburger mobile-only" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -300,18 +302,6 @@
     </main>
   </div>
 
-  <div class="mobile-fab-bar mobile-only">
-    <button class="fab-pill">TODAY</button>
-    <div class="fab-right-group">
-      <button class="fab-round" aria-label="Search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
-    </button>
-      <button class="fab-round fab-round-primary" aria-label="New file" id="newTodoBtnMobile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-    </button>
-    </div>
-  </div>
-
   <!-- ---------- NEW TODO MODAL (shared) ---------- -->
   <div class="todo-modal-overlay" id="todoModalOverlay" hidden>
     <div class="todo-modal abt-form-card">
@@ -447,6 +437,17 @@
       </div>
     </div>
   </div>
+
+  <!-- Phone bottom tab bar (hidden on tablet and desktop) -->
+  <nav class="mobile-tabbar" aria-label="Main">
+    <a href="home.html" class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 3l8 7.5"/><path d="M6 9.5V20a1 1 0 0 0 1 1h3v-6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v6h3a1 1 0 0 0 1-1V9.5"/></svg><span>Home</span></a>
+    <a href="calendar.html" class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="4"/><path d="M7 2v4M17 2v4M3 9.5h18"/></svg><span>Calendar</span></a>
+    <span class="tab-slot">
+      <button type="button" class="tab-add" id="newTodoBtnMobile" aria-label="New TODO"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </span>
+    <a href="approve.html" class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.3l3 3 6-6.5"/></svg><span>Approve</span></a>
+    <button type="button" class="tab-item is-active" id="moreTabBtn" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="0.6"/><circle cx="12" cy="12" r="0.6"/><circle cx="19" cy="12" r="0.6"/></svg><span>More</span></button>
+  </nav>
 
   <script src="../js/rooms.js"></script>
   <script src="../js/config.js"></script>

@@ -32,6 +32,15 @@
     if (status.kind === 'custom') { return status.text || 'Custom'; }
     return KIND_LABEL[status.kind] || KIND_LABEL.working;
   }
+  // Colour of the little dot on your avatar: green working, yellow BRB, red away, grey custom.
+  function setStatusDot(status) {
+    var dot = document.querySelector('.sidebar-footer .status-dot');
+    if (!dot) { return; }
+    var kind = status && status.kind;
+    if (kind !== 'brb' && kind !== 'away' && kind !== 'custom') { kind = 'working'; }
+    dot.className = 'status-dot status-' + kind;
+  }
+
   function formatJoined(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) { return ''; }
@@ -42,6 +51,7 @@
   function renderMyFooter(me) {
     setText(document.querySelector('.profile-name'), me.name);
     setText(byId('sidebarStatusText'), statusLabel(me.status));
+    setStatusDot(me.status);
     if (window.RoomSyncAvatars && me.avatar_url) {
       window.RoomSyncAvatars.photoSrc(me.avatar_url).then(function (src) {
         if (!src) { return; }

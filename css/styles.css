@@ -2221,3 +2221,38 @@ body.srch-lock { overflow: hidden; }
 }
 .btn-room-icon:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
 .btn-room-icon:disabled { opacity: 0.5; cursor: default; }
+
+/* ===== Nov 6: status dot colours + public pages (About, Guide) ===== */
+.status-dot.status-brb { background: #ffcc00; }
+.status-dot.status-away { background: #ff3b30; }
+.status-dot.status-custom { background: #8e8e93; }
+
+.public-actions { display: none; align-items: center; gap: 14px; }
+.public-actions a { font-size: 14.4px; font-weight: 590; }
+.public-actions .pub-login { color: #d6d6d6; }
+.public-actions .pub-login:hover { color: #fff; }
+.public-actions .pub-cta { color: var(--near-black); background: #fff; padding: 7px 16px; border-radius: var(--radius-pill); font-weight: 700; }
+.public-actions .pub-cta:hover { background: #e8e8ed; }
+body.is-public .public-actions { display: flex; }
+body.is-public .sidebar,
+body.is-public .sidebar-overlay,
+body.is-public .topbar-nav,
+body.is-public .room-switcher,
+body.is-public .hamburger,
+body.is-public .mobile-fab-bar,
+body.is-public .desktop-fab-bar { display: none !important; }
+body.is-public .topbar-brand { margin-right: auto; }
+body.is-public .topbar-actions { margin-left: auto; }
+body.is-public .content { margin-left: 0 !important; }
+body.is-public .abt-hero-band { margin: -20px -18px 32px; padding: 40px 18px 28px; }
+body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-left: 20px; padding-right: 20px; }
+@media (min-width: 768px) {
+  body.is-public .content { padding-left: 24px; padding-right: 24px; }
+  body.is-public .abt-hero-band { margin: -24px -24px 32px; padding: 40px 24px 28px; }
+  body.is-public .abt-stats { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+}
+@media (min-width: 1200px) {
+  body.is-public .content { padding-left: 40px; padding-right: 40px; }
+  body.is-public .abt-hero-band { margin: -30px -40px 40px; padding: 48px 40px 32px; }
+  body.is-public .abt-stats { margin-left: -40px; margin-right: -40px; padding-left: 40px; padding-right: 40px; }
+}

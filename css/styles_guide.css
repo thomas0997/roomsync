@@ -1,0 +1,22 @@
+/* ROOMSYNC - styles_guide.css: the public Guide page (pages/guide.html). */
+.gd-layout { max-width: 980px; margin: 0 auto; display: block; }
+.gd-toc { background: var(--gray-bg); border-radius: 16px; padding: 16px 18px; margin-bottom: 28px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.gd-toc-title { width: 100%; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--gray-text-2); margin-bottom: 2px; }
+.gd-toc a { font-size: 14.4px; font-weight: 590; color: var(--gray-text-2); }
+.gd-toc a:hover { color: var(--blue); }
+.gd-body { min-width: 0; }
+.gd-section { padding: 8px 0 28px; scroll-margin-top: 80px; }
+.gd-h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 10px; }
+.gd-h3 { font-size: 16px; font-weight: 590; margin: 16px 0 4px; }
+.gd-p { font-size: 15.6px; line-height: 1.65; color: var(--gray-text-2); margin-bottom: 10px; }
+.gd-p strong, .gd-list strong { color: var(--near-black); font-weight: 590; }
+.gd-p a { color: var(--blue); }
+.gd-list { list-style: disc; margin: 0 0 10px 20px; font-size: 15.6px; line-height: 1.65; color: var(--gray-text-2); }
+.gd-list li { margin-bottom: 8px; }
+.gd-cta { text-align: center; padding: 12px 0 24px; }
+.gd-cta-btn { display: inline-block; background: var(--near-black); color: #fff; font-weight: 700; font-size: 15px; padding: 12px 26px; border-radius: var(--radius-pill); }
+.gd-cta-btn:hover { background: #000; }
+@media (min-width: 1000px) {
+  .gd-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; align-items: start; }
+  .gd-toc { position: sticky; top: 84px; flex-direction: column; flex-wrap: nowrap; gap: 8px; margin-bottom: 0; background: transparent; padding: 0; }
+}

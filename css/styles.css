@@ -2324,7 +2324,7 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 .board-menu .earlier-btn svg { color: var(--gray-text-2); flex-shrink: 0; }
 .board-menu .earlier-btn:hover { background: var(--gray-bg); color: var(--near-black); }
 @media (max-width: 767px) {
-  .page-title.page-title-mobile { display: none !important; }
+  .page-header-row:has(+ .board-controls > .earlier-bar) .page-title-mobile { display: none !important; }
   .board-controls:has(> .earlier-bar) { height: 0; margin: 0; position: relative; overflow: visible; }
   .board-controls > .earlier-bar.board-more { position: absolute; right: 0; top: 46px; margin: 0; z-index: 30; }
 }

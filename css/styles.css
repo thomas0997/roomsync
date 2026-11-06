@@ -2257,6 +2257,37 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
   body.is-public .abt-stats { margin-left: -40px; margin-right: -40px; padding-left: 40px; padding-right: 40px; }
 }
 
+/* ===== Nov 6: phone bottom tab bar (Home, Calendar, +, Approve, More) ===== */
+.mobile-tabbar, .topbar-search { display: none; }
+@media (max-width: 767px) {
+  .hamburger { display: none !important; }
+  .mobile-tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    box-sizing: border-box; height: calc(64px + env(safe-area-inset-bottom));
+    padding: 8px 6px env(safe-area-inset-bottom);
+    background: #fff; border-top: 1px solid var(--hairline);
+  }
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: 0; padding: 2px 0; font: inherit; font-size: 10.5px; font-weight: 700;
+    color: var(--gray-text-2); cursor: pointer; text-decoration: none;
+  }
+  .tab-item svg { width: 24px; height: 24px; }
+  .tab-item.is-active { color: var(--blue); }
+  .tab-slot { flex: 1; display: flex; justify-content: center; }
+  .tab-add {
+    width: 52px; height: 52px; margin-top: -24px; border-radius: 50%; border: 4px solid #fff;
+    background: var(--near-black); color: #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25); cursor: pointer;
+  }
+  .tab-add svg { width: 22px; height: 22px; }
+  .content { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .topbar-search.fab-round { display: flex; width: 40px; height: 40px; background: transparent; box-shadow: none; color: #fff; border: 0; }
+  .topbar-actions { gap: 4px; }
+  body.is-public .mobile-tabbar, body.is-public .topbar-search { display: none !important; }
+}
+
 /* ===== Nov 6: room pill - dropdown arrow, and a short name on phones ===== */
 .room-pill-floating::after {
   content: ''; flex-shrink: 0; width: 5px; height: 5px; margin: -2px 0 0 2px;

@@ -1,11 +1,27 @@
 /* ROOMSYNC - styles_guide.css: the public Guide page (pages/guide.html). */
 .gd-layout { max-width: 980px; margin: 0 auto; display: block; }
-.gd-toc { background: var(--gray-bg); border-radius: 16px; padding: 16px 18px; margin-bottom: 28px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
-.gd-toc-title { width: 100%; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--gray-text-2); margin-bottom: 2px; }
-.gd-toc a { font-size: 14.4px; font-weight: 590; color: var(--gray-text-2); }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Table of contents. Phone: one row of chips that sticks under the top bar. */
+.gd-toc {
+  position: sticky; top: 62px; z-index: 30;
+  display: flex; flex-wrap: nowrap; gap: 8px; align-items: center;
+  overflow-x: auto; scrollbar-width: none;
+  background: #fff; border-bottom: 1px solid var(--hairline);
+  margin: 0 -18px 20px; padding: 10px 18px;
+}
+.gd-toc::-webkit-scrollbar { display: none; }
+.gd-toc-title { display: none; }
+.gd-toc a {
+  flex: 0 0 auto; white-space: nowrap;
+  font-size: 13.2px; font-weight: 590; color: var(--gray-text-2);
+  background: var(--gray-bg); padding: 7px 14px; border-radius: var(--radius-pill);
+}
 .gd-toc a:hover { color: var(--blue); }
+.gd-toc a.gd-active { background: var(--near-black); color: #fff; }
 .gd-body { min-width: 0; }
-.gd-section { padding: 8px 0 28px; scroll-margin-top: 80px; }
+.gd-section { padding: 8px 0 28px; scroll-margin-top: 130px; }
 .gd-h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 10px; }
 .gd-h3 { font-size: 16px; font-weight: 590; margin: 16px 0 4px; }
 .gd-p { font-size: 15.6px; line-height: 1.65; color: var(--gray-text-2); margin-bottom: 10px; }
@@ -16,7 +32,19 @@
 .gd-cta { text-align: center; padding: 12px 0 24px; }
 .gd-cta-btn { display: inline-block; background: var(--near-black); color: #fff; font-weight: 700; font-size: 15px; padding: 12px 26px; border-radius: var(--radius-pill); }
 .gd-cta-btn:hover { background: #000; }
+@media (min-width: 768px) {
+  .gd-toc { margin: 0 -24px 20px; padding: 10px 24px; }
+}
 @media (min-width: 1000px) {
-  .gd-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; align-items: start; }
-  .gd-toc { position: sticky; top: 84px; flex-direction: column; flex-wrap: nowrap; gap: 8px; margin-bottom: 0; background: transparent; padding: 0; }
+  .gd-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 0; align-items: start; }
+  .gd-toc {
+    top: 84px; z-index: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px;
+    overflow: visible; background: transparent; margin: 0; padding: 4px 24px 4px 0;
+    border-bottom: 0;
+  }
+  .gd-toc-title { display: block; width: auto; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  .gd-toc a { background: transparent; padding: 6px 12px; border-radius: 8px; font-size: 14.4px; white-space: normal; }
+  .gd-toc a:hover { background: var(--gray-bg); color: var(--near-black); }
+  .gd-toc a.gd-active { background: var(--gray-bg); color: var(--blue); font-weight: 700; }
+  .gd-body { padding-left: 48px; border-left: 1px solid var(--hairline); }
 }

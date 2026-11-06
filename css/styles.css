@@ -2328,3 +2328,16 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
   .board-controls:has(> .earlier-bar) { height: 0; margin: 0; position: relative; overflow: visible; }
   .board-controls > .earlier-bar.board-more { position: absolute; right: 0; top: 46px; margin: 0; z-index: 30; }
 }
+
+/* New TODO and room modals: even spacing between fields */
+.todo-modal.abt-form-card { padding: 24px 22px 26px; gap: 18px; }
+.todo-modal form { display: flex; flex-direction: column; gap: 18px; }
+.todo-modal .todo-modal-head { margin-bottom: 0; }
+.todo-modal .abt-field { gap: 8px; }
+.todo-modal .abt-field input, .todo-modal .abt-field select, .todo-modal .abt-field textarea {
+  width: 100%; box-sizing: border-box; background-color: #fff;
+}
+.todo-modal .abt-field textarea { min-height: 84px; }
+.todo-modal .todo-add-title { margin: -8px 0 0; }
+.todo-modal .todo-hint { margin: -10px 0 0; }
+.todo-modal .abt-form-actions { margin-top: 6px; }

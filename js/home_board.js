@@ -491,7 +491,28 @@
   }
 
   var earlierBtn = byId('earlierBtn');
-  if (earlierBtn) { earlierBtn.addEventListener('click', showEarlier); }
+  var boardMoreBtn = byId('boardMoreBtn');
+  var boardMenu = byId('boardMenu');
+  function setBoardMenu(open) {
+    if (!boardMenu || !boardMoreBtn) { return; }
+    boardMenu.hidden = !open;
+    boardMoreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  if (boardMoreBtn && boardMenu) {
+    boardMoreBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setBoardMenu(boardMenu.hidden);
+    });
+    document.addEventListener('click', function (e) {
+      if (!boardMenu.hidden && !boardMenu.contains(e.target)) { setBoardMenu(false); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !boardMenu.hidden) { setBoardMenu(false); boardMoreBtn.focus(); }
+    });
+  }
+  if (earlierBtn) {
+    earlierBtn.addEventListener('click', function () { setBoardMenu(false); showEarlier(); });
+  }
   var removedToggle = byId('removedToggle');
   if (removedToggle) {
     removedToggle.addEventListener('click', function () {

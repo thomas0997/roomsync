@@ -2301,3 +2301,29 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 @media (max-width: 419px) {
   .content:not(.disc-content) .room-pill-floating .room-name { max-width: 7ch; }
 }
+
+/* Home: "Show earlier weeks" lives in a "..." menu next to Grid / Scroll */
+.board-controls:has(> .earlier-bar) { justify-content: flex-end; }
+.board-controls > .earlier-bar.board-more { position: relative; margin: 0 0 0 8px; }
+.board-more-btn {
+  width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--gray-bg); color: var(--gray-text-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.board-more-btn:hover, .board-more-btn[aria-expanded="true"] { background: #e3e3e8; color: var(--near-black); }
+.board-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; min-width: 210px;
+  background: #fff; border: 1px solid var(--hairline); border-radius: 12px; padding: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.board-menu[hidden] { display: none; }
+.board-menu .earlier-btn {
+  width: 100%; height: auto; padding: 10px; border: none; border-radius: 8px; background: transparent;
+  display: flex; align-items: center; gap: 10px; text-align: left; font-size: 13.5px;
+}
+.board-menu .earlier-btn svg { color: var(--gray-text-2); flex-shrink: 0; }
+.board-menu .earlier-btn:hover { background: var(--gray-bg); color: var(--near-black); }
+@media (max-width: 767px) {
+  .page-title.page-title-mobile { display: none !important; }
+  .board-controls:has(> .earlier-bar) { margin-top: 30px; }
+}

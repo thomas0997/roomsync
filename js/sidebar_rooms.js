@@ -44,8 +44,14 @@
     window.location.replace('login.html');
   }
 
-  // Logged out? Leave before doing anything else.
-  if (!read(cfg.TOKEN_KEY)) { goLogin(); return; }
+  // Logged out? Leave before doing anything else. The exception is a public
+  // page (<body data-public>, e.g. About and Guide): it stays open, shows the
+  // Log in / Get Started top bar and never calls the private API.
+  if (!read(cfg.TOKEN_KEY)) {
+    if (document.body && document.body.hasAttribute('data-public')) { document.body.classList.add('is-public'); return; }
+    goLogin();
+    return;
+  }
 
   // One place that talks to the API. Adds the token, parses JSON,
   // and sends you to the login page if the server says 401.
@@ -467,6 +473,15 @@
     return KIND_LABEL[st.kind] || KIND_LABEL.working;
   }
 
+  // Colour of the little dot on your avatar: green working, yellow BRB, red away, grey custom.
+  function setStatusDot(status) {
+    var dot = document.querySelector('.sidebar-footer .status-dot');
+    if (!dot) { return; }
+    var kind = status && status.kind;
+    if (kind !== 'brb' && kind !== 'away' && kind !== 'custom') { kind = 'working'; }
+    dot.className = 'status-dot status-' + kind;
+  }
+
   async function renderProfile() {
     var user = null;
     try { user = JSON.parse(read(cfg.USER_KEY) || 'null'); } catch (e) { user = null; }
@@ -482,6 +497,7 @@
     if (!r.ok) { return; }
     if (nameEl) { nameEl.textContent = r.body.name; }
     if (statusEl) { statusEl.textContent = statusLabel(r.body.status); }
+    setStatusDot(r.body.status);
     if (img) { img.alt = r.body.name; }
     showMyPhoto(r.body.avatar_url);
   }

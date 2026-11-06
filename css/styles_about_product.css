@@ -1,8 +1,26 @@
 /* ROOMSYNC - styles_about_product.css
-   About page: the three product cards (icon instead of a photo) and the "Built with" row. */
+   About page: the three product cards (icon instead of a photo) and the "How it works" steps. */
 .abt-feature-icon {
   aspect-ratio: 336/174; display: flex; align-items: center; justify-content: center;
   background: var(--gray-bg); border-bottom: 1px solid var(--hairline); color: var(--ink, #1a1a1a);
 }
 .abt-feature-icon svg { width: 64px; height: 64px; }
-.abt-built-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 20px 0; }
+
+/* ---------- How it works (steps card) ---------- */
+.abt-stats.abt-steps { margin-top: 72px; margin-bottom: 72px; }
+.abt-steps-list { list-style: none; margin: 0; padding: 32px 0; display: flex; flex-direction: column; gap: 28px; }
+.abt-step { max-width: 320px; margin: 0 auto; }
+.abt-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--near-black, #1d1d1f); color: #fff;
+  font-size: 20px; font-weight: 700; margin-bottom: 12px;
+}
+.abt-step-title { font-size: 19px; font-weight: 590; margin-bottom: 6px; }
+.abt-step-text { font-size: 14.4px; color: var(--gray-text-2); line-height: 1.55; }
+.abt-steps-more { margin-top: 20px; font-size: 14.4px; font-weight: 590; }
+.abt-steps-more a { color: var(--blue); }
+@media (min-width: 700px) {
+  .abt-steps-list { flex-direction: row; justify-content: center; align-items: flex-start; gap: 56px; }
+  .abt-step { margin: 0; flex: 1; max-width: 240px; }
+}

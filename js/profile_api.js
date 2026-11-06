@@ -81,6 +81,15 @@
     return KIND_LABEL[status.kind] || KIND_LABEL.working;
   }
 
+  // Colour of the little dot on your avatar: green working, yellow BRB, red away, grey custom.
+  function setStatusDot(status) {
+    var dot = document.querySelector('.sidebar-footer .status-dot');
+    if (!dot) { return; }
+    var kind = status && status.kind;
+    if (kind !== 'brb' && kind !== 'away' && kind !== 'custom') { kind = 'working'; }
+    dot.className = 'status-dot status-' + kind;
+  }
+
   function formatJoined(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) { return ''; }
@@ -92,6 +101,7 @@
     if (!me) { return; }
     setText(document.querySelector('.profile-name'), me.name);
     setText(byId('sidebarStatusText'), statusLabel(me.status));
+    setStatusDot(me.status);
     setText(document.querySelector('.profile-name-big'), me.name);
     setText(document.querySelector('.profile-email'), me.email);
     if (!editing) { setText(byId('acctName'), me.name); }

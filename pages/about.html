@@ -13,7 +13,7 @@
 <link href="../css/styles_about_form.css" rel="stylesheet">
 <link href="../css/styles_about_product.css" rel="stylesheet">
 </head>
-<body>
+<body data-public>
 
   <header class="topbar">
     <div class="topbar-brand">
@@ -31,6 +31,7 @@
       <a href="discussion.html">Discussion</a>
       <a href="approve.html">Approve</a>
       <a href="about.html" class="active">About</a>
+      <a href="guide.html">Guide</a>
     </nav>
 
     <div class="topbar-actions">
@@ -45,6 +46,11 @@
             New Room
           </button>
         </div>
+      </div>
+
+      <div class="public-actions">
+        <a href="login.html" class="pub-login">Log in</a>
+        <a href="login.html" class="pub-cta">Get Started</a>
       </div>
 
       <button class="hamburger mobile-only" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
@@ -157,6 +163,18 @@
             </span>
             <span class="sidebar-label">About</span>
           </a>
+          <a href="guide.html" class="sidebar-link mobile-only-inline-flex">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="icon-outline">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/>
+                <path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-filled">
+                <path d="M6.5 2A3.5 3.5 0 0 0 3 5.5v14A3.5 3.5 0 0 0 6.5 23H21a1 1 0 0 0 0-2H6.5a1.5 1.5 0 0 1 0-3H20a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Guide</span>
+          </a>
         </nav>
 
         <div class="sidebar-divider tablet-only-block"></div>
@@ -247,31 +265,28 @@
           </article>
         </div>
 
-        <div class="abt-stats">
-          <h2 class="abt-stats-title">By the numbers</h2>
+        <div class="abt-stats abt-steps">
+          <h2 class="abt-stats-title">How it works</h2>
           <hr class="abt-stats-rule">
-          <div class="abt-stats-row">
-            <div class="abt-stat">
-              <div class="abt-stat-num">50</div>
-              <div class="abt-stat-label">MEMBERS</div>
-            </div>
-            <div class="abt-stat">
-              <div class="abt-stat-num">10</div>
-              <div class="abt-stat-label">MB FILES</div>
-            </div>
-            <div class="abt-stat">
-              <div class="abt-stat-num">9</div>
-              <div class="abt-stat-label">PAGES</div>
-            </div>
-          </div>
+          <ol class="abt-steps-list">
+            <li class="abt-step">
+              <span class="abt-step-num" aria-hidden="true">1</span>
+              <h3 class="abt-step-title">Create a room</h3>
+              <p class="abt-step-text">Start a room for your class and share the invite code. Classmates join with it.</p>
+            </li>
+            <li class="abt-step">
+              <span class="abt-step-num" aria-hidden="true">2</span>
+              <h3 class="abt-step-title">Add a deadline</h3>
+              <p class="abt-step-text">Anyone in the room can add an assignment, quiz or exam with a due date.</p>
+            </li>
+            <li class="abt-step">
+              <span class="abt-step-num" aria-hidden="true">3</span>
+              <h3 class="abt-step-title">Admin approves</h3>
+              <p class="abt-step-text">A room admin approves it, and it shows up for everyone on the board and calendar.</p>
+            </li>
+          </ol>
           <hr class="abt-stats-rule">
-        </div>
-
-        <div class="abt-stats">
-          <h2 class="abt-stats-title">Built with</h2>
-          <hr class="abt-stats-rule">
-          <div class="abt-built-tags"><span class="abt-tag">HTML / CSS / JS</span><span class="abt-tag">FastAPI (Python)</span><span class="abt-tag">PostgreSQL</span><span class="abt-tag">Render</span><span class="abt-tag">Cloudflare R2</span></div>
-          <hr class="abt-stats-rule">
+          <p class="abt-steps-more"><a href="guide.html">Read the full guide</a></p>
         </div>
 
         <h2 class="abt-testimonial-title">What people are saying about roomsync</h2>

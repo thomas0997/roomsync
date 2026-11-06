@@ -34,6 +34,7 @@ def one_line(value: str, limit: int = 120) -> str:
 def deliver(*, to: str, subject: str, text: str, kind: str, reply_to: str | None = None) -> bool:
     key = os.getenv("RESEND_API_KEY")
     if not key:
+        log.warning("email kind=%s NOT sent: RESEND_API_KEY is not set", kind)
         return False
     payload = {
         "from": os.getenv("EMAIL_FROM", "RoomSync <no-reply@roomsync.me>"),
@@ -52,7 +53,17 @@ def deliver(*, to: str, subject: str, text: str, kind: str, reply_to: str | None
             timeout=10,
         )
         ok = r.status_code == 200
-    except Exception:  # network trouble, timeouts, anything: never break the request
+        reason = ""
+        if not ok:
+            try:
+                reason = f"status={r.status_code} error={r.json().get('name')}"  # Resend's error name, never our text
+            except Exception:
+                reason = f"status={r.status_code}"
+    except Exception as exc:  # network trouble, timeouts, anything: never break the request
         ok = False
-    log.info("email kind=%s ok=%s", kind, ok)
+        reason = f"exception={type(exc).__name__}"
+    if ok:
+        log.info("email kind=%s ok", kind)
+    else:
+        log.warning("email kind=%s FAILED %s", kind, reason)  # shows in Render logs; no address, no text
     return ok

@@ -51,8 +51,9 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | DELETE | /rooms/{room_id}/avatar | none | 204. Admin only (403). Back to the default icon. | T1 TODO |
 
 ## Tasks (Daniel)
-Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, note?, edited_by_name?, edited_at?, done}`
+Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, note?, edited_by_name?, edited_at?, attachments, done}`
 `note` is an optional plain-text note, max 300 characters. `edited_by_name` and `edited_at` are set when an admin edits an approved task; the frontend shows "Edited by <name>".
+`attachments` is a list of up to 5 notes (room files) linked to the task: `[{file_id, name, size}]`, oldest first (empty list when none). It carries names only, never file contents; downloading still goes through `GET /files/{file_id}/download` and its member-only check. See "Note attachments" below.
 `done` is true when the CURRENT user ticked the task off. It is per user (nobody else sees it) and is filled in on the week, calendar, removed-list and done/hidden responses; on every other response it is false.
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name of 1 to 15 characters (was 30; every built-in type fits). Custom types show as a neutral grey chip.
 "Add another title" in the New TODO form needs no endpoint: the form shares subject, type, date and time and sends one POST /rooms/{room_id}/tasks per title, so every title is its own separate task and card.
@@ -62,7 +63,7 @@ A task cannot be due in the past (decided Oct 20). Admins can still approve or r
 Time zone: until the T2 timezone setting exists, weeks and months are calculated in Asia/Manila (UTC+8).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?, note?}` | 201 task. `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?, note?, file_ids?}` | 201 task. `file_ids` is an optional list of up to 5 file ids to attach (see Note attachments); every id must be a file of THIS room, otherwise 422 "One of the files was not found in this room" (same answer for a missing file and for a file of another room). `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
 | PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?, note?}` | task. While `pending`: the creator OR a room admin (decided Oct 21). While `approved`: room admins ONLY (members get 403); no re-approval, the status stays `approved`, and `edited_by_name` and `edited_at` are recorded. `rejected` tasks cannot be edited (403). The creator and status are never changed by an edit. Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject and note can be cleared with null. `type` is 1 to 15 characters, `note` max 300 (422 otherwise). If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 TODO (approved-task edit, note, 15-char type) |
@@ -78,6 +79,20 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 Done and removed are stored per user and per task and are deleted together with the task. `GET /rooms/{room_id}/tasks?week_start=` (the Home board) leaves out tasks I removed; `GET /rooms/{room_id}/calendar` still includes them. Both mark `done` for me.
 
 Task-id endpoints (PATCH and DELETE /tasks/{task_id}, PUT and DELETE /tasks/{task_id}/done and /hidden, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
+
+### Note attachments (T2 TODO)
+A task can link up to 5 notes (room files) so classmates open the right file from the task card, and the Notes page shows which tasks use a file.
+| Method | Path | Body | Returns | Tier / Status |
+|---|---|---|---|---|
+| PUT | /tasks/{task_id}/attachments/{file_id} | none | 200 task (with `attachments`). Links the file to the task. Doing it twice is fine. | T2 TODO |
+| DELETE | /tasks/{task_id}/attachments/{file_id} | none | 204. Unlinks the file (the file itself is NOT deleted). Unlinking a file that was not linked is fine. | T2 TODO |
+Rules:
+- Same-room only. The file must belong to the task's room. A missing file and a file of another room give the same 404 "File not found", and a non-member gets the usual task-id 404, so nothing can be probed.
+- Who: the task's creator or a room admin (403 for other members). Allowed on `pending` and `approved` tasks; a `rejected` task gives 403. Attaching does not count as an edit (no "Edited by").
+- Limits: at most 5 notes per task (409 "A task can have at most 5 notes"). Rate limit: 60 attach or unlink calls per hour per user (429).
+- Access does not change: attaching never gives anyone new access. Only room members can see a task or download a file, exactly as before.
+- Cleanup: deleting a task removes its links; deleting a file removes it from every task (the tasks stay).
+- Notes page: each file in `GET /rooms/{room_id}/files` also has `used_in` (up to 5 APPROVED tasks that link it, `[{task_id, title}]`) and `used_in_count`. Pending and rejected tasks are never listed there.
 
 ## Approvals (Daniel)
 Rules:
@@ -119,7 +134,7 @@ Rules:
 T2 (not defined yet): @mentions, attachments, unread counts, "seen by". T3: WebSockets, DMs, calls (see Messaging).
 
 ## Files (Thomas): replaces Notes
-File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version}`
+File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version, used_in, used_in_count}`
 Rules:
 - Only room members can list or download. Locked = read-only notes: no new version, no rename (everyone can still download). The creator or any room admin can lock or unlock. The creator or any room admin can delete (even if locked).
 - Allowed: .pdf .docx .xlsx .pptx .txt .csv .md; source code of any language as plain text (.py .java .c .cpp .h .cs .js .ts .json .html .css .sql .php .rb .go .rs .sh and similar); images .png .jpg .jpeg .gif .webp; audio .mp3 .wav .m4a. Everything else is rejected with 415 (video, archives, executables and installers, macro-enabled Office files, legacy .doc/.xls/.ppt, SVG).
@@ -176,13 +191,37 @@ Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas
 | POST | /contact | `{name, email, message(max 2000), website?}` | 204 |
 Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); once the Email service is configured, each saved message is also forwarded to `CONTACT_INBOX` (Reply-To is the sender's address for Contact). A failed forward never fails the request.
 
+## Inbox (T2 TODO): replaces direct messages
+A private, one-to-one inbox, like email inside RoomSync. A person writes to a classmate by email address and the message lands in the recipient's Inbox tab. It is NOT a mailto link and sends no real email in v1 (a "you have a new message" email may come later). It is NOT end-to-end encrypted (see Privacy below).
+Message: `{id, from_user_id, from_name, to_user_id, to_name, subject, body, created_at, read_at?, reply_to_id?, archived}`. Names only; email addresses are never returned. A deleted account shows as "Deleted user".
+| Method | Path | Body | Returns | Tier / Status |
+|---|---|---|---|---|
+| POST | /inbox | `{to_email, subject, body}` | 201 message. `subject` 1 to 120 characters, `body` 1 to 2000, both trimmed and not blank (422). Writing to yourself gives 422. | T2 TODO |
+| POST | /inbox/{message_id}/reply | `{body}` | 201 message to the other person, subject "Re: ..." (reply_to_id set). Same rules and limits as a new message. | T2 TODO |
+| GET | /inbox?folder=inbox&limit=50&before_id= | none | `[message]` newest first. `folder`: `inbox` (default), `sent`, `archived`. `limit` 1 to 100. `before_id` pages older messages. 422 for a bad value. | T2 TODO |
+| GET | /inbox/unread-count | none | `{count}` unread messages in my inbox. The frontend polls this every 30 seconds for the dot and the toast. | T2 TODO |
+| GET | /inbox/{message_id} | none | message. Opening it as the recipient marks it read (sets `read_at`). | T2 TODO |
+| PATCH | /inbox/{message_id} | `{archived}` | message. Recipient only (404 for anyone else). | T2 TODO |
+| DELETE | /inbox/{message_id} | none | 204. Removes it from MY view only; the other person keeps their copy. When both have removed it, it is deleted for good. | T2 TODO |
+| PUT | /inbox/blocks/{user_id} | none | 204. Blocks that person from writing to me. Doing it twice is fine. | T2 TODO |
+| DELETE | /inbox/blocks/{user_id} | none | 204. Unblocks. | T2 TODO |
+Rules:
+- Room-mates only. You can write only to someone who shares at least one room with you. An unknown email, a deleted account and a person you share no room with ALL give the same 404 "No classmate with that email in your rooms", so nobody can find out who has an account. Signup and login behavior is unchanged.
+- Privacy of messages: only the sender and the recipient can open a message. For any other person, and for a message that does not exist, the answer is the same 404, so ids cannot be probed. Admins have no extra access in the app.
+- Blocks: a blocked sender still gets the normal 201 (they are not told), but the message is not stored. Blocking someone does not remove old messages.
+- Limits (429 when exceeded): 20 messages per hour and 100 per day per user, and at most 10 per hour to the same person. Message size is capped as above (422).
+- Plain text only. Subject and body are shown with `textContent`, links are NOT made clickable (phishing risk), and nothing is ever rendered as HTML.
+- Never log message content, subjects or recipient emails (log only the kind and a success flag).
+- Privacy page and Terms (PR 4): must say that Inbox messages are not end-to-end encrypted, are stored on our servers, and that RoomSync operators could technically access stored messages; room admins cannot read them in the app.
+- Retention: messages stay until both people remove them or an account is deleted (then the message text may remain for the other person, shown as "Deleted user"). The retention schedule is still to be decided with the Privacy page.
+
 ## Messaging (T3: AFTER LAUNCH, do NOT build yet)
 Listed so nobody invents conflicting endpoints. Exact endpoints are added here BEFORE any code is written.
 - Instant delivery (WebSockets) for room chat, typing indicators, presence.
-- Direct messages: private between two users, END-TO-END ENCRYPTED. The server stores only ciphertext. Room admins and developers can NOT read DMs. Users still see history. Users can delete only their own DMs.
+- Direct messages are replaced by the Inbox above (decided Nov 7). No end-to-end encrypted direct messages are planned for now.
 - Audio and video calls (press Call, the other person is rung), 1-on-1 and room group calls, through an embedded call service. The ring uses the WebSocket.
 - Live co-editing docs in Files.
-- Until DMs ship, do not claim end-to-end encryption anywhere in the product or docs.
+- Nothing in RoomSync is end-to-end encrypted. Do not claim it anywhere in the product or docs.
 
 ## Frontend conventions (all pages)
 - API address: `js/config.js` sets `window.ROOMSYNC.API_BASE` (empty in production, `http://localhost:8000` on Live Server ports).

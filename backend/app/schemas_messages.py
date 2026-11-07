@@ -10,11 +10,19 @@ class MessageCreate(BaseModel):
 
     body: str = Field(min_length=1, max_length=2000)  # trimmed first, so "   " is empty and gives 422
     reply_to_id: int | None = Field(default=None, ge=1)
+    # Clip attachments (T2): up to 5 existing room files, same rule as task attachments.
+    file_ids: list[int] | None = Field(default=None, max_length=5)
 
 
 class ReplyToOut(BaseModel):
     author_name: str
     snippet: str  # the first 80 characters of the message being replied to
+
+
+class MessageAttachmentOut(BaseModel):
+    file_id: int
+    name: str
+    size: int
 
 
 class MessageOut(BaseModel):
@@ -26,6 +34,8 @@ class MessageOut(BaseModel):
     reply_to_id: int | None
     reply_to: ReplyToOut | None
     created_at: datetime
+    mentions: list[int] = []  # user ids whose @Full Name appears in body (computed on read, not stored)
+    attachments: list[MessageAttachmentOut] = []  # oldest-attached first; names only, no file contents
 
     @field_serializer("created_at")
     def as_utc_z(self, value: datetime):
@@ -33,3 +43,12 @@ class MessageOut(BaseModel):
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class UnreadCountOut(BaseModel):
+    count: int
+
+
+class SeenByOut(BaseModel):
+    user_id: int
+    name: str

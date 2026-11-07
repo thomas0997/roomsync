@@ -114,24 +114,30 @@ Rules:
 | POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 DONE |
 
 ## Discussion (Daniel): room chat, text only
-Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at}`
+Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at, mentions, attachments}`
 Rules:
 - Only room members can read or post (`require_member` on every endpoint). `body` is 1 to 2000 characters; rate-limit posting.
 - A user can delete ONLY their own messages. Room admins can NOT delete other users' messages (403).
 - Room discussion is NOT end-to-end encrypted (stored readable; disclosed in the privacy note). Never log message content.
-- The frontend renders message text with `textContent`, never `innerHTML`.
+- The frontend renders message text with `textContent`, never `innerHTML` (mentions are highlighted by wrapping the matched substring in its own text node, not by injecting markup).
 - reply_to_id must point to a message in the same room, otherwise 422.
 - Deleting a message that has replies is a hard delete; those replies then show reply_to as null.
 - reply_to.snippet is the first 80 characters of the replied-to message.
 - `body` is trimmed, then must be 1 to 2000 characters; a blank body gives 422.
 - GET messages: `limit` defaults to 50 and must be 1 to 100 (422 otherwise); a bad `before_id` (not a positive integer) gives 422; a `before_id` that does not exist or belongs to another room returns an empty list.
 - DELETE message: 404 when the message does not exist or is in a room the caller is not in (so ids cannot be probed); 403 for a room member who is not the author (admins included).
+- **@mentions (T2 DONE).** `mentions` is a list of user ids: every current room member whose exact display name appears in `body` as `@Full Name` on a word boundary (computed on read, not stored, so a rename or a membership change changes future `mentions` on old messages too). No endpoint needed; the `notify_mentions` account setting (`GET/PUT /users/me/settings`) exists for a future notification feature but sending one is not built.
+- **Attachments via the clip (T2 DONE).** Reuses the Files pipeline: `file_ids` on `POST /rooms/{room_id}/messages`, up to 5, every id must already be a file of this room (422 "One of the files was not found in this room" otherwise, same answer for a missing file and a file of another room). `attachments` on every message is `[{file_id, name, size}]`, oldest-attached first (empty list when none). Carries names only; downloading still goes through `GET /files/{file_id}/download` and its member-only check.
+- **Unread counts and "seen by" (T2 DONE).** One per-user, per-room read marker (`last_read_at`), set to the room's `joined_at` the first time it is needed so history from before you joined is never "unread". Posting a message does not mark it read for the author's own other devices; only `POST .../read` does.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 DONE |
-| POST | /rooms/{room_id}/messages | `{body, reply_to_id?}` | 201 message | T1 DONE |
+| POST | /rooms/{room_id}/messages | `{body, reply_to_id?, file_ids?}` | 201 message | T1/T2 DONE |
 | DELETE | /messages/{message_id} | none | 204. Author only; anyone else, including admins, gets 403. | T1 DONE |
-T2 (not defined yet): @mentions, attachments, unread counts, "seen by". T3: WebSockets, DMs, calls (see Messaging).
+| GET | /rooms/{room_id}/messages/unread-count | none | `{count}` messages after my read marker, not authored by me. | T2 DONE |
+| POST | /rooms/{room_id}/messages/read | none | 204. Moves my read marker for this room to now. Rate-limited. | T2 DONE |
+| GET | /rooms/{room_id}/messages/seen | none | `[{user_id, name}]` other room members whose read marker is at or past the newest message (empty list when there are no messages yet). | T2 DONE |
+T3: WebSockets, DMs, calls (see Messaging).
 
 ## Files (Thomas): replaces Notes
 File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version, used_in, used_in_count}`

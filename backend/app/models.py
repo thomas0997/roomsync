@@ -162,6 +162,27 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class MessageFile(Base):
+    """A note (room file) attached to a message via the clip icon, at most 5 per message
+    (see routers/discussion.py). Deleting the message or the file removes the link; the other side stays."""
+    __tablename__ = "message_files"
+    __table_args__ = (UniqueConstraint("message_id", "file_id", name="uq_message_file"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), index=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("room_files.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MessageReadMarker(Base):
+    """Per-user, per-room "I've read up to here" marker for Discussion (T2): backs unread counts and
+    "seen by". One row per (user, room); created lazily, defaulting to the user's joined_at so history
+    from before they joined is never counted as unread (see routers/discussion.py)."""
+    __tablename__ = "message_read_markers"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), primary_key=True)
+    last_read_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class CustomTaskType(Base):
     __tablename__ = "custom_task_types"
     __table_args__ = (UniqueConstraint("user_id", "name", name="uq_user_typename"),)

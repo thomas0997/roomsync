@@ -2478,3 +2478,18 @@ a.sidebar-link[href="approve.html"] { position: relative; }
 .sidebar-link .approve-badge { position: absolute; top: 6px; right: 8px; margin: 0; }
 .topbar-nav a[href="approve.html"] .approve-badge { margin-left: 6px; }
 .mobile-tabbar .tab-item .approve-badge { position: absolute; top: 4px; left: 58%; margin: 0; }
+
+/* Discussion unread-message badge on the nav link (js/sidebar_rooms.js, T2): sum of
+   GET /rooms/{id}/messages/unread-count across every room you're in. Same look as Approve's badge. */
+.disc-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: #e5484d; color: #fff;
+  font-size: 10px; font-weight: 800; line-height: 1;
+}
+.disc-badge[hidden] { display: none; }
+a.sidebar-link[href="discussion.html"] { position: relative; }
+.sidebar-link .disc-badge { position: absolute; top: 6px; right: 8px; margin: 0; }
+.topbar-nav a[href="discussion.html"] .disc-badge { margin-left: 6px; }
+.mobile-tabbar .tab-item .disc-badge { position: absolute; top: 4px; left: 58%; margin: 0; }

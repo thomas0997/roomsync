@@ -251,7 +251,7 @@
         <p class="disc-empty" id="discEmpty">Loading messages...</p>
         <div id="discMessages"></div>
       </div>
-      <div class="disc-composer" id="discComposer">
+      <p class="disc-seenby" id="discSeenBy" hidden></p>
       <div class="disc-composer" id="discComposer">
       <!-- ---------- REPLY INDICATOR (hidden until a message is clicked) ---------- -->
       <div class="disc-reply-indicator" id="discReplyIndicator" hidden>
@@ -263,14 +263,18 @@
         </button>
       </div>
 
+      <!-- ---------- ATTACHED NOTES (hidden until the clip picks at least one) ---------- -->
+      <div class="disc-attach-row" id="discAttachRow" hidden></div>
+
       <!-- ---------- MESSAGE INPUT ---------- -->
       <form class="disc-input-bar" id="discInputForm">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="disc-clip"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button type="button" class="disc-clip-btn" id="discClipBtn" aria-label="Attach notes" title="Attach notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="disc-clip"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <textarea id="discMessageInput" rows="1" maxlength="2000" placeholder="Message your room..." autocomplete="off"></textarea>
         <span class="disc-counter" id="discCounter" hidden></span>
         <button type="submit" class="disc-send-btn">Send</button>
       </form>
-      </div>
       </div>
 
     </main>

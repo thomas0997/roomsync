@@ -20,9 +20,9 @@ from .. import storage
 from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..filecheck import ALLOWED, ALLOWED_LIST, TEXT_EXTENSIONS, check_content, clean_name, extension_of
-from ..models import Membership, RoomFile, User
+from ..models import Membership, RoomFile, Task, TaskFile, User
 from ..ratelimit import limit_by_user
-from ..schemas_files import FileOut, FileTextOut
+from ..schemas_files import FileOut, FileTextOut, UsedIn
 
 router = APIRouter(tags=["notes"])
 
@@ -135,6 +135,23 @@ def _store(db: Session, user: User, room_id: int, name: str, ext: str, raw: byte
     return _out(row, user)
 
 
+def _used_in(db: Session, file_ids: list[int]) -> dict[int, list[UsedIn]]:
+    """Which APPROVED tasks link each file (pending and rejected tasks are never shown), in one query."""
+    found: dict[int, list[UsedIn]] = {}
+    if not file_ids:
+        return found
+    rows = (
+        db.query(TaskFile.file_id, Task.id, Task.title)
+        .join(Task, Task.id == TaskFile.task_id)
+        .filter(TaskFile.file_id.in_(file_ids), Task.status == "approved")
+        .order_by(Task.due_at, Task.id)
+        .all()
+    )
+    for file_id, task_id, title in rows:
+        found.setdefault(file_id, []).append(UsedIn(task_id=task_id, title=title))
+    return found
+
+
 @router.get("/rooms/{room_id}/files", response_model=list[FileOut])
 def list_files(
     room_id: int,
@@ -152,7 +169,14 @@ def list_files(
               "name": func.lower(RoomFile.name), "size": RoomFile.size}[sort]
     direction = (lambda c: c.asc()) if order == "asc" else (lambda c: c.desc())
     rows = query.order_by(direction(column), direction(RoomFile.id)).all()
-    return [_out(f, uploader) for f, uploader in rows]
+    used = _used_in(db, [f.id for f, _ in rows])
+    out = []
+    for f, uploader in rows:
+        item = _out(f, uploader)
+        tasks = used.get(f.id, [])
+        item.used_in, item.used_in_count = tasks[:5], len(tasks)
+        out.append(item)
+    return out
 
 
 @router.post(

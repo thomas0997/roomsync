@@ -40,6 +40,7 @@
   var clipBtn = byId('discClipBtn');
   var attachRow = byId('discAttachRow');
   var seenByEl = byId('discSeenBy');
+  var mentionMenu = byId('discMentionMenu');
   if (!thread || !box || !emptyEl || !loadRow || !loadBtn || !form || !input || !sendBtn ||
       !counter || !replyBar || !replyName || !replySnippet || !replyCancel) { return; }
 
@@ -58,6 +59,12 @@
   var localSeq = 0;        // counts messages added, so a poll never removes one it started before
   var replyTo = null;      // {id, name, snippet}
   var attached = [];       // clip attachments picked for the next message: [{id, name, size}]
+
+  // @mention autocomplete (T2): open while typing "@partial" with no space in it yet.
+  var mentionOpen = false;
+  var mentionStart = -1;    // index of "@" in input.value
+  var mentionMatches = [];  // [{id, name}], filtered room members
+  var mentionActive = 0;    // index into mentionMatches that is keyboard-highlighted
 
   var me = null;
   try { me = JSON.parse(localStorage.getItem(cfg.USER_KEY) || 'null').id; } catch (e) { me = null; }
@@ -249,6 +256,83 @@
   }
 
   if (clipBtn) { clipBtn.addEventListener('click', openClipPicker); }
+
+  /* ---------- @mention autocomplete (Messenger-style: type "@", click a member) ---------- */
+  function mentionAvatar(uid, name) {
+    var span = el('span', 'disc-avatar', initials(name));
+    var url = memberAvatar(uid);
+    if (url && window.RoomSyncAvatars) {
+      var img = el('img', 'disc-avatar-photo');
+      img.alt = '';
+      window.RoomSyncAvatars.photoSrc(url).then(function (src) {
+        if (src) { img.src = src; span.appendChild(img); }
+      });
+    }
+    return span;
+  }
+
+  function closeMentionMenu() {
+    mentionOpen = false;
+    mentionStart = -1;
+    mentionMatches = [];
+    mentionActive = 0;
+    if (mentionMenu) { mentionMenu.hidden = true; mentionMenu.textContent = ''; }
+  }
+
+  function insertMention(name) {
+    if (mentionStart < 0) { return; }
+    var caret = input.selectionStart;
+    var before = input.value.slice(0, mentionStart);
+    var after = input.value.slice(caret);
+    var inserted = '@' + name + ' ';
+    input.value = before + inserted + after;
+    var pos = before.length + inserted.length;
+    input.focus();
+    input.setSelectionRange(pos, pos);
+    closeMentionMenu();
+    updateCounter();
+    autosize();
+  }
+
+  function renderMentionMenu() {
+    if (!mentionMenu) { return; }
+    mentionMenu.textContent = '';
+    if (!mentionMatches.length) { mentionMenu.hidden = true; return; }
+    mentionMatches.forEach(function (person, i) {
+      var item = el('button', 'disc-mention-item' + (i === mentionActive ? ' disc-mention-item-active' : ''));
+      item.type = 'button';
+      item.setAttribute('role', 'option');
+      item.appendChild(mentionAvatar(person.id, person.name));
+      item.appendChild(el('span', 'disc-mention-item-name', person.name));
+      // mousedown (not click) fires before the textarea's blur, so the insert happens
+      // while the dropdown's choice is still visible and the textarea keeps focus.
+      item.addEventListener('mousedown', function (e) { e.preventDefault(); insertMention(person.name); });
+      mentionMenu.appendChild(item);
+    });
+    mentionMenu.hidden = false;
+  }
+
+  // Looks at the text just before the caret for an unfinished "@query" (no space in it yet)
+  // and opens/updates/closes the dropdown to match, Messenger-style.
+  function updateMentionMenu() {
+    if (!mentionMenu || roomId === null) { closeMentionMenu(); return; }
+    var caret = input.selectionStart;
+    var before = input.value.slice(0, caret);
+    var match = before.match(/(?:^|\s)@([^\s@]*)$/);
+    if (!match) { closeMentionMenu(); return; }
+    var query = match[1].toLowerCase();
+    var start = caret - match[1].length - 1;   // index of "@"
+    var people = Object.keys(members)
+      .map(function (uid) { return { id: Number(uid), name: memberName(Number(uid)) }; })
+      .filter(function (p) { return p.name && p.id !== me; });   // mentioning yourself isn't useful
+    var matches = people.filter(function (p) { return p.name.toLowerCase().indexOf(query) !== -1; });
+    if (!matches.length) { closeMentionMenu(); return; }
+    mentionOpen = true;
+    mentionStart = start;
+    mentionMatches = matches.slice(0, 8);
+    mentionActive = Math.min(mentionActive, mentionMatches.length - 1);
+    renderMentionMenu();
+  }
 
   /* ---------- unread / seen-by ---------- */
   function markRead() {
@@ -542,6 +626,7 @@
     if (r.ok) {
       input.value = '';
       clearReply();
+      closeMentionMenu();
       attached = [];
       renderAttachRow();
       updateCounter();
@@ -584,6 +669,7 @@
     pollFailed = false;
     resetList();
     clearReply();
+    closeMentionMenu();
     attached = [];
     renderAttachRow();
     input.value = '';
@@ -604,6 +690,30 @@
   form.addEventListener('submit', function (e) { e.preventDefault(); send(); });
 
   input.addEventListener('keydown', function (e) {
+    if (mentionOpen && mentionMatches.length) {   // the dropdown takes over arrow/enter/escape while open
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        mentionActive = (mentionActive + 1) % mentionMatches.length;
+        renderMentionMenu();
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        mentionActive = (mentionActive - 1 + mentionMatches.length) % mentionMatches.length;
+        renderMentionMenu();
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        insertMention(mentionMatches[mentionActive].name);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMentionMenu();
+        return;
+      }
+    }
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {   // Enter sends, Shift+Enter is a new line
       e.preventDefault();
       send();
@@ -612,7 +722,9 @@
     }
   });
 
-  input.addEventListener('input', function () { updateCounter(); autosize(); });
+  input.addEventListener('input', function () { updateCounter(); autosize(); updateMentionMenu(); });
+  input.addEventListener('click', updateMentionMenu);   // moving the caret by clicking can also start/end a mention
+  input.addEventListener('blur', function () { closeMentionMenu(); });
   replyCancel.addEventListener('click', clearReply);
   loadBtn.addEventListener('click', loadEarlier);
 

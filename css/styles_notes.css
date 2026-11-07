@@ -1,6 +1,6 @@
 /* ROOMSYNC - styles_notes.css
    Notes page: real files (cards with a delete button), empty messages, and the text/code viewer. */
-.notes-file-item { position: relative; display: flex; min-width: 0; }
+.notes-file-item { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .notes-file-item .notes-file-card { width: 100%; min-width: 0; padding-right: 36px; cursor: pointer; }
 .notes-file-name { overflow-wrap: anywhere; }
 .notes-file-icon.notes-icon-generic { font-size: 11px; letter-spacing: -0.02em; }
@@ -27,3 +27,11 @@
 }
 .notes-view-note { font-size: 11.5px; color: var(--gray-text); margin: -4px 0 10px; }
 .notes-view-note[hidden] { display: none; }
+
+/* "Used in" tags and "Attach to a task" under each note card */
+.notes-usage { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 4px; }
+.notes-usage-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.notes-usage-label { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; color: var(--gray-text-2); }
+.notes-usage-tag { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #e8f1fe; color: var(--blue); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-usage-more { font-size: 11.5px; font-weight: 700; color: var(--gray-text-2); }
+.notes-usage-attach { font-size: 13px; }

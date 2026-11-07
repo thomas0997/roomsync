@@ -2370,12 +2370,55 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 .todo-modal form.todo-simple .abt-field:has(#todoDate) { order: 4; }
 .todo-modal form.todo-simple .todo-time-field { order: 5; }
 .todo-modal form.todo-simple .todo-note-field { order: 6; }
-.todo-modal form.todo-simple .todo-quick-links { order: 7; }
-.todo-modal form.todo-simple .todo-room-field { order: 8; flex-direction: row; align-items: center; gap: 10px; }
+.todo-modal form.todo-simple .todo-attach-field { order: 7; }
+.todo-modal form.todo-simple .todo-quick-links { order: 8; }
+.todo-modal form.todo-simple .todo-room-field { order: 9; flex-direction: row; align-items: center; gap: 10px; }
 .todo-modal form.todo-simple .todo-room-field select { width: auto; padding: 7px 12px; font-size: 14px; border-radius: 10px; }
-.todo-modal form.todo-simple #todoFormError { order: 9; }
-.todo-modal form.todo-simple .abt-form-actions { order: 10; }
+.todo-modal form.todo-simple #todoFormError { order: 10; }
+.todo-modal form.todo-simple .abt-form-actions { order: 11; }
+.todo-modal form .todo-attach-field { display: none; }
+.todo-modal form.todo-simple .todo-attach-field.open { display: flex; flex-direction: column; gap: 8px; }
+.todo-attached-list { display: flex; flex-direction: column; gap: 8px; }
+.todo-attached-item { display: flex; align-items: center; gap: 10px; border: 1px solid var(--hairline); border-radius: 13px; padding: 9px 12px; }
+.todo-attached-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-attached-size { font-size: 12px; color: var(--gray-text-2); flex-shrink: 0; }
+.todo-attached-x { border: none; background: transparent; font-size: 20px; line-height: 1; color: var(--gray-text-2); cursor: pointer; padding: 0 2px; }
+.todo-attach-field .todo-link-btn { align-self: flex-start; }
 @media (max-width: 767px) {
   #todoModalOverlay { align-items: flex-end; padding: 0; }
   #todoModalOverlay .todo-modal.abt-form-card { max-width: none; max-height: 92vh; border-radius: 22px 22px 0 0; }
 }
+
+/* ---------- Inbox: the small unread dot on the Inbox link and the phone "More" button (inbox_badge.js) ---------- */
+.inbox-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 50%; background: #e5484d; vertical-align: middle; }
+.inbox-dot[hidden] { display: none; }
+a.sidebar-link[href="inbox.html"] { position: relative; }
+.sidebar-link .inbox-dot { position: absolute; top: 8px; right: 10px; margin: 0; }
+.mobile-tabbar .tab-item { position: relative; }
+.mobile-tabbar .tab-item .inbox-dot { position: absolute; top: 6px; left: 54%; margin: 0; }
+
+/* the attach pop-ups (js/attach_picker.js) */
+.attach-overlay { z-index: 1300; }
+.attach-card { max-width: 460px; }
+.attach-search { width: 100%; box-sizing: border-box; border: 1px solid var(--hairline); border-radius: 12px; padding: 10px 13px; font-family: inherit; font-size: 14px; }
+.attach-search:focus { outline: none; border-color: var(--blue); }
+.attach-list { display: flex; flex-direction: column; gap: 8px; max-height: 44vh; overflow-y: auto; }
+.attach-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1px solid var(--hairline); background: #fff; border-radius: 12px; padding: 10px 12px; cursor: pointer; font-family: inherit; color: var(--near-black); }
+.attach-row-on { border-color: var(--blue); background: #f3f8ff; }
+.attach-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #c8c8cd; font-size: 12px; line-height: 15px; text-align: center; color: #fff; flex-shrink: 0; }
+.attach-row-on .attach-check { background: var(--blue); border-color: var(--blue); }
+.attach-ext { font-size: 10px; font-weight: 800; background: var(--gray-bg); border-radius: 7px; padding: 6px 5px; min-width: 30px; text-align: center; }
+.attach-row-text { display: flex; flex-direction: column; min-width: 0; }
+.attach-row-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attach-row-sub { font-size: 12px; color: var(--gray-text-2); }
+.attach-msg { margin: 0; font-size: 13px; color: var(--gray-text-2); }
+.attach-msg[hidden] { display: none; }
+
+/* the task card: attached notes */
+.task-detail-notes { display: flex; flex-direction: column; gap: 8px; padding: 0 0 14px; }
+.task-detail-notes .task-detail-label { flex: none; }
+.task-detail-attached { display: flex; align-items: center; gap: 8px; border: 1px solid var(--hairline); border-radius: 13px; padding: 4px 10px 4px 4px; }
+.task-detail-attached-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: none; background: transparent; padding: 8px; cursor: pointer; font-family: inherit; text-align: left; color: var(--near-black); }
+.task-detail-attached-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task-detail-attached-size { font-size: 12px; color: var(--gray-text-2); flex-shrink: 0; }
+.task-detail-notes .todo-link-btn { align-self: flex-start; }

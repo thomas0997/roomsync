@@ -103,6 +103,39 @@
     return svg;
   }
 
+  // Under each card: which approved tasks use this note, and a button to attach it to a task.
+  function usageRow(f) {
+    var row = el('div', 'notes-usage');
+    var used = f.used_in || [];
+    var tags = el('div', 'notes-usage-tags');
+    if (used.length) {
+      tags.appendChild(el('span', 'notes-usage-label', 'USED IN'));
+      used.forEach(function (u) { tags.appendChild(el('span', 'notes-usage-tag', u.title)); });
+      var extra = (f.used_in_count || used.length) - used.length;
+      if (extra > 0) { tags.appendChild(el('span', 'notes-usage-more', '+' + extra + ' more')); }
+    } else {
+      tags.appendChild(el('span', 'notes-usage-label', 'NOT ATTACHED TO ANY TASK'));
+    }
+    row.appendChild(tags);
+    if (window.RoomSyncAttach) {
+      var attach = el('button', 'todo-link-btn notes-usage-attach', 'Attach to a task');
+      attach.type = 'button';
+      attach.addEventListener('click', function () { attachToTask(f); });
+      row.appendChild(attach);
+    }
+    return row;
+  }
+
+  async function attachToTask(f) {
+    var roomId = home.currentRoomId();
+    var task = await window.RoomSyncAttach.pickTask({ roomId: roomId, file: f });
+    if (!task) { return; }
+    var r = await home.api('/tasks/' + task.id + '/attachments/' + f.id, 'PUT');
+    if (!r.ok) { if (r.status !== 401) { home.showToast(home.errorText(r)); } return; }
+    home.showToast('Attached to \u201c' + task.title + '\u201d.');
+    load();   // refresh the "Used in" tags
+  }
+
   function fileCard(f) {
     var item = el('div', 'notes-file-item');
     var card = el('button', 'notes-file-card');
@@ -116,6 +149,7 @@
                         f.created_by_name + ' • ' + prettySize(f.size) + ' • ' + timeAgo(f.created_at)));
     card.addEventListener('click', function () { openFile(f); });
     item.appendChild(card);
+    item.appendChild(usageRow(f));
     if (f.created_by === myId() || home.isAdmin()) {
       var del = el('button', 'notes-file-delete');
       del.type = 'button';

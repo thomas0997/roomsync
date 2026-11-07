@@ -111,12 +111,83 @@
   var noteLink = null;
   var timeLink = null;
   var timeWrap = null;
+  var attachLink = null;   // "+ Attach notes" (needs js/attach_picker.js)
+  var attachWrap = null;   // the "Attached notes" list under the form
+  var attached = [];       // the room files picked for the new task (at most 5)
 
   function syncChips() {
     if (!chipBox) { return; }
     Array.prototype.forEach.call(chipBox.children, function (b) {
       b.setAttribute('aria-pressed', b.getAttribute('data-type') === typeSelect.value ? 'true' : 'false');
     });
+  }
+
+  // Notes (room files) can be attached while creating. The list shows name and size with a x to remove one.
+  function drawAttached() {
+    if (!attachWrap) { return; }
+    var box = attachWrap.querySelector('.todo-attached-list');
+    box.textContent = '';
+    attached.forEach(function (f) {
+      var item = document.createElement('div');
+      item.className = 'todo-attached-item';
+      var name = document.createElement('span');
+      name.className = 'todo-attached-name';
+      name.textContent = f.name;
+      var size = document.createElement('span');
+      size.className = 'todo-attached-size';
+      size.textContent = f.size < 1048576 ? Math.max(1, Math.round(f.size / 1024)) + ' KB' : (f.size / 1048576).toFixed(1) + ' MB';
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'todo-attached-x';
+      x.textContent = '\u00d7';
+      x.setAttribute('aria-label', 'Remove ' + f.name);
+      x.addEventListener('click', function () {
+        attached = attached.filter(function (a) { return a.id !== f.id; });
+        drawAttached();
+      });
+      item.appendChild(name);
+      item.appendChild(size);
+      item.appendChild(x);
+      box.appendChild(item);
+    });
+    attachWrap.classList.toggle('open', attached.length > 0);
+    if (attachLink) { attachLink.hidden = attached.length > 0; }
+  }
+
+  async function chooseNotes() {
+    var roomId = Number(byId('todoModalRoom').value);
+    if (!roomId) { showFormError('Pick a room first.'); return; }
+    var picked = await window.RoomSyncAttach.pickFiles({
+      roomId: roomId, max: 5,
+      selected: attached.map(function (f) { return f.id; })
+    });
+    if (picked) { attached = picked; drawAttached(); }
+  }
+
+  function buildAttach(links) {
+    attachLink = document.createElement('button');
+    attachLink.type = 'button';
+    attachLink.className = 'todo-link-btn';
+    attachLink.textContent = '+ Attach notes';
+    attachLink.addEventListener('click', chooseNotes);
+    links.appendChild(attachLink);
+    attachWrap = document.createElement('div');
+    attachWrap.className = 'todo-attach-field';
+    var label = document.createElement('span');
+    label.className = 'abt-field-label';
+    label.textContent = 'Attached notes';
+    var listBox = document.createElement('div');
+    listBox.className = 'todo-attached-list';
+    var more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'todo-link-btn';
+    more.textContent = '+ Attach more notes';
+    more.addEventListener('click', chooseNotes);
+    attachWrap.appendChild(label);
+    attachWrap.appendChild(listBox);
+    attachWrap.appendChild(more);
+    links.parentNode.insertBefore(attachWrap, links);
+    byId('todoModalRoom').addEventListener('change', function () { attached = []; drawAttached(); });   // notes belong to one room
   }
 
   function buildSimple() {
@@ -162,6 +233,7 @@
     links.appendChild(timeLink);
     links.appendChild(noteLink);
     errorBox.parentNode.insertBefore(links, errorBox);
+    if (window.RoomSyncAttach) { buildAttach(links); }   // needs the links row to be in the page already
     form.classList.add('todo-simple');
   }
 
@@ -220,6 +292,8 @@
     if (noteLink) { noteLink.hidden = false; }
     if (timeWrap) { timeWrap.classList.remove('open'); }
     if (timeLink) { timeLink.hidden = false; }
+    attached = [];
+    drawAttached();
   }
 
   // The tag to send: a built-in type, or the custom text (a custom tag that spells a built-in type uses it).
@@ -412,6 +486,7 @@
       var payload = { title: titles[i], type: type, due_at: dueAt, all_day: !time };
       if (subject) { payload.subject = subject; }
       if (note) { payload.note = note; }
+      if (attached.length) { payload.file_ids = attached.map(function (f) { return f.id; }); }
       var r = await home.api('/rooms/' + roomId + '/tasks', 'POST', payload);
       if (!r.ok) { failure = r; break; }
       created += 1;

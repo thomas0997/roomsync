@@ -2341,3 +2341,6 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 .todo-modal .todo-add-title { margin: -8px 0 0; }
 .todo-modal .todo-hint { margin: -10px 0 0; }
 .todo-modal .abt-form-actions { margin-top: 6px; }
+
+/* Room modal: only the active tab's form shows (the spacing rule above must not reveal hidden panels) */
+.todo-modal form[hidden], .todo-modal form.abt-panel:not(.abt-panel-active) { display: none; }

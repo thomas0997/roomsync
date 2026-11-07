@@ -470,8 +470,17 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('personModalName').textContent = name;
     // The member's own status (Working!, BRB!, Somewhere Else, or their custom text) with a coloured dot.
     var statusEl = document.getElementById('personModalStatus');
-    statusEl.textContent = statusText || (online === 'true' ? 'Online now' : (online === 'false' ? 'Offline' : ''));
+    statusEl.textContent = '';
+    var label = document.createElement('span');
+    label.textContent = statusText || (online === 'true' ? 'Online now' : (online === 'false' ? 'Offline' : ''));
     statusEl.className = statusText ? 'person-status person-status-' + (statusKind || 'working') : '';
+    statusEl.appendChild(label);
+    if (statusText && online === 'true') {   // real presence (T2): seen in the last 2 minutes
+      var live = document.createElement('span');
+      live.className = 'person-status-live';
+      live.textContent = ' · Online now';
+      statusEl.appendChild(live);
+    }
     // Message opens the Inbox with this person already picked. You cannot write to yourself.
     var msgBtn = document.getElementById('personModalMessage');
     if (msgBtn) {

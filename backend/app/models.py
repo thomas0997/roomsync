@@ -20,6 +20,9 @@ class User(Base):
     # status: "working" | "brb" | "away" | "custom". Never expires. status_text only used for "custom" (max 40).
     status_kind: Mapped[str] = mapped_column(String(10), default="working")
     status_text: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Presence (T2): set by POST /presence/ping, called every ~60s while a page is open.
+    # "online" = last_seen within the last 2 minutes (see schemas.is_online). Never set means never online.
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # soft delete
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # Goes up by one when the password is reset. Login tokens carry the number they were made with,
@@ -166,6 +169,21 @@ class CustomTaskType(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(20))
     color: Mapped[str] = mapped_column(String(7))  # "#rrggbb"
+
+
+class UserSettings(Base):
+    """Account-level preferences (T2): docs/api-contract.md GET/PUT /users/me/settings.
+    One row per user, created on first read or write (see routers/profile.py). `task_colors` overrides
+    the color of the six built-in task types (never the badge text, never custom types)."""
+    __tablename__ = "user_settings"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    theme: Mapped[str] = mapped_column(String(10), default="system", server_default="system")  # light|dark|system
+    show_empty_days: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    notify_deadline_reminders: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    notify_mentions: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    notify_approvals: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    timezone: Mapped[str] = mapped_column(String(50), default="Asia/Manila", server_default="Asia/Manila")
+    task_colors: Mapped[str] = mapped_column(Text, default="{}", server_default="{}")  # JSON: {"exam": "#rrggbb", ...}
 
 
 class Feedback(Base):

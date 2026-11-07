@@ -39,7 +39,17 @@ ul { list-style: none; }
   --seatwork: #009CDF;
   --assignment: #8F8F97;
 
-  
+  /* Task TYPE badge colors only (Settings > Task colors, T2 account setting). Defaults to the fixed
+     colors above; js/sidebar_rooms.js overrides these six on the root element when the account has
+     custom ones saved. Nothing else reads these, so the fixed tokens above are never touched. */
+  --task-color-exam: var(--exam);
+  --task-color-quiz: var(--quiz);
+  --task-color-case-study: var(--case-study);
+  --task-color-activity: var(--activity);
+  --task-color-seatwork: var(--seatwork);
+  --task-color-assignment: var(--assignment);
+
+
   --radius-lg: 20px;
   --radius-md: 17px;
   --radius-sm: 12px;
@@ -431,12 +441,12 @@ ul { list-style: none; }
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
-.type-exam { background: var(--exam); }
-.type-quiz { background: var(--quiz); }
-.type-case-study { background: var(--case-study); }
-.type-activity { background: var(--activity); }
-.type-seatwork { background: var(--seatwork); }
-.type-assignment { background: var(--assignment); }
+.type-exam { background: var(--task-color-exam); }
+.type-quiz { background: var(--task-color-quiz); }
+.type-case-study { background: var(--task-color-case-study); }
+.type-activity { background: var(--task-color-activity); }
+.type-seatwork { background: var(--task-color-seatwork); }
+.type-assignment { background: var(--task-color-assignment); }
 .subject-tag { font-size: 9.6px; color: var(--gray-text); font-weight: 500; }
 
 /* ---------- Legend ---------- */
@@ -456,12 +466,12 @@ ul { list-style: none; }
 .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
 .legend-item { display: flex; align-items: center; gap: 4px; font-size: 13.2px; color: var(--gray-text); }
 .legend-dot { width: 5px; height: 5px; border-radius: 50%; }
-.legend-dot-exam { background: var(--exam); }
-.legend-dot-quiz { background: var(--quiz); }
-.legend-dot-case-study { background: var(--case-study); }
-.legend-dot-activity { background: var(--activity); }
-.legend-dot-seatwork { background: var(--seatwork); }
-.legend-dot-assignment { background: var(--assignment); }
+.legend-dot-exam { background: var(--task-color-exam); }
+.legend-dot-quiz { background: var(--task-color-quiz); }
+.legend-dot-case-study { background: var(--task-color-case-study); }
+.legend-dot-activity { background: var(--task-color-activity); }
+.legend-dot-seatwork { background: var(--task-color-seatwork); }
+.legend-dot-assignment { background: var(--task-color-assignment); }
 
 /* Mobile: hide desktop-only room button list, layout toggle, room-buttons row */
 .room-buttons { display: none; }
@@ -800,6 +810,18 @@ ul { list-style: none; }
   white-space: nowrap;
 }
 .btn-delete-account:hover { background: rgba(223,0,0,0.3); }
+
+/* ---------- Settings > Task Colors (account-level, T2) ---------- */
+.settings-color-input {
+  width: 38px; height: 38px; padding: 0; border: 1px solid var(--hairline); border-radius: 10px;
+  flex-shrink: 0; cursor: pointer; background: none;
+}
+.btn-reset-colors {
+  margin: 14px 0 20px; height: 34px; padding: 0 16px; border-radius: 10px;
+  background: var(--gray-bg); border: 1px solid var(--hairline); color: var(--near-black);
+  font-size: 14px; font-weight: 590; white-space: nowrap;
+}
+.btn-reset-colors:hover { background: var(--hairline); }
 
 .btn-save-changes {
   height: 42px;
@@ -1176,8 +1198,7 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
   font-weight: 600;
   color: #8f8f97;
 }
-.profile-history-row span[data-label="Submitted by"] { font-weight: 600; color: var(--near-black); }
-.profile-history-row span[data-label="Submitted by"]::before { content: ''; }
+.profile-history-row span[data-label="Room"] { font-weight: 600; color: var(--near-black); }
 
 .history-status {
   display: inline-block;
@@ -1202,15 +1223,14 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .cal-cell-exam { ba
 
   .profile-room-grid { grid-template-columns: repeat(2, 1fr); }
 
-  .profile-history-head { display: grid; grid-template-columns: 1.2fr 1fr 1.4fr 1fr; }
+  .profile-history-head { display: grid; grid-template-columns: 1fr 1.6fr 1fr; }
   .profile-history-row {
     display: grid;
-    grid-template-columns: 1.2fr 1fr 1.4fr 1fr;
+    grid-template-columns: 1fr 1.6fr 1fr;
     align-items: center;
     gap: 8px;
   }
   .profile-history-row span[data-label]::before { content: ''; }
-  .profile-history-row span[data-label="Room"],
   .profile-history-row span[data-label="Activity"] { color: #8f8f97; }
 }
 
@@ -2437,3 +2457,24 @@ a.sidebar-link[href="inbox.html"] { position: relative; }
 .person-status-away::before { background: #ff3b30; }
 .person-status-custom::before { background: #8e8e93; }
 #personModalMessage[hidden] { display: none !important; }
+
+/* Real presence (T2): a thin white ring on the status dot when the person pinged the server in the
+   last 2 minutes (see js/sidebar_rooms.js, POST /presence/ping). The status colour underneath is
+   unchanged; this only adds "actually here right now" on top of it. */
+.online-dot.is-live { box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #34c759; }
+.person-status-live { font-size: 10.5px; font-weight: 700; color: #1a9a44; letter-spacing: 0.2px; }
+
+/* Approve pending-count badge on the nav link (js/sidebar_rooms.js): sum of pending_count across
+   every room you admin. Only shown to admins, and only when it is greater than zero. */
+.approve-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: #e5484d; color: #fff;
+  font-size: 10px; font-weight: 800; line-height: 1;
+}
+.approve-badge[hidden] { display: none; }
+a.sidebar-link[href="approve.html"] { position: relative; }
+.sidebar-link .approve-badge { position: absolute; top: 6px; right: 8px; margin: 0; }
+.topbar-nav a[href="approve.html"] .approve-badge { margin-left: 6px; }
+.mobile-tabbar .tab-item .approve-badge { position: absolute; top: 4px; left: 58%; margin: 0; }

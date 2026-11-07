@@ -28,6 +28,20 @@
 
   var loadCounter = 0;   // lets us ignore answers that arrive after you switched room
 
+  // Settings > "Show empty days" (T2, account-level: GET /users/me/settings). Off by default;
+  // today always stays regardless. Fetched once; re-fetched when Settings saves a change.
+  var showEmptyDays = false;
+  function loadShowEmptyDays() {
+    return home.api('/users/me/settings').then(function (r) {
+      var next = r.ok && !!r.body.show_empty_days;
+      var changed = next !== showEmptyDays;
+      showEmptyDays = next;
+      if (changed && home.currentRoomId() !== undefined && home.currentRoomId() !== null) { loadBoard(home.currentRoomId()); }
+    });
+  }
+  loadShowEmptyDays();
+  document.addEventListener('roomsync:rooms-changed', loadShowEmptyDays);
+
   function byId(id) { return document.getElementById(id); }
 
   /* ---------- dates (a "calendar day" is a UTC-midnight Date that stands for a Manila day) ---------- */
@@ -254,13 +268,11 @@
     }
     var shown = 0;
     var cards = [];
-    var showEmpty = false;   // Settings > "Show empty days" (off by default); today always stays
-    try { showEmpty = localStorage.getItem('roomsync.showEmptyDays') === '1'; } catch (e) { showEmpty = false; }
     for (var i = firstDay; i < 7; i++) {
       var day = addDays(sunday, i);
       var list = byDay[ymd(day)] || [];
       shown += list.length;
-      if (list.length === 0 && !showEmpty && !sameDay(day, today)) { continue; }
+      if (list.length === 0 && !showEmptyDays && !sameDay(day, today)) { continue; }
       cards.push(dayCard(day, list, sameDay(day, today)));
     }
     // A week with nothing in it shows one short note instead of seven empty cards.

@@ -3,7 +3,8 @@
    Settings page, wired to the API:
    - lists your real rooms, each with a Leave Room button
    - Delete Account (type DELETE to confirm)
-   Theme and the toggles stay in the browser until T2.
+   - Show empty days and Task Colors: saved on your account (GET/PUT /users/me/settings, T2),
+     so they follow you to any device. The notification toggles are not wired yet.
    All user text is written with textContent (never innerHTML).
    Needs: js/config.js (window.ROOMSYNC) and <body data-api-settings>.
    ============================================================ */
@@ -27,15 +28,6 @@
   }
 
   if (!read(cfg.TOKEN_KEY)) { goLogin(); return; }
-
-  // "Show empty days": kept in this browser; the Home board reads the same key.
-  var emptyDaysBox = document.getElementById('showEmptyDays');
-  if (emptyDaysBox) {
-    emptyDaysBox.checked = read('roomsync.showEmptyDays') === '1';
-    emptyDaysBox.addEventListener('change', function () {
-      try { localStorage.setItem('roomsync.showEmptyDays', emptyDaysBox.checked ? '1' : '0'); } catch (e) { /* ignore */ }
-    });
-  }
 
   async function api(path, method, payload) {
     var opts = { method: method || 'GET', headers: { Authorization: 'Bearer ' + read(cfg.TOKEN_KEY) } };
@@ -205,6 +197,61 @@
     var r = await api('/rooms');
     if (r.ok) { renderRooms(r.body); } else if (r.status !== 401) { showToast(errorText(r)); }
   }
+
+  /* ---------- Show empty days + Task Colors (account-level, T2) ---------- */
+  var TASK_TYPES = ['exam', 'quiz', 'case-study', 'activity', 'seatwork', 'assignment'];
+  var DEFAULT_COLORS = {
+    exam: '#df0000', quiz: '#f2b84b', 'case-study': '#c79adb',
+    activity: '#f2795a', seatwork: '#009cdf', assignment: '#8f8f97'
+  };
+  var emptyDaysBox = byId('showEmptyDays');
+  var colorInputs = {};
+  TASK_TYPES.forEach(function (type) {
+    var input = document.querySelector('.settings-color-input[data-type="' + type + '"]');
+    if (input) { colorInputs[type] = input; }
+  });
+  var resetColorsBtn = byId('resetTaskColorsBtn');
+
+  function applySettings(s) {
+    if (emptyDaysBox) { emptyDaysBox.checked = !!s.show_empty_days; }
+    TASK_TYPES.forEach(function (type) {
+      if (colorInputs[type]) { colorInputs[type].value = (s.task_colors && s.task_colors[type]) || DEFAULT_COLORS[type]; }
+    });
+  }
+
+  async function saveSettings(payload) {
+    var r = await api('/users/me/settings', 'PUT', payload);
+    if (!r.ok) { showToast(errorText(r)); return null; }
+    // Every page's nav (sidebar_rooms.js) reads this to show empty days on Home and to
+    // color task badges everywhere; it only re-applies on a fresh load, so ask for one.
+    document.dispatchEvent(new CustomEvent('roomsync:rooms-changed'));
+    return r.body;
+  }
+
+  if (emptyDaysBox) {
+    emptyDaysBox.addEventListener('change', function () {
+      saveSettings({ show_empty_days: emptyDaysBox.checked });
+    });
+  }
+  Object.keys(colorInputs).forEach(function (type) {
+    colorInputs[type].addEventListener('change', function () {
+      var colors = {};
+      colors[type] = colorInputs[type].value;
+      saveSettings({ task_colors: colors }).then(function (s) { if (s) { showToast('Task colors updated.'); } });
+    });
+  });
+  if (resetColorsBtn) {
+    resetColorsBtn.addEventListener('click', async function () {
+      resetColorsBtn.disabled = true;
+      var r = await saveSettings({ task_colors: DEFAULT_COLORS });
+      resetColorsBtn.disabled = false;
+      if (r) { applySettings(r); showToast('Task colors reset.'); }
+    });
+  }
+  (async function loadSettings() {
+    var r = await api('/users/me/settings');
+    if (r.ok) { applySettings(r.body); }
+  })();
 
   /* ---------- Delete Account ---------- */
   var deleteBtn = byId('deleteAccountBtn');

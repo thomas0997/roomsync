@@ -109,6 +109,8 @@
                     ['assignment', 'Assignment'], ['activity', 'Activity'], ['seatwork', 'Seatwork'], [CUSTOM, '+ Custom']];
   var chipBox = null;
   var noteLink = null;
+  var timeLink = null;
+  var timeWrap = null;
 
   function syncChips() {
     if (!chipBox) { return; }
@@ -138,19 +140,26 @@
     typeSelect.required = false;   // the select is hidden here; the submit check below shows the message instead
     typeSelect.addEventListener('change', syncChips);
     byId('todoSubject').closest('label').classList.add('todo-opt-field');
-    byId('todoTime').closest('label').classList.add('todo-opt-field');
+    timeWrap = byId('todoTime').closest('label');
+    timeWrap.classList.add('todo-time-field');
     byId('todoModalRoom').closest('label').classList.add('todo-room-field');
-    noteLink = document.createElement('button');
-    noteLink.type = 'button';
-    noteLink.className = 'todo-link-btn';
-    noteLink.textContent = '+ Add a note';
-    noteLink.addEventListener('click', function () {
-      noteWrap.classList.add('open');
-      noteLink.hidden = true;
-      noteInput.focus();
-    });
+    function makeLink(text, wrap, field) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'todo-link-btn';
+      b.textContent = text;
+      b.addEventListener('click', function () {
+        wrap.classList.add('open');
+        b.hidden = true;
+        field.focus();
+      });
+      return b;
+    }
+    timeLink = makeLink('+ Add time', timeWrap, byId('todoTime'));
+    noteLink = makeLink('+ Add a note', noteWrap, noteInput);
     var links = document.createElement('div');
     links.className = 'todo-quick-links';
+    links.appendChild(timeLink);
     links.appendChild(noteLink);
     errorBox.parentNode.insertBefore(links, errorBox);
     form.classList.add('todo-simple');
@@ -209,6 +218,8 @@
     syncChips();
     if (noteWrap) { noteWrap.classList.remove('open'); }
     if (noteLink) { noteLink.hidden = false; }
+    if (timeWrap) { timeWrap.classList.remove('open'); }
+    if (timeLink) { timeLink.hidden = false; }
   }
 
   // The tag to send: a built-in type, or the custom text (a custom tag that spells a built-in type uses it).

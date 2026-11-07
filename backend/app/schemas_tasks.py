@@ -22,6 +22,7 @@ class TaskCreate(BaseModel):
     note: str | None = Field(default=None, max_length=300)
     due_at: datetime  # REQUIRED (Thomas's decision, Oct 19): no default means a missing due_at gives 422
     all_day: bool = False
+    file_ids: list[int] | None = Field(default=None, max_length=5)  # notes to attach (room files), at most 5
 
     @field_validator("subject", "note")
     @classmethod
@@ -72,6 +73,12 @@ class ApproveAllOut(BaseModel):
     skipped: int
 
 
+class AttachmentOut(BaseModel):
+    file_id: int
+    name: str
+    size: int
+
+
 class TaskOut(BaseModel):
     id: int
     room_id: int
@@ -89,6 +96,7 @@ class TaskOut(BaseModel):
     edited_by_name: str | None = None
     edited_at: datetime | None = None
     done: bool = False  # ticked off by the CURRENT user (per-user, never shared)
+    attachments: list[AttachmentOut] = []  # notes linked to this task: names only, oldest first
 
     @field_serializer("due_at", "decided_at", "edited_at")
     def as_utc_z(self, value: datetime | None):

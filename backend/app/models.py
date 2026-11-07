@@ -1,7 +1,7 @@
 """All database tables. Edit carefully: both of us touch this file, keep changes small."""
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -110,6 +110,7 @@ class Task(Base):
 
     approvals = relationship("Approval", cascade="all, delete-orphan")
     user_states = relationship("TaskUserState", cascade="all, delete-orphan")
+    attachment_links = relationship("TaskFile", cascade="all, delete-orphan")
 
 
 class TaskUserState(Base):
@@ -202,4 +203,51 @@ class RoomFile(Base):
     size: Mapped[int] = mapped_column(Integer)
     data: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True, nullable=True)
     storage_key: Mapped[str | None] = mapped_column(String(200), nullable=True)  # set = bytes are in R2
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    task_links = relationship("TaskFile", cascade="all, delete-orphan")
+
+
+class TaskFile(Base):
+    """A note (room file) linked to a task, at most 5 per task (see routers/attachments.py).
+    Deleting the task or the file removes the link; the other side stays."""
+    __tablename__ = "task_files"
+    __table_args__ = (UniqueConstraint("task_id", "file_id", name="uq_task_file"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"), index=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("room_files.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class InboxMessage(Base):
+    """One private message between two room-mates (see routers/inbox.py). Plain text only.
+    Each side has its own "removed" flag; the row is deleted for good when both have removed it.
+    A message from a blocked sender is kept for the SENDER only (deleted_by_recipient=True), so the sender
+    cannot tell it was blocked and the recipient never sees it."""
+    __tablename__ = "inbox_messages"
+    __table_args__ = (
+        Index("ix_inbox_to_id", "to_user_id", "id"),
+        Index("ix_inbox_from_id", "from_user_id", "id"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    subject: Mapped[str] = mapped_column(String(120))
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reply_to_id: Mapped[int | None] = mapped_column(
+        ForeignKey("inbox_messages.id", ondelete="SET NULL"), nullable=True
+    )
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")  # the recipient's archive
+    deleted_by_sender: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    deleted_by_recipient: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+
+class InboxBlock(Base):
+    """`blocker_id` does not want messages from `blocked_id`."""
+    __tablename__ = "inbox_blocks"
+    __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_inbox_block"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    blocker_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    blocked_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, require_member
 from ..db import get_db
-from ..models import Membership, Task, TaskUserState, User, utcnow
-from ..schemas_tasks import TaskCreate, TaskOut, TaskUpdate
+from ..models import Membership, RoomFile, Task, TaskFile, TaskUserState, User, utcnow
+from ..schemas_tasks import AttachmentOut, TaskCreate, TaskOut, TaskUpdate
 from ..ratelimit import limit_by_user
 
 router = APIRouter(tags=["tasks"])
@@ -46,7 +46,26 @@ def _name(db: Session, user_id: int | None) -> str | None:
     return u.name
 
 
-def task_to_out(db: Session, task: Task, done: bool = False) -> TaskOut:
+def _attachments_for(db: Session, task_ids: list[int]) -> dict[int, list[AttachmentOut]]:
+    """The notes linked to these tasks (names and sizes only), oldest first, in one query."""
+    found: dict[int, list[AttachmentOut]] = {}
+    if not task_ids:
+        return found
+    rows = (
+        db.query(TaskFile.task_id, RoomFile.id, RoomFile.name, RoomFile.size)
+        .join(RoomFile, RoomFile.id == TaskFile.file_id)
+        .filter(TaskFile.task_id.in_(task_ids))
+        .order_by(TaskFile.id)
+        .all()
+    )
+    for task_id, file_id, name, size in rows:
+        found.setdefault(task_id, []).append(AttachmentOut(file_id=file_id, name=name, size=size))
+    return found
+
+
+def task_to_out(db: Session, task: Task, done: bool = False, attachments: list[AttachmentOut] | None = None) -> TaskOut:
+    if attachments is None:
+        attachments = _attachments_for(db, [task.id]).get(task.id, [])
     return TaskOut(
         id=task.id,
         room_id=task.room_id,
@@ -64,6 +83,7 @@ def task_to_out(db: Session, task: Task, done: bool = False) -> TaskOut:
         edited_by_name=_name(db, task.edited_by),
         edited_at=task.edited_at,
         done=done,
+        attachments=attachments,
     )
 
 
@@ -83,12 +103,13 @@ def tasks_to_out(db: Session, user: User, tasks: list[Task], hide_removed: bool 
     """Turn tasks into JSON with the current user's `done` flag. hide_removed drops the tasks
     this user removed from their Home board (the calendar keeps showing them)."""
     states = _states_for(db, user, [t.id for t in tasks])
+    notes = _attachments_for(db, [t.id for t in tasks])
     out = []
     for t in tasks:
         st = states.get(t.id)
         if hide_removed and st is not None and st.hidden:
             continue
-        out.append(task_to_out(db, t, done=bool(st and st.done)))
+        out.append(task_to_out(db, t, done=bool(st and st.done), attachments=notes.get(t.id, [])))
     return out
 
 
@@ -142,6 +163,11 @@ def create_task(
     membership = require_member(db, user, room_id)  # 403 if not in this room
     _reject_past(body.due_at)
     _check_all_day(body.all_day, body.due_at)
+    file_ids = list(dict.fromkeys(body.file_ids or []))  # no duplicates, order kept
+    if file_ids:  # every note must be a file of THIS room (a missing file and another room's file look the same)
+        found = db.query(RoomFile.id).filter(RoomFile.id.in_(file_ids), RoomFile.room_id == room_id).count()
+        if found != len(file_ids):
+            raise HTTPException(422, "One of the files was not found in this room")
 
     status = "pending"
     if membership.role == "admin":
@@ -165,6 +191,9 @@ def create_task(
         created_by=user.id,
     )
     db.add(task)
+    db.flush()  # gives the task its id so the notes can link to it; one commit keeps it all-or-nothing
+    for fid in file_ids:
+        db.add(TaskFile(task_id=task.id, file_id=fid))
     db.commit()
     db.refresh(task)
     return task_to_out(db, task)

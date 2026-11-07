@@ -453,6 +453,7 @@
       if (!r.ok) { showFormError('joinError', errorText(r)); return; }
       addRoom(r.body);
       refreshApproveBadge();
+      refreshDiscussionBadge();
       joinForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -474,6 +475,7 @@
       if (!r.ok) { showFormError('createError', errorText(r)); return; }
       addRoom(r.body);
       refreshApproveBadge();
+      refreshDiscussionBadge();
       createForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -541,6 +543,32 @@
     });
   }
 
+  /* ---------- Discussion tab badge: total unread messages across every room you're in (T2) ---------- */
+  function refreshDiscussionBadge() {
+    if (!rooms.length) { setDiscussionBadge(0); return; }
+    Promise.all(rooms.map(function (r) { return api('/rooms/' + r.id + '/messages/unread-count'); }))
+      .then(function (results) {
+        var total = 0;
+        results.forEach(function (r) { if (r.ok) { total += r.body.count || 0; } });
+        setDiscussionBadge(total);
+      });
+  }
+
+  function setDiscussionBadge(total) {
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('a[href="discussion.html"]'));
+    nodes.forEach(function (node) {
+      var badge = node.querySelector('.disc-badge');
+      if (total > 0 && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'disc-badge';
+        badge.setAttribute('role', 'img');
+        badge.setAttribute('aria-label', total + ' unread messages');
+        node.appendChild(badge);
+      }
+      if (badge) { badge.hidden = total <= 0; badge.textContent = total > 99 ? '99+' : String(total); }
+    });
+  }
+
   /* ---------- real presence: tell the server we're here, every ~60s while the tab is visible ---------- */
   function pingPresence() { api('/presence/ping', 'POST'); }
   function startPresence() {
@@ -570,6 +598,7 @@
     }
     rooms = r.body;
     refreshApproveBadge();
+    refreshDiscussionBadge();
     if (rooms.length === 0) {
       selectRoom(null);
       setModalOpen(true);   // empty state: offer Join / Create straight away
@@ -587,7 +616,8 @@
     showToast: showToast,
     errorText: errorText,
     currentRoomId: function () { return currentId; },
-    isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); }
+    isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); },
+    refreshDiscussionBadge: refreshDiscussionBadge
   };
 
   // Another script (for example Settings after Leave Room) can ask for a fresh room list.

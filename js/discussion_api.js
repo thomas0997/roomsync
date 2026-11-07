@@ -37,6 +37,9 @@
   var replySnippet = byId('discReplySnippet');
   var replyCancel = byId('discReplyCancel');
   var sendBtn = form ? form.querySelector('.disc-send-btn') : null;
+  var clipBtn = byId('discClipBtn');
+  var attachRow = byId('discAttachRow');
+  var seenByEl = byId('discSeenBy');
   if (!thread || !box || !emptyEl || !loadRow || !loadBtn || !form || !input || !sendBtn ||
       !counter || !replyBar || !replyName || !replySnippet || !replyCancel) { return; }
 
@@ -54,6 +57,7 @@
   var pollFailed = false;  // so a dead connection shows one toast, not one every 10 seconds
   var localSeq = 0;        // counts messages added, so a poll never removes one it started before
   var replyTo = null;      // {id, name, snippet}
+  var attached = [];       // clip attachments picked for the next message: [{id, name, size}]
 
   var me = null;
   try { me = JSON.parse(localStorage.getItem(cfg.USER_KEY) || 'null').id; } catch (e) { me = null; }
@@ -89,6 +93,52 @@
 
   function snippetText(text) {
     return text.length >= SNIPPET_LENGTH ? text + '...' : text;
+  }
+
+  function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // Bold the @Full Name substrings the server told us this message mentions, without innerHTML:
+  // splits the text around each match and appends plain text nodes plus one <span> per mention.
+  function appendBodyWithMentions(container, text, mentionIds) {
+    var names = (mentionIds || [])
+      .map(function (uid) { return memberName(uid); })
+      .filter(Boolean)
+      .sort(function (a, b) { return b.length - a.length; }); // longest first, so "Bob" can't shadow "Bobby Lee"
+    if (!names.length) { container.appendChild(document.createTextNode(text)); return; }
+
+    var pattern = new RegExp('(?<!\\w)@(?:' + names.map(escapeRegExp).join('|') + ')(?!\\w)', 'g');
+    var last = 0;
+    var match;
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > last) { container.appendChild(document.createTextNode(text.slice(last, match.index))); }
+      container.appendChild(el('span', 'disc-mention', match[0]));
+      last = match.index + match[0].length;
+    }
+    container.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  function prettySize(n) {
+    if (n < 1024) { return n + ' B'; }
+    if (n < 1024 * 1024) { return Math.round(n / 1024) + ' KB'; }
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function appendAttachments(bubble, list) {
+    if (!list || !list.length) { return; }
+    var row = el('div', 'disc-attachments');
+    list.forEach(function (a) {
+      var chip = el('button', 'disc-attachment-chip');
+      chip.type = 'button';
+      chip.title = 'Download ' + a.name;
+      chip.appendChild(el('span', 'disc-attachment-name', a.name));
+      chip.appendChild(el('span', 'disc-attachment-size', prettySize(a.size)));
+      chip.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (window.RoomSyncAttach) { window.RoomSyncAttach.download(a.file_id, a.name); }
+      });
+      row.appendChild(chip);
+    });
+    bubble.appendChild(row);
   }
 
   function replyIcon() {
@@ -136,6 +186,7 @@
     var off = roomId === null;
     input.disabled = off;
     sendBtn.disabled = off || sending;
+    if (clipBtn) { clipBtn.disabled = off; }
   }
 
   function updateCounter() {
@@ -165,10 +216,72 @@
     replyBar.hidden = true;
   }
 
+  /* ---------- clip attachments (picked notes for the NEXT message) ---------- */
+  function renderAttachRow() {
+    if (!attachRow) { return; }
+    attachRow.textContent = '';
+    attachRow.hidden = attached.length === 0;
+    attached.forEach(function (f) {
+      var chip = el('span', 'disc-attach-chip');
+      chip.appendChild(el('span', 'disc-attach-chip-name', f.name));
+      var x = el('button', 'disc-attach-chip-remove', '×');
+      x.type = 'button';
+      x.setAttribute('aria-label', 'Remove ' + f.name);
+      x.addEventListener('click', function () {
+        attached = attached.filter(function (a) { return a.id !== f.id; });
+        renderAttachRow();
+      });
+      chip.appendChild(x);
+      attachRow.appendChild(chip);
+    });
+  }
+
+  async function openClipPicker() {
+    if (roomId === null || !window.RoomSyncAttach) { return; }
+    var picked = await window.RoomSyncAttach.pickFiles({
+      roomId: roomId,
+      selected: attached.map(function (f) { return f.id; }),
+      max: 5
+    });
+    if (picked === null) { return; }  // cancelled
+    attached = picked;
+    renderAttachRow();
+  }
+
+  if (clipBtn) { clipBtn.addEventListener('click', openClipPicker); }
+
+  /* ---------- unread / seen-by ---------- */
+  function markRead() {
+    if (roomId === null) { return; }
+    home.api('/rooms/' + roomId + '/messages/read', 'POST').then(function (r) {
+      if (r.ok && home.refreshDiscussionBadge) { home.refreshDiscussionBadge(); }
+    });
+  }
+
+  function renderSeenBy(list) {
+    if (!seenByEl) { return; }
+    if (!list || !list.length) { seenByEl.hidden = true; seenByEl.textContent = ''; return; }
+    var names = list.map(function (p) { return p.name; });
+    var text = names.length === 1 ? names[0]
+      : names.length === 2 ? names[0] + ' and ' + names[1]
+      : names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+    seenByEl.textContent = 'Seen by ' + text;
+    seenByEl.hidden = false;
+  }
+
+  function refreshSeenBy() {
+    if (roomId === null) { return; }
+    var id = roomId;
+    home.api('/rooms/' + id + '/messages/seen').then(function (r) {
+      if (id !== roomId) { return; }
+      if (r.ok) { renderSeenBy(r.body); }
+    });
+  }
+
   /* ---------- building one message ---------- */
   function makeAvatar(m) {
     var span = el('span', 'disc-avatar', initials(m.author_name));
-    var url = members[m.author_id];
+    var url = memberAvatar(m.author_id);
     if (url && window.RoomSyncAvatars) {
       var img = el('img', 'disc-avatar-photo');
       img.alt = '';
@@ -181,7 +294,8 @@
 
   function buildNode(m) {
     var own = m.author_id === me;
-    var group = el('div', 'disc-msg-group' + (own ? ' disc-msg-own' : ''));
+    var mentionsMe = me !== null && (m.mentions || []).indexOf(me) !== -1;
+    var group = el('div', 'disc-msg-group' + (own ? ' disc-msg-own' : '') + (mentionsMe ? ' disc-msg-mentions-me' : ''));
 
     var meta = el('div', 'disc-msg-meta');
     var avatar = makeAvatar(m);
@@ -204,7 +318,10 @@
         'Replying to ' + m.reply_to.author_name + ': ' + snippetText(m.reply_to.snippet)));
       bubble.appendChild(quote);
     }
-    bubble.appendChild(el('span', 'disc-text', m.body));
+    var textEl = el('span', 'disc-text');
+    appendBodyWithMentions(textEl, m.body, m.mentions);
+    bubble.appendChild(textEl);
+    appendAttachments(bubble, m.attachments);
 
     var row = el('div', 'disc-bubble-row');
     row.appendChild(bubble);
@@ -273,15 +390,19 @@
     hasMore = false;
     loaded = false;
     loadBtn.disabled = false;
+    renderSeenBy(null);
   }
 
   /* ---------- talking to the server ---------- */
   async function loadMembers(id) {
     var r = await home.api('/rooms/' + id + '/members');
     var map = {};
-    if (r.ok) { r.body.forEach(function (m) { map[m.user_id] = m.avatar_url || ''; }); }
+    if (r.ok) { r.body.forEach(function (m) { map[m.user_id] = { avatar_url: m.avatar_url || '', name: m.name }; }); }
     return map;
   }
+
+  function memberAvatar(uid) { var m = members[uid]; return m ? m.avatar_url : ''; }
+  function memberName(uid) { var m = members[uid]; return m ? m.name : ''; }
 
   function handleListError(r) {
     if (r.status === 401) { return; }   // api() is already sending you to the login page
@@ -316,6 +437,8 @@
     updateLoadRow();
     renderEmpty();
     scrollToBottom();
+    markRead();
+    refreshSeenBy();
   }
 
   async function loadEarlier() {
@@ -371,6 +494,8 @@
 
     if (added || changed) { renderEmpty(); }
     if (added && stick) { scrollToBottom(); }
+    if (added) { markRead(); }
+    refreshSeenBy();
   }
 
   async function poll() {
@@ -406,6 +531,7 @@
     var id = roomId;
     var payload = { body: text };
     if (replyTo) { payload.reply_to_id = replyTo.id; }
+    if (attached.length) { payload.file_ids = attached.map(function (f) { return f.id; }); }
     sending = true;
     refreshForm();
     var r = await home.api('/rooms/' + id + '/messages', 'POST', payload);
@@ -416,6 +542,8 @@
     if (r.ok) {
       input.value = '';
       clearReply();
+      attached = [];
+      renderAttachRow();
       updateCounter();
       autosize();
       insertSorted(r.body);
@@ -456,6 +584,8 @@
     pollFailed = false;
     resetList();
     clearReply();
+    attached = [];
+    renderAttachRow();
     input.value = '';
     updateCounter();
     autosize();

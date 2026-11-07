@@ -255,6 +255,10 @@
       li.dataset.avatar = m.avatar_url || '';
       li.dataset.self = String(m.user_id === myId());
       li.dataset.userid = String(m.user_id);
+      var stKind = m.status && (m.status.kind === 'brb' || m.status.kind === 'away' || m.status.kind === 'custom') ? m.status.kind : 'working';
+      var stText = statusLabel(m.status);
+      li.dataset.status = stText;
+      li.dataset.kind = stKind;
 
       var avatar = document.createElement('span');
       avatar.className = 'online-user-avatar';
@@ -267,12 +271,22 @@
           if (src) { pic.src = src; avatar.insertBefore(pic, avatar.firstChild); }
         });
       }
+      var dot = document.createElement('span');
+      dot.className = 'online-dot online-dot-' + stKind;
+      avatar.appendChild(dot);
       li.appendChild(avatar);
 
+      var textBox = document.createElement('span');
+      textBox.className = 'online-user-text';
       var name = document.createElement('span');
       name.className = 'online-user-name';
       name.textContent = m.name;
-      li.appendChild(name);
+      textBox.appendChild(name);
+      var st = document.createElement('span');
+      st.className = 'online-user-status';
+      st.textContent = stText;
+      textBox.appendChild(st);
+      li.appendChild(textBox);
 
       if (m.role === 'admin') {
         var role = document.createElement('span');

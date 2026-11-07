@@ -14,6 +14,18 @@
 .notes-file-delete:hover { background: var(--gray-bg); color: var(--exam); }
 @media (hover: none) { .notes-file-delete { opacity: 1; } }   /* phones have no hover */
 
+.notes-file-card { transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.notes-file-card:hover, .notes-file-card:focus-visible { border-color: var(--blue); box-shadow: 0 2px 10px rgba(0, 113, 227, 0.12); transform: translateY(-1px); }
+/* The line at the bottom of each card: tells you what a click does, and shows when a download is running. */
+.notes-file-cue { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--blue); }
+.notes-file-cue svg { width: 14px; height: 14px; flex-shrink: 0; }
+.notes-file-card.is-busy { cursor: progress; border-color: var(--blue); }
+.notes-file-card.is-busy .notes-file-cue { color: var(--gray-text-2); }
+.notes-file-card.is-busy .notes-file-cue svg { animation: notes-spin 0.8s linear infinite; }
+@keyframes notes-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .notes-file-card.is-busy .notes-file-cue svg { animation: none; } .notes-file-card { transition: none; } }
+.task-detail-attached-open.is-busy { cursor: progress; opacity: 0.7; }
+
 .notes-empty { color: var(--gray-text); font-size: 13.2px; padding: 8px 0 24px; }
 .notes-empty[hidden] { display: none; }
 .notes-quick-card:disabled { opacity: 0.6; cursor: progress; }

@@ -1,8 +1,8 @@
 """Inbox: private one-to-one messages between room-mates. Thomas's file. Follows docs/api-contract.md ("Inbox").
 
 Security rules (each one has a test in tests/test_inbox.py):
- - You can only write to someone who shares a room with you. An unknown email, a deleted account and a stranger all
-   give the SAME 404, so nobody can find out who has an account.
+ - You write to a "syncmate": someone who shares a room with you, picked by name from GET /inbox/syncmates.
+   An unknown id, a deleted account and a stranger all give the SAME 404, so nobody can find out who has an account.
  - Only the sender and the recipient can open a message. Everyone else, and a missing id, gets the same 404.
  - Never log message text, subjects or emails (this file has no logging at all).
  - Text is plain; the page shows it with textContent. No email address is ever returned, only names.
@@ -12,17 +12,18 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..db import get_db
-from ..models import InboxBlock, InboxMessage, Membership, User, utcnow
+from ..models import InboxBlock, InboxMessage, Membership, Room, User, utcnow
 from ..ratelimit import hit, limit_by_user
-from ..schemas_inbox import InboxArchive, InboxReply, InboxSend, MessageOut, UnreadOut
+from ..schemas_inbox import InboxArchive, InboxReply, InboxSend, MessageOut, SyncmateOut, UnreadOut
 
 router = APIRouter(tags=["inbox"])
 
-NO_CLASSMATE = "No classmate with that email in your rooms"
+NO_SYNCMATE = "Syncmate not found"
 send_limits = [
     Depends(limit_by_user("inbox_send_hour", 20, 3600)),
     Depends(limit_by_user("inbox_send_day", 100, 86400)),
@@ -92,15 +93,13 @@ def _deliver(db: Session, sender: User, recipient: User, subject: str, body: str
 
 @router.post("/inbox", response_model=MessageOut, status_code=201, dependencies=send_limits)
 def send_message(body: InboxSend, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    recipient = (
-        db.query(User).filter(User.email == body.to_email.lower(), User.deleted_at.is_(None)).first()
-    )
-    if recipient is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_CLASSMATE)
-    if recipient.id == user.id:
+    if body.to_user_id == user.id:
         raise HTTPException(422, "You cannot write to yourself")
+    recipient = db.query(User).filter(User.id == body.to_user_id, User.deleted_at.is_(None)).first()
+    if recipient is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_SYNCMATE)
     if not _shares_a_room(db, user.id, recipient.id):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_CLASSMATE)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_SYNCMATE)
     return _deliver(db, user, recipient, body.subject, body.body, None)
 
 
@@ -110,9 +109,30 @@ def reply(message_id: int, body: InboxReply, db: Session = Depends(get_db), user
     other_id = original.to_user_id if original.from_user_id == user.id else original.from_user_id
     other = db.get(User, other_id)
     if other is None or other.deleted_at is not None or not _shares_a_room(db, user.id, other.id):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_CLASSMATE)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, NO_SYNCMATE)
     subject = original.subject if original.subject.startswith("Re: ") else f"Re: {original.subject}"
     return _deliver(db, user, other, subject[:120], body.body, original.id)
+
+
+@router.get("/inbox/syncmates", response_model=list[SyncmateOut], dependencies=[Depends(limit_by_user("inbox_read", 600, 3600))])
+def syncmates(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Everyone who shares a room with me (not me, not deleted accounts), with the names of the rooms we share."""
+    mine = aliased(Membership)
+    theirs = aliased(Membership)
+    rows = (
+        db.query(User.id, User.name, Room.name)
+        .select_from(mine)
+        .join(theirs, theirs.room_id == mine.room_id)
+        .join(User, User.id == theirs.user_id)
+        .join(Room, Room.id == mine.room_id)
+        .filter(mine.user_id == user.id, theirs.user_id != user.id, User.deleted_at.is_(None))
+        .order_by(func.lower(User.name), User.id, Room.name)
+        .all()
+    )
+    found: dict[int, SyncmateOut] = {}
+    for uid, name, room_name in rows:
+        found.setdefault(uid, SyncmateOut(user_id=uid, name=name, rooms=[])).rooms.append(room_name)
+    return list(found.values())
 
 
 @router.get("/inbox", response_model=list[MessageOut], dependencies=[Depends(limit_by_user("inbox_read", 600, 3600))])

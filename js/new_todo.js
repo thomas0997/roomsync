@@ -258,7 +258,7 @@
     noteInput.id = 'todoNote';
     noteInput.rows = 3;
     noteInput.maxLength = 300;
-    noteInput.placeholder = 'Anything your classmates should know (optional)';
+    noteInput.placeholder = 'Anything your syncmates should know (optional)';
     noteWrap = field('Note (optional)', noteInput);
     noteWrap.classList.add('todo-note-field');
     after(byId('todoSubject').closest('label'), noteWrap);

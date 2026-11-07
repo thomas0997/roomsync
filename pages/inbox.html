@@ -5,7 +5,7 @@
 <title>RoomSync | Inbox</title>
 <link rel="icon" href="../assets/roomsync_logo.png">
 
-<meta name="description" content="RoomSync inbox - private messages to your classmates.">
+<meta name="description" content="RoomSync inbox - private messages to your syncmates.">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -242,7 +242,7 @@
           <p class="page-eyebrow desktop-tablet-only">INBOX</p>
           <h1 class="page-title desktop-tablet-only">Inbox</h1>
           <h1 class="page-title page-title-mobile mobile-only-inline">Inbox</h1>
-          <p class="page-subtitle">Private messages to classmates who share a room with you.</p>
+          <p class="page-subtitle">Private messages to your syncmates, the people who share a room with you.</p>
         </div>
         <button type="button" class="btn-todo desktop-only inbox-compose-btn" id="inboxNew">
           <span class="plus">+</span> New message
@@ -399,8 +399,8 @@
       </div>
       <form id="composeForm" novalidate>
         <label class="abt-field">
-          <span class="abt-field-label">To (your classmate's email)</span>
-          <input type="email" id="composeTo" maxlength="254" placeholder="classmate@example.com" autocomplete="off">
+          <span class="abt-field-label">To (a syncmate)</span>
+          <select id="composeTo" class="inbox-select"><option value="">Loading syncmates...</option></select>
         </label>
         <label class="abt-field">
           <span class="abt-field-label">Subject</span>

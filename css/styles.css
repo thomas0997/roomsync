@@ -2422,3 +2422,18 @@ a.sidebar-link[href="inbox.html"] { position: relative; }
 .task-detail-attached-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-detail-attached-size { font-size: 12px; color: var(--gray-text-2); flex-shrink: 0; }
 .task-detail-notes .todo-link-btn { align-self: flex-start; }
+
+/* Member status: little dot on the avatar + status text under the name (sidebar) and in the person pop-up */
+.online-user-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.online-user-status { font-size: 11.5px; color: var(--gray-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+.online-dot.online-dot-working { background: #34c759; }
+.online-dot.online-dot-brb { background: #ffcc00; }
+.online-dot.online-dot-away { background: #ff3b30; }
+.online-dot.online-dot-custom { background: #8e8e93; }
+.online-user-clickable .online-user-role { margin-left: auto; }
+.person-status { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.person-status::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #34c759; flex-shrink: 0; }
+.person-status-brb::before { background: #ffcc00; }
+.person-status-away::before { background: #ff3b30; }
+.person-status-custom::before { background: #8e8e93; }
+#personModalMessage[hidden] { display: none !important; }

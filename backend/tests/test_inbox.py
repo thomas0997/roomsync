@@ -20,8 +20,18 @@ def _setup(client):
     return alice, bob, carol
 
 
+EMAIL_IDS = {"a@example.com": "Alice", "b@example.com": "Bob", "c@example.com": "Carol", "d@example.com": "Dave"}
+
+
+def _id_of(email):
+    with SessionLocal() as db:
+        return db.query(User.id).filter(User.email == email).scalar()
+
+
 def _send(client, headers, to="b@example.com", subject="Hello", body="Hi there"):
-    return client.post("/inbox", json={"to_email": to, "subject": subject, "body": body}, headers=headers)
+    """`to` is an email only to find the person's id in the test database; the API takes the id."""
+    to_id = to if isinstance(to, int) else (_id_of(to) or 999999)
+    return client.post("/inbox", json={"to_user_id": to_id, "subject": subject, "body": body}, headers=headers)
 
 
 def _uid(client, headers):
@@ -51,23 +61,37 @@ def test_no_email_address_is_ever_returned(client):
             assert "@example.com" not in client.get(f"/inbox?folder={folder}", headers=headers).text
 
 
-def test_email_match_ignores_case(client):
+def test_syncmates_lists_only_room_mates_with_names_and_rooms(client):
+    alice, bob, carol = _setup(client)
+    r = client.get("/inbox/syncmates", headers=alice)
+    assert r.status_code == 200
+    assert r.json() == [{"user_id": _id_of("b@example.com"), "name": "Bob", "rooms": [client.get("/rooms", headers=alice).json()[0]["name"]]}]
+    assert "@example.com" not in r.text
+    assert client.get("/inbox/syncmates", headers=carol).json() == []  # alone in her room
+    assert client.get("/inbox/syncmates").status_code == 401
+
+
+def test_syncmates_hides_deleted_accounts(client):
     alice, _, _ = _setup(client)
-    assert _send(client, alice, to="B@Example.COM").status_code == 201
+    with SessionLocal() as db:
+        db.query(User).filter(User.email == "b@example.com").update({"deleted_at": utcnow()})
+        db.commit()
+    assert client.get("/inbox/syncmates", headers=alice).json() == []
 
 
 def test_needs_login(client):
     assert client.get("/inbox").status_code == 401
     assert client.post("/inbox", json={}).status_code == 401
+    assert client.get("/inbox/syncmates").status_code == 401
     assert client.get("/inbox/unread-count").status_code == 401
     assert client.get("/inbox/1").status_code == 401
     assert client.delete("/inbox/1").status_code == 401
     assert client.put("/inbox/blocks/1").status_code == 401
 
 
-def test_unknown_email_stranger_and_deleted_account_look_identical(client):
+def test_unknown_id_stranger_and_deleted_account_look_identical(client):
     alice, bob, carol = _setup(client)
-    unknown = _send(client, alice, to="nobody@example.com")
+    unknown = _send(client, alice, to=987654)
     stranger = _send(client, alice, to="c@example.com")  # exists, but shares no room with Alice
     no_room = _send(client, alice, to="d@example.com")
     with SessionLocal() as db:  # a deleted account
@@ -76,7 +100,7 @@ def test_unknown_email_stranger_and_deleted_account_look_identical(client):
     deleted = _send(client, alice, to="b@example.com")
     for r in (unknown, stranger, no_room, deleted):
         assert r.status_code == 404
-        assert r.json() == {"detail": "No classmate with that email in your rooms"}
+        assert r.json() == {"detail": "Syncmate not found"}
 
 
 def test_cannot_write_to_yourself(client):
@@ -84,16 +108,23 @@ def test_cannot_write_to_yourself(client):
     assert _send(client, alice, to="a@example.com").status_code == 422
 
 
+def test_email_field_is_no_longer_accepted(client):
+    alice, _, _ = _setup(client)
+    r = client.post("/inbox", json={"to_email": "b@example.com", "subject": "s", "body": "x"}, headers=alice)
+    assert r.status_code == 422
+
+
 @pytest.mark.parametrize("payload", [
-    {"to_email": "b@example.com", "subject": "", "body": "x"},
-    {"to_email": "b@example.com", "subject": "   ", "body": "x"},
-    {"to_email": "b@example.com", "subject": "s", "body": ""},
-    {"to_email": "b@example.com", "subject": "s", "body": "   \n "},
-    {"to_email": "b@example.com", "subject": "s" * 121, "body": "x"},
-    {"to_email": "b@example.com", "subject": "s", "body": "x" * 2001},
-    {"to_email": "not-an-email", "subject": "s", "body": "x"},
-    {"to_email": "b@example.com", "subject": "s"},
-    {"to_email": "b@example.com", "subject": "s", "body": "x", "from_user_id": 5},  # unknown fields are refused
+    {"to_user_id": 2, "subject": "", "body": "x"},
+    {"to_user_id": 2, "subject": "   ", "body": "x"},
+    {"to_user_id": 2, "subject": "s", "body": ""},
+    {"to_user_id": 2, "subject": "s", "body": "   \n "},
+    {"to_user_id": 2, "subject": "s" * 121, "body": "x"},
+    {"to_user_id": 2, "subject": "s", "body": "x" * 2001},
+    {"to_user_id": 0, "subject": "s", "body": "x"},
+    {"to_user_id": "bob", "subject": "s", "body": "x"},
+    {"to_user_id": 2, "subject": "s"},
+    {"to_user_id": 2, "subject": "s", "body": "x", "from_user_id": 5},  # unknown fields are refused
 ])
 def test_bad_input_is_422(client, payload):
     alice, _, _ = _setup(client)
@@ -191,7 +222,7 @@ def test_reply_fails_when_you_no_longer_share_a_room(client):
     bob_id = _uid(client, bob)
     assert client.delete(f"/rooms/{room['id']}/members/{bob_id}", headers=alice).status_code == 204
     r = client.post(f"/inbox/{mid}/reply", json={"body": "hi"}, headers=bob)
-    assert r.status_code == 404 and r.json() == {"detail": "No classmate with that email in your rooms"}
+    assert r.status_code == 404 and r.json() == {"detail": "Syncmate not found"}
 
 
 # ---------- folders, paging, archive, delete ----------

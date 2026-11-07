@@ -81,7 +81,7 @@ Done and removed are stored per user and per task and are deleted together with 
 Task-id endpoints (PATCH and DELETE /tasks/{task_id}, PUT and DELETE /tasks/{task_id}/done and /hidden, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
 
 ### Note attachments (T2 DONE)
-A task can link up to 5 notes (room files) so classmates open the right file from the task card, and the Notes page shows which tasks use a file.
+A task can link up to 5 notes (room files) so syncmates open the right file from the task card, and the Notes page shows which tasks use a file.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | PUT | /tasks/{task_id}/attachments/{file_id} | none | 200 task (with `attachments`). Links the file to the task. Doing it twice is fine. | T2 DONE |
@@ -192,11 +192,12 @@ Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas
 Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); once the Email service is configured, each saved message is also forwarded to `CONTACT_INBOX` (Reply-To is the sender's address for Contact). A failed forward never fails the request.
 
 ## Inbox (T2 DONE): replaces direct messages
-A private, one-to-one inbox, like email inside RoomSync. A person writes to a classmate by email address and the message lands in the recipient's Inbox tab. It is NOT a mailto link and sends no real email in v1 (a "you have a new message" email may come later). It is NOT end-to-end encrypted (see Privacy below).
+A private, one-to-one inbox, like email inside RoomSync. A person writes to a syncmate (someone who shares a room with them), picked by name, and the message lands in the recipient's Inbox tab. It is NOT a mailto link and sends no real email in v1 (a "you have a new message" email may come later). It is NOT end-to-end encrypted (see Privacy below).
 Message: `{id, from_user_id, from_name, to_user_id, to_name, subject, body, created_at, read_at?, reply_to_id?, archived}`. Names only; email addresses are never returned. A deleted account shows as "Deleted user".
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /inbox | `{to_email, subject, body}` | 201 message. `subject` 1 to 120 characters, `body` 1 to 2000, both trimmed and not blank (422). Writing to yourself gives 422. | T2 DONE |
+| GET | /inbox/syncmates | none | `[{user_id, name, rooms: [room name]}]` everyone who shares a room with me (not me, not deleted accounts), sorted by name. Powers the name picker. No emails. | T2 DONE |
+| POST | /inbox | `{to_user_id, subject, body}` | 201 message. `subject` 1 to 120 characters, `body` 1 to 2000, both trimmed and not blank (422). Writing to yourself gives 422. | T2 DONE |
 | POST | /inbox/{message_id}/reply | `{body}` | 201 message to the other person, subject "Re: ..." (reply_to_id set). Same rules and limits as a new message. | T2 DONE |
 | GET | /inbox?folder=inbox&limit=50&before_id= | none | `[message]` newest first. `folder`: `inbox` (default), `sent`, `archived`. `limit` 1 to 100. `before_id` pages older messages. 422 for a bad value. | T2 DONE |
 | GET | /inbox/unread-count | none | `{count}` unread messages in my inbox. The frontend polls this every 30 seconds for the dot and the toast. | T2 DONE |
@@ -206,7 +207,7 @@ Message: `{id, from_user_id, from_name, to_user_id, to_name, subject, body, crea
 | PUT | /inbox/blocks/{user_id} | none | 204. Blocks that person from writing to me. Doing it twice is fine. | T2 DONE |
 | DELETE | /inbox/blocks/{user_id} | none | 204. Unblocks. | T2 DONE |
 Rules:
-- Room-mates only. You can write only to someone who shares at least one room with you. An unknown email, a deleted account and a person you share no room with ALL give the same 404 "No classmate with that email in your rooms", so nobody can find out who has an account. Signup and login behavior is unchanged.
+- Room-mates only. You can write only to someone who shares at least one room with you. An unknown id, a deleted account and a person you share no room with ALL give the same 404 "Syncmate not found", so nobody can find out who has an account. Signup and login behavior is unchanged.
 - Privacy of messages: only the sender and the recipient can open a message. For any other person, and for a message that does not exist, the answer is the same 404, so ids cannot be probed. Admins have no extra access in the app.
 - Blocks: a blocked sender still gets the normal 201 (they are not told) and sees the message in their Sent folder, but it is never delivered: the recipient never sees it and it never counts as unread. Blocking someone does not remove old messages. You can block someone you share a room with or who has written to you (otherwise 404).
 - Limits (429 when exceeded): 20 messages per hour and 100 per day per user, and at most 10 per hour to the same person. Message size is capped as above (422).

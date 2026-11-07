@@ -109,10 +109,17 @@
       var item = el('div', 'task-detail-attached');
       var open = el('button', 'task-detail-attached-open');
       open.type = 'button';
-      open.title = 'Download';
+      open.title = 'Click to download';
       open.appendChild(el('span', 'task-detail-attached-name', a.name));
-      open.appendChild(el('span', 'task-detail-attached-size', prettySize(a.size)));
-      open.addEventListener('click', function () { if (window.RoomSyncAttach) { window.RoomSyncAttach.download(a.file_id, a.name); } });
+      var sizeEl = el('span', 'task-detail-attached-size', prettySize(a.size) + ' \u00b7 Download');
+      open.appendChild(sizeEl);
+      open.addEventListener('click', async function () {
+        if (!window.RoomSyncAttach || open.classList.contains('is-busy')) { return; }
+        open.classList.add('is-busy');
+        sizeEl.textContent = 'Downloading...';
+        try { await Promise.all([window.RoomSyncAttach.download(a.file_id, a.name), new Promise(function (r) { setTimeout(r, 500); })]); }
+        finally { open.classList.remove('is-busy'); sizeEl.textContent = prettySize(a.size) + ' \u00b7 Download'; }
+      });
       item.appendChild(open);
       if (canAttach) {
         var x = el('button', 'todo-attached-x', '\u00d7');

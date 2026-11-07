@@ -147,7 +147,13 @@
     card.appendChild(el('span', 'notes-file-name', f.name));
     card.appendChild(el('span', 'notes-file-meta',
                         f.created_by_name + ' • ' + prettySize(f.size) + ' • ' + timeAgo(f.created_at)));
-    card.addEventListener('click', function () { openFile(f); });
+    var opens = !!TEXT[extOf(f.name)];
+    var cue = el('span', 'notes-file-cue');
+    cue.appendChild(cueIcon(opens ? 'open' : 'download'));
+    cue.appendChild(el('span', 'notes-file-cue-text', opens ? 'Click to open' : 'Click to download'));
+    card.appendChild(cue);
+    card.title = opens ? 'Open ' + f.name : 'Download ' + f.name;
+    card.addEventListener('click', function () { openFile(f, card); });
     item.appendChild(card);
     item.appendChild(usageRow(f));
     if (f.created_by === myId() || home.isAdmin()) {
@@ -186,7 +192,55 @@
   }
 
   /* ---------- open, download, delete ---------- */
-  async function download(f) {
+  function cueIcon(kind) {
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    var d = { open: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+              download: 'M12 4v11M7 11l5 5 5-5M5 20h14',
+              busy: 'M21 12a9 9 0 1 1-6.2-8.55' }[kind];
+    var path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    svg.appendChild(path);
+    return svg;
+  }
+
+  // While a download runs the card says "Downloading..." (and ignores a second click), so it never looks stuck.
+  function setBusy(card, on, label) {
+    if (!card) { return; }
+    var cue = card.querySelector('.notes-file-cue');
+    card.classList.toggle('is-busy', on);
+    card.setAttribute('aria-busy', on ? 'true' : 'false');
+    if (cue) {
+      while (cue.firstChild) { cue.removeChild(cue.firstChild); }
+      if (on) { cue.appendChild(cueIcon('busy')); cue.appendChild(el('span', 'notes-file-cue-text', 'Downloading...')); }
+      else { cue.appendChild(cueIcon('download')); cue.appendChild(el('span', 'notes-file-cue-text', label || 'Click to download')); }
+    }
+  }
+
+  async function download(f, card) {
+    if (f.downloading) { return; }
+    f.downloading = true;
+    var dlBtn = byId('fileViewDownload');
+    var dlLabel = dlBtn.textContent;
+    setBusy(card, true);
+    if (viewing && viewing.id === f.id) { dlBtn.disabled = true; dlBtn.textContent = 'Downloading...'; }
+    try { await Promise.all([downloadNow(f), new Promise(function (r) { setTimeout(r, 500); })]); }
+    finally {
+      f.downloading = false;
+      setBusy(card, false);
+      dlBtn.disabled = false;
+      dlBtn.textContent = dlLabel === 'Downloading...' ? 'Download' : dlLabel;
+    }
+  }
+
+  async function downloadNow(f) {
     var res = await authFetch('/files/' + f.id + '/download');
     if (!res || !res.ok) { home.showToast(await problemText(res)); return; }
     var url = URL.createObjectURL(await res.blob());
@@ -199,8 +253,8 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
   }
 
-  function openFile(f) {
-    if (TEXT[extOf(f.name)]) { openViewer(f); } else { download(f); }
+  function openFile(f, card) {
+    if (TEXT[extOf(f.name)]) { openViewer(f); } else { download(f, card); }
   }
 
   async function openViewer(f) {

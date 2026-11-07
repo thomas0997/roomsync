@@ -2,7 +2,7 @@
    ROOMSYNC — inbox.js
    The Inbox page: private messages between room-mates (docs/api-contract.md, "Inbox").
    - folders: Inbox, Sent, Archived; open a message to read it (that marks it read)
-   - write a new message to a classmate by email, reply, archive, delete (only your copy), block a sender
+   - write a new message to a syncmate picked by name, reply, archive, delete (only your copy), block a sender
    Everything a person wrote (names, subjects, messages) is set with textContent and shown as plain text.
    Links in messages are NOT clickable on purpose (phishing risk). Messages are not end-to-end encrypted.
    Needs: js/sidebar_rooms.js (window.RoomSyncHome) and js/inbox_badge.js loaded first.
@@ -101,7 +101,7 @@
       list.appendChild(more);
     }
     if (!messages.length) {
-      say(folder === 'inbox' ? 'Nothing here yet. Messages from your classmates will show up here.'
+      say(folder === 'inbox' ? 'Nothing here yet. Messages from your syncmates will show up here.'
         : folder === 'sent' ? "You haven't sent any messages yet."
         : 'Nothing archived.');
     } else { say(''); }
@@ -269,10 +269,41 @@
   var sendBtn = byId('composeSend');
 
   function updateCounter() { counter.textContent = bodyInput.value.length + ' / 2000'; }
-  function openCompose() {
+  var syncmates = null;   // [{user_id, name, rooms}] people who share a room with me (no emails)
+
+  async function loadSyncmates() {
+    var r = await home.api('/inbox/syncmates');
+    syncmates = r.ok ? r.body : [];
+    if (!r.ok && r.status !== 401) { home.showToast(home.errorText(r)); }
+    return syncmates;
+  }
+
+  function fillPicker(selectedId) {
+    while (toInput.firstChild) { toInput.removeChild(toInput.firstChild); }
+    var first = document.createElement('option');
+    first.value = '';
+    first.textContent = syncmates.length ? 'Pick a syncmate' : 'No syncmates yet';
+    toInput.appendChild(first);
+    syncmates.forEach(function (s) {
+      var o = document.createElement('option');
+      o.value = String(s.user_id);
+      o.textContent = s.name + (s.rooms && s.rooms.length ? ' \u00b7 ' + s.rooms.join(', ') : '');
+      toInput.appendChild(o);
+    });
+    toInput.value = selectedId && syncmates.some(function (s) { return String(s.user_id) === String(selectedId); }) ? String(selectedId) : '';
+    sendBtn.disabled = !syncmates.length;
+  }
+
+  async function openCompose(toId) {
     composeErr.hidden = true;
     overlay.hidden = false;
-    toInput.focus();
+    if (syncmates === null) { await loadSyncmates(); }
+    fillPicker(typeof toId === 'string' || typeof toId === 'number' ? toId : '');
+    if (!syncmates.length) {
+      composeErr.textContent = 'You need to share a room with someone before you can message them.';
+      composeErr.hidden = false;
+    }
+    (toInput.value ? subjectInput : toInput).focus();
   }
   function closeCompose() { overlay.hidden = true; }
 
@@ -280,14 +311,14 @@
     e.preventDefault();
     composeErr.hidden = true;
     var to = toInput.value.trim(), subject = subjectInput.value.trim(), body = bodyInput.value.trim();
-    if (!to || !subject || !body) { composeErr.textContent = 'Fill in the email, a subject and a message.'; composeErr.hidden = false; return; }
+    if (!to || !subject || !body) { composeErr.textContent = 'Pick a syncmate and fill in a subject and a message.'; composeErr.hidden = false; return; }
     sendBtn.disabled = true;
-    var r = await home.api('/inbox', 'POST', { to_email: to, subject: subject, body: body });
+    var r = await home.api('/inbox', 'POST', { to_user_id: parseInt(to, 10), subject: subject, body: body });
     sendBtn.disabled = false;
     if (!r.ok) {
       if (r.status === 401) { return; }
       composeErr.textContent = r.status === 422 && !(r.body && typeof r.body.detail === 'string')
-        ? 'Check the email address, subject (up to 120 characters) and message (up to 2000).'
+        ? 'Check the syncmate, subject (up to 120 characters) and message (up to 2000).'
         : home.errorText(r);
       composeErr.hidden = false;
       return;
@@ -303,8 +334,8 @@
   document.querySelectorAll('.inbox-tab').forEach(function (b) {
     b.addEventListener('click', function () { setFolder(b.dataset.folder); });
   });
-  byId('inboxNew').addEventListener('click', openCompose);
-  byId('inboxNewSmall').addEventListener('click', openCompose);
+  byId('inboxNew').addEventListener('click', function () { openCompose(''); });
+  byId('inboxNewSmall').addEventListener('click', function () { openCompose(''); });
   byId('composeClose').addEventListener('click', closeCompose);
   byId('composeCancel').addEventListener('click', closeCompose);
   overlay.addEventListener('click', function (e) { if (e.target === overlay) { closeCompose(); } });
@@ -318,4 +349,11 @@
   updateCounter();
   showReader(null);
   load(false);
+
+  // inbox.html?to=<id> (the Message button on a person's pop-up) opens the compose box with that person picked.
+  var toParam = (new URLSearchParams(window.location.search)).get('to');
+  if (toParam && /^[0-9]+$/.test(toParam)) {
+    openCompose(toParam);
+    if (window.history && window.history.replaceState) { window.history.replaceState(null, '', window.location.pathname); }
+  }
 })();

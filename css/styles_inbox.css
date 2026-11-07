@@ -7,7 +7,9 @@
 .inbox-compose-btn { white-space: nowrap; }
 .inbox-compose-small { display: none; align-self: flex-start; margin-bottom: 12px; }
 @media (max-width: 1199px) { .inbox-compose-small { display: inline-flex; } }
-.inbox-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
+.inbox-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
+@media (max-width: 1199px) { .inbox-tabs { margin-top: 16px; } }
+.inbox-select { width: 100%; }
 
 .inbox-wrap { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: #fff; min-height: 460px; overflow: hidden; }
 .inbox-list-col { border-right: 1px solid var(--hairline); display: flex; flex-direction: column; min-width: 0; max-height: 640px; overflow-y: auto; }

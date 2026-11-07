@@ -1,7 +1,7 @@
 """Request/response shapes for the Inbox (see docs/api-contract.md, "Inbox")."""
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 
 def _clean(value: str) -> str:
@@ -14,7 +14,7 @@ def _clean(value: str) -> str:
 
 class InboxSend(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    to_email: EmailStr
+    to_user_id: int = Field(ge=1)  # a syncmate picked from GET /inbox/syncmates
     subject: str = Field(min_length=1, max_length=120)
     body: str = Field(min_length=1, max_length=2000)
 
@@ -63,3 +63,10 @@ class MessageOut(BaseModel):
 
 class UnreadOut(BaseModel):
     count: int
+
+
+class SyncmateOut(BaseModel):
+    """Someone who shares at least one room with me: name and the shared room names, never an email."""
+    user_id: int
+    name: str
+    rooms: list[str]

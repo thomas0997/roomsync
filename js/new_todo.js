@@ -48,6 +48,7 @@
   var customWrap = null;
   var customInput = null;
   var noteInput = null;
+  var noteWrap = null;
   var extraBox = null;
   var addTitleBtn = null;
   var addTitleHint = null;
@@ -102,6 +103,59 @@
     return input;
   }
 
+  // The short create form: title, type chips, one date, then optional links.
+  // Subject, time and extra titles are not shown while creating; Edit still has every field.
+  var CHIP_TYPES = [['exam', 'Exam'], ['quiz', 'Quiz'], ['case-study', 'Case Study'],
+                    ['assignment', 'Assignment'], ['activity', 'Activity'], ['seatwork', 'Seatwork'], [CUSTOM, '+ Custom']];
+  var chipBox = null;
+  var noteLink = null;
+
+  function syncChips() {
+    if (!chipBox) { return; }
+    Array.prototype.forEach.call(chipBox.children, function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-type') === typeSelect.value ? 'true' : 'false');
+    });
+  }
+
+  function buildSimple() {
+    chipBox = document.createElement('div');
+    chipBox.className = 'todo-type-chips';
+    CHIP_TYPES.forEach(function (pair) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'todo-chip';
+      b.setAttribute('data-type', pair[0]);
+      b.setAttribute('aria-pressed', 'false');
+      b.textContent = pair[1];
+      b.addEventListener('click', function () {
+        typeSelect.value = pair[0];
+        typeSelect.dispatchEvent(new Event('change'));
+        syncChips();
+      });
+      chipBox.appendChild(b);
+    });
+    typeSelect.parentNode.appendChild(chipBox);
+    typeSelect.required = false;   // the select is hidden here; the submit check below shows the message instead
+    typeSelect.addEventListener('change', syncChips);
+    byId('todoSubject').closest('label').classList.add('todo-opt-field');
+    byId('todoTime').closest('label').classList.add('todo-opt-field');
+    byId('todoModalRoom').closest('label').classList.add('todo-room-field');
+    noteLink = document.createElement('button');
+    noteLink.type = 'button';
+    noteLink.className = 'todo-link-btn';
+    noteLink.textContent = '+ Add a note';
+    noteLink.addEventListener('click', function () {
+      noteWrap.classList.add('open');
+      noteLink.hidden = true;
+      noteInput.focus();
+    });
+    var links = document.createElement('div');
+    links.className = 'todo-quick-links';
+    links.appendChild(noteLink);
+    errorBox.parentNode.insertBefore(links, errorBox);
+    form.classList.add('todo-simple');
+  }
+
   // Put the extra bits into the form. Runs once; the form HTML on each page stays as it is.
   function buildExtras() {
     var customOpt = document.createElement('option');
@@ -124,7 +178,10 @@
     noteInput.rows = 3;
     noteInput.maxLength = 300;
     noteInput.placeholder = 'Anything your classmates should know (optional)';
-    after(byId('todoSubject').closest('label'), field('Note (optional)', noteInput));
+    noteWrap = field('Note (optional)', noteInput);
+    noteWrap.classList.add('todo-note-field');
+    after(byId('todoSubject').closest('label'), noteWrap);
+    buildSimple();
 
     var titleLabel = byId('todoTitle').closest('label');
     extraBox = document.createElement('div');
@@ -149,6 +206,9 @@
     extraBox.textContent = '';
     customWrap.hidden = true;
     syncAddTitle();
+    syncChips();
+    if (noteWrap) { noteWrap.classList.remove('open'); }
+    if (noteLink) { noteLink.hidden = false; }
   }
 
   // The tag to send: a built-in type, or the custom text (a custom tag that spells a built-in type uses it).
@@ -173,6 +233,7 @@
   // Create mode or edit mode: the heading, the button text and the room list follow.
   function setMode(task, onSaved) {
     editing = task ? { task: task, onSaved: onSaved } : null;
+    form.classList.toggle('todo-simple', !task);   // short form to create, full form to edit
     if (titleEl) { titleEl.textContent = task ? 'Edit TODO' : 'New TODO'; }
     if (submitBtn) { submitBtn.textContent = task ? 'Save' : 'Create'; }
     var select = byId('todoModalRoom');

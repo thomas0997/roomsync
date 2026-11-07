@@ -2344,3 +2344,36 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 
 /* Room modal: only the active tab's form shows (the spacing rule above must not reveal hidden panels) */
 .todo-modal form[hidden], .todo-modal form.abt-panel:not(.abt-panel-active) { display: none; }
+
+/* New TODO: short create form (Edit mode keeps every field) */
+.todo-type-chips, .todo-quick-links { display: none; }
+.todo-chip {
+  padding: 8px 13px; border-radius: 999px; border: 1px solid var(--hairline); background: #fff; cursor: pointer;
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--near-black);
+}
+.todo-chip[aria-pressed="true"] { background: var(--near-black); border-color: var(--near-black); color: #fff; }
+.todo-chip:last-child[aria-pressed="false"] { color: var(--blue); }
+.todo-link-btn { border: none; background: transparent; padding: 0; cursor: pointer; font-family: inherit; font-size: 14.5px; font-weight: 700; color: var(--blue); }
+.todo-link-btn:hover { text-decoration: underline; }
+.todo-modal form.todo-simple .todo-type-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.todo-modal form.todo-simple .todo-quick-links { display: flex; gap: 22px; }
+.todo-modal form.todo-simple #todoType { display: none; }
+.todo-modal form.todo-simple .todo-opt-field,
+.todo-modal form.todo-simple .todo-extra-titles,
+.todo-modal form.todo-simple .todo-add-title,
+.todo-modal form.todo-simple .todo-hint,
+.todo-modal form.todo-simple .todo-note-field:not(.open) { display: none; }
+.todo-modal form.todo-simple .abt-field:has(#todoTitle) { order: 1; }
+.todo-modal form.todo-simple .abt-field:has(#todoType) { order: 2; }
+.todo-modal form.todo-simple .todo-custom-type { order: 3; }
+.todo-modal form.todo-simple .abt-field:has(#todoDate) { order: 4; }
+.todo-modal form.todo-simple .todo-note-field { order: 5; }
+.todo-modal form.todo-simple .todo-quick-links { order: 6; }
+.todo-modal form.todo-simple .todo-room-field { order: 7; flex-direction: row; align-items: center; gap: 10px; }
+.todo-modal form.todo-simple .todo-room-field select { width: auto; padding: 7px 12px; font-size: 14px; border-radius: 10px; }
+.todo-modal form.todo-simple #todoFormError { order: 8; }
+.todo-modal form.todo-simple .abt-form-actions { order: 9; }
+@media (max-width: 767px) {
+  #todoModalOverlay { align-items: flex-end; padding: 0; }
+  #todoModalOverlay .todo-modal.abt-form-card { max-width: none; max-height: 92vh; border-radius: 22px 22px 0 0; }
+}

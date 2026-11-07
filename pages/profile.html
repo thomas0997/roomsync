@@ -315,55 +315,19 @@
       </div>
 
       <!-- ---------- HISTORY ---------- -->
-      <!-- History is sample data until a history endpoint exists (T2): hidden for real accounts -->
-      <section class="profile-section" id="historySection" hidden>
+      <!-- Your own submitted tasks across every room, newest first (GET /users/me/history, T2). -->
+      <section class="profile-section own-only" id="historySection" hidden>
         <h2 class="profile-section-title">History</h2>
 
         <div class="profile-history-table">
           <div class="profile-history-head">
-            <span>Submitted by</span>
             <span>Room</span>
             <span>Activity</span>
             <span>Status</span>
           </div>
-
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Thomas F.</span>
-            <span data-label="Room">CYB201</span>
-            <span data-label="Activity">Midterms OOP</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Mary B.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">Midterms IWEB</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Daniel R.</span>
-            <span data-label="Room">Auron Inc.</span>
-            <span data-label="Activity">Meeting</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Sean D.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">BeatFood Proposal</span>
-            <span data-label="Status"><span class="history-status history-status-rejected">REJECTED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Charlie K.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">Midterms DSAL</span>
-            <span data-label="Status"><span class="history-status history-status-pending">PENDING</span></span>
-          </div>
-          <div class="profile-history-row profile-history-row-last">
-            <span data-label="Submitted by">Hans S.</span>
-            <span data-label="Room">Auron Inc.</span>
-            <span data-label="Activity">Month Recap</span>
-            <span data-label="Status"><span class="history-status history-status-pending">PENDING</span></span>
-          </div>
+          <div id="historyRows"></div>
         </div>
+        <p class="empty-day-note" id="historyEmpty" hidden>Nothing submitted yet.</p>
       </section>
 
     </main>

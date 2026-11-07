@@ -251,7 +251,7 @@
       li.className = 'online-user online-user-clickable';
       li.dataset.name = m.name;
       li.dataset.initials = initials(m.name);
-      li.dataset.online = '';
+      li.dataset.online = m.online ? 'true' : 'false';
       li.dataset.avatar = m.avatar_url || '';
       li.dataset.self = String(m.user_id === myId());
       li.dataset.userid = String(m.user_id);
@@ -272,7 +272,8 @@
         });
       }
       var dot = document.createElement('span');
-      dot.className = 'online-dot online-dot-' + stKind;
+      dot.className = 'online-dot online-dot-' + stKind + (m.online ? ' is-live' : '');
+      dot.title = m.online ? 'Online now' : '';
       avatar.appendChild(dot);
       li.appendChild(avatar);
 
@@ -451,6 +452,7 @@
       btn.disabled = false;
       if (!r.ok) { showFormError('joinError', errorText(r)); return; }
       addRoom(r.body);
+      refreshApproveBadge();
       joinForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -471,6 +473,7 @@
       btn.disabled = false;
       if (!r.ok) { showFormError('createError', errorText(r)); return; }
       addRoom(r.body);
+      refreshApproveBadge();
       createForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -519,16 +522,54 @@
   var logoutBtn = byId('logoutBtn');
   if (logoutBtn) { logoutBtn.addEventListener('click', goLogin); }
 
+  /* ---------- Approve tab badge: pending tasks across every room you admin ---------- */
+  function refreshApproveBadge() {
+    var total = 0;
+    rooms.forEach(function (r) { if (r.role === 'admin') { total += r.pending_count || 0; } });
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('a[href="approve.html"]'));
+    var tab = byId('moreTabBtn');   // phone "More" opens the menu that holds Approve on some layouts; harmless if absent
+    nodes.forEach(function (node) {
+      var badge = node.querySelector('.approve-badge');
+      if (total > 0 && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'approve-badge';
+        badge.setAttribute('role', 'img');
+        badge.setAttribute('aria-label', total + ' waiting for approval');
+        node.appendChild(badge);
+      }
+      if (badge) { badge.hidden = total <= 0; badge.textContent = total > 99 ? '99+' : String(total); }
+    });
+  }
+
+  /* ---------- real presence: tell the server we're here, every ~60s while the tab is visible ---------- */
+  function pingPresence() { api('/presence/ping', 'POST'); }
+  function startPresence() {
+    pingPresence();
+    setInterval(function () { if (!document.hidden) { pingPresence(); } }, 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { pingPresence(); } });
+  }
+
+  /* ---------- account-level task colors (Settings > Task colors, T2): applied everywhere ---------- */
+  function applyTaskColors(colors) {
+    var root = document.documentElement.style;
+    ['exam', 'quiz', 'case-study', 'activity', 'seatwork', 'assignment'].forEach(function (type) {
+      if (colors && colors[type]) { root.setProperty('--task-color-' + type, colors[type]); }
+    });
+  }
+
   /* ---------- start ---------- */
   async function init() {
     renderProfile();
-    var r = await api('/rooms');
+    var results = await Promise.all([api('/rooms'), api('/users/me/settings')]);
+    var r = results[0];
+    if (results[1].ok) { applyTaskColors(results[1].body.task_colors); }
     if (!r.ok) {
       showToast(errorText(r));
       renderHeader();
       return;
     }
     rooms = r.body;
+    refreshApproveBadge();
     if (rooms.length === 0) {
       selectRoom(null);
       setModalOpen(true);   // empty state: offer Join / Create straight away
@@ -551,6 +592,7 @@
 
   // Another script (for example Settings after Leave Room) can ask for a fresh room list.
   document.addEventListener('roomsync:rooms-changed', function () { init(); });
+  startPresence();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

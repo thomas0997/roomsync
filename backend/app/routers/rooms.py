@@ -10,7 +10,7 @@ from ..models import Membership, Room, RoomAvatar, Task, User, utcnow
 from ..ratelimit import limit_by_user
 from ..schemas import AvatarOut
 from .avatar import BAD_IMAGE, _version, avatar_urls_for, make_avatar, read_limited_body
-from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate, status_of
+from ..schemas import InviteCodeOut, MemberOut, RoleIn, RoomCreate, RoomJoin, RoomOut, RoomUpdate, is_online, status_of
 
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 ALPHABET = string.ascii_uppercase + string.digits
@@ -95,7 +95,7 @@ def members(room_id: int, user: User = Depends(get_current_user), db: Session = 
     photos = avatar_urls_for(db, [m.user_id for m in rows])
     return [
         MemberOut(user_id=m.user_id, name=m.user.name, role=m.role, joined_at=m.joined_at,
-                  status=status_of(m.user), avatar_url=photos.get(m.user_id))
+                  status=status_of(m.user), online=is_online(m.user), avatar_url=photos.get(m.user_id))
         for m in rows
     ]
 
@@ -137,7 +137,10 @@ def set_role(
     target.role = data.role
     db.commit()
     db.refresh(target)
-    return MemberOut(user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at, status=status_of(target.user))
+    return MemberOut(
+        user_id=target.user_id, name=target.user.name, role=target.role, joined_at=target.joined_at,
+        status=status_of(target.user), online=is_online(target.user),
+    )
 
 
 @router.patch("/{room_id}", response_model=RoomOut)

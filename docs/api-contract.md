@@ -41,7 +41,7 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
 | GET | /rooms | none | `[room]` (rooms I'm in), including `type` and `pending_count` | T1 DONE |
 | POST | /rooms/join | `{invite_code}` | room. Invalid code gives 404 "Invalid invite code". Joining a room you are already in just returns the room. Codes are case-insensitive. Limited to 10 tries per minute per user: after that 429 with a Retry-After header (stops invite-code guessing). | T1 DONE |
-| GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
+| GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online}]` (`online` = seen in the last 2 minutes via POST /presence/ping) | T1/T2 DONE |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
 | POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |
 | PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only (403 otherwise). Send at least one field and no unknown fields, otherwise 422. | T1 DONE |
@@ -162,17 +162,18 @@ User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
 | GET | /users/me | none | user | T1 DONE |
 | PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom` (max 40); it is cleared when the kind is not `custom`. Send at least one field; unknown fields give 422. The members list also returns each member's `status`. | T1 DONE |
 | GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 DONE |
+| GET | /users/me/history?limit=50 | none | `[{id,title,room_id,room_name,type,status,created_at,decided_at?}]` my own submitted tasks, newest first (Profile > History) | T2 DONE |
 | GET | /users/{user_id} | none | `{id, name, avatar_url, status, joined_at, rooms:[{id,name}]}` for me or someone who shares a room with me; `rooms` are only the rooms we are both in; no email. Anyone else, a missing user and a deleted user all give the same 404. Non-number id gives 422. | T1 DONE |
 | DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". I leave all my rooms (a room with no one left is deleted), the email is freed for a new signup, and the old token stops working (401). | T1 DONE |
 | PUT | /users/me/avatar | multipart `image` | user. png/jpg/webp, max 2 MB, resized to 256x256, re-encoded. | T2 TODO |
 | DELETE | /users/me/avatar | none | 204 | T2 TODO |
-| POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes) | T2 TODO |
+| POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes). Rate-limited (120/min/user). | T2 DONE |
 | GET | /users/me/task-types | none | `[{id,name,color}]` | T2 TODO |
 | POST | /users/me/task-types | `{name(max 20), color:"#rrggbb"}` | 201 `{id,name,color}` (409 if name exists) | T2 TODO |
 | DELETE | /users/me/task-types/{id} | none | 204 | T2 TODO |
-| GET | /users/me/settings | none | settings | T2 TODO |
-| PUT | /users/me/settings | `{theme:"light|dark|system", show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone:"Asia/Manila", task_colors?:{type:"#rrggbb"}}` | settings | T2 TODO |
-Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
+| GET | /users/me/settings | none | `{theme, show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone, task_colors}` | T2 DONE |
+| PUT | /users/me/settings | partial `{theme?:"light\|dark\|system", show_empty_days?, notify_deadline_reminders?, notify_mentions?, notify_approvals?, timezone?, task_colors?:{type:"#rrggbb"}}` (send at least one field) | settings. `task_colors` MERGES into what is saved (does not replace it); only the six built-in types are accepted (422 otherwise). Theme and the notification toggles are saved but not read by the frontend yet. | T2 DONE (theme/notify toggles: saved, not wired) |
+Show-empty-days and task colors are account-level now (GET/PUT /users/me/settings), not `localStorage`.
 
 ## Email (T2)
 Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas@roomsync.me`. Settings live only in environment variables: `RESEND_API_KEY` (a Sending-access key limited to roomsync.me), `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `APP_URL`. With no `RESEND_API_KEY` set (local dev, tests) emails are not sent. Nothing is ever logged about an email except the kind and a success or failure flag.

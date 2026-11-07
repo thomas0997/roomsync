@@ -1,8 +1,26 @@
 """Request/response shapes (what the frontend sends and receives)."""
-from datetime import datetime
+import json
+import re
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+# Presence (T2): a user counts as "online" if the server saw them (POST /presence/ping) in this window.
+ONLINE_WINDOW = timedelta(minutes=2)
+
+# The six built-in task types a user can recolor from Settings (see UserSettings.task_colors).
+BUILTIN_TASK_TYPES = {"exam", "quiz", "case-study", "activity", "seatwork", "assignment"}
+HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def is_online(user) -> bool:
+    if user.last_seen is None:
+        return False
+    last_seen = user.last_seen
+    if last_seen.tzinfo is None:  # SQLite hands back naive datetimes
+        last_seen = last_seen.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - last_seen <= ONLINE_WINDOW
 
 
 class SignupIn(BaseModel):
@@ -101,6 +119,7 @@ class MemberOut(BaseModel):
     name: str
     role: str
     status: StatusOut | None = None
+    online: bool = False  # T2: seen (POST /presence/ping) in the last 2 minutes
     avatar_url: str | None = None  # null when the member has no photo
     joined_at: datetime
 
@@ -182,3 +201,73 @@ class StatsOut(BaseModel):
     submitted: int
     approved: int
     rejected: int
+
+
+class HistoryItemOut(BaseModel):
+    """One of your own submitted tasks, for the Profile > History table."""
+    id: int
+    title: str
+    room_id: int
+    room_name: str
+    type: str
+    status: str  # pending | approved | rejected
+    created_at: datetime
+    decided_at: datetime | None = None
+
+
+Theme = Literal["light", "dark", "system"]
+
+
+class SettingsOut(BaseModel):
+    theme: Theme = "system"
+    show_empty_days: bool = False
+    notify_deadline_reminders: bool = True
+    notify_mentions: bool = True
+    notify_approvals: bool = False
+    timezone: str = "Asia/Manila"
+    task_colors: dict[str, str] = Field(default_factory=dict)
+
+    @staticmethod
+    def from_row(row) -> "SettingsOut":
+        if row is None:
+            return SettingsOut()
+        try:
+            colors = json.loads(row.task_colors or "{}")
+        except ValueError:
+            colors = {}
+        return SettingsOut(
+            theme=row.theme, show_empty_days=row.show_empty_days,
+            notify_deadline_reminders=row.notify_deadline_reminders,
+            notify_mentions=row.notify_mentions, notify_approvals=row.notify_approvals,
+            timezone=row.timezone, task_colors=colors if isinstance(colors, dict) else {},
+        )
+
+
+class SettingsUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    theme: Theme | None = None
+    show_empty_days: bool | None = None
+    notify_deadline_reminders: bool | None = None
+    notify_mentions: bool | None = None
+    notify_approvals: bool | None = None
+    timezone: str | None = Field(default=None, min_length=1, max_length=50)
+    task_colors: dict[str, str] | None = None
+
+    @field_validator("task_colors")
+    @classmethod
+    def _check_colors(cls, v):
+        if v is None:
+            return v
+        bad_type = [t for t in v if t not in BUILTIN_TASK_TYPES]
+        if bad_type:
+            raise ValueError(f"Unknown task type(s): {', '.join(sorted(bad_type))}")
+        bad_color = [t for t, c in v.items() if not HEX_COLOR.match(c)]
+        if bad_color:
+            raise ValueError("Colors must look like #rrggbb")
+        return v
+
+    @model_validator(mode="after")
+    def _need_one_field(self):
+        if not self.model_fields_set:
+            raise ValueError("Send at least one setting to change")
+        return self

@@ -1,15 +1,20 @@
 """Profile endpoints: who am I, my status, my stats, delete my account. Follow docs/api-contract.md."""
+import json
 import secrets
 from datetime import datetime, timezone
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..db import get_db
-from ..models import Membership, Room, Task, User, UserAvatar
-from ..schemas import ProfileOut, ProfileUpdate, PublicProfileOut, SharedRoomOut, StatsOut, status_of
+from ..models import Membership, Room, Task, User, UserAvatar, UserSettings
+from ..schemas import (
+    HistoryItemOut, ProfileOut, ProfileUpdate, PublicProfileOut, SettingsOut, SettingsUpdate, SharedRoomOut,
+    StatsOut, status_of,
+)
 from .avatar import avatar_url_for
 
 router = APIRouter(prefix="/users", tags=["profile"])
@@ -57,6 +62,61 @@ def my_stats(user: User = Depends(get_current_user), db: Session = Depends(get_d
     return StatsOut(
         submitted=sum(rows.values()), approved=rows.get("approved", 0), rejected=rows.get("rejected", 0)
     )
+
+
+@router.get("/me/history", response_model=list[HistoryItemOut])
+def my_history(
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,  # 422 outside 1 to 200
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Your own submitted tasks, across every room, newest first. Profile > History."""
+    rows = (
+        db.query(Task, Room.name)
+        .join(Room, Room.id == Task.room_id)
+        .filter(Task.created_by == user.id)
+        .order_by(Task.created_at.desc(), Task.id.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        HistoryItemOut(
+            id=t.id, title=t.title, room_id=t.room_id, room_name=room_name, type=t.type, status=t.status,
+            created_at=t.created_at, decided_at=t.decided_at,
+        )
+        for t, room_name in rows
+    ]
+
+
+def _get_or_create_settings(db: Session, user: User) -> UserSettings:
+    row = db.get(UserSettings, user.id)
+    if row is None:
+        row = UserSettings(user_id=user.id)
+        db.add(row)
+        db.commit()
+    return row
+
+
+@router.get("/me/settings", response_model=SettingsOut)
+def get_settings(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return SettingsOut.from_row(_get_or_create_settings(db, user))
+
+
+@router.put("/me/settings", response_model=SettingsOut)
+def update_settings(data: SettingsUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    row = _get_or_create_settings(db, user)
+    sent = data.model_fields_set
+    for field in ("theme", "show_empty_days", "notify_deadline_reminders", "notify_mentions",
+                  "notify_approvals", "timezone"):
+        if field in sent:
+            setattr(row, field, getattr(data, field))
+    if "task_colors" in sent:
+        current = json.loads(row.task_colors or "{}")
+        current.update(data.task_colors)
+        row.task_colors = json.dumps({k: v for k, v in current.items() if v})
+    db.commit()
+    db.refresh(row)
+    return SettingsOut.from_row(row)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

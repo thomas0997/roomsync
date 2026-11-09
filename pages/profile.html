@@ -29,6 +29,7 @@
       <a href="calendar.html">Calendar</a>
       <a href="notes.html">Notes</a>
       <a href="discussion.html">Discussion</a>
+      <a href="inbox.html">Inbox</a>
       <a href="approve.html">Approve</a>
       <a href="about.html">About</a>
       <a href="guide.html">Guide</a>
@@ -123,6 +124,18 @@
               </svg>
             </span>
             <span class="sidebar-label">Discussion</span>
+          </a>
+          <a href="inbox.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="icon-outline">
+                <rect x="3" y="5" width="18" height="14" rx="2.5"/>
+                <path d="M3.5 7.5l8.5 6 8.5-6"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-filled">
+                <path d="M5.5 4A3.5 3.5 0 0 0 2 7.5v9A3.5 3.5 0 0 0 5.5 20h13a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 18.5 4zM4.4 7.3a1.5 1.5 0 0 1 1.1-.5h13a1.5 1.5 0 0 1 1.1.5L12 12.6z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Inbox</span>
           </a>
           <a href="approve.html" class="sidebar-link">
             <span class="sidebar-icon" aria-hidden="true">
@@ -302,55 +315,19 @@
       </div>
 
       <!-- ---------- HISTORY ---------- -->
-      <!-- History is sample data until a history endpoint exists (T2): hidden for real accounts -->
-      <section class="profile-section" id="historySection" hidden>
+      <!-- Your own submitted tasks across every room, newest first (GET /users/me/history, T2). -->
+      <section class="profile-section own-only" id="historySection" hidden>
         <h2 class="profile-section-title">History</h2>
 
         <div class="profile-history-table">
           <div class="profile-history-head">
-            <span>Submitted by</span>
             <span>Room</span>
             <span>Activity</span>
             <span>Status</span>
           </div>
-
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Thomas F.</span>
-            <span data-label="Room">CYB201</span>
-            <span data-label="Activity">Midterms OOP</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Mary B.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">Midterms IWEB</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Daniel R.</span>
-            <span data-label="Room">Auron Inc.</span>
-            <span data-label="Activity">Meeting</span>
-            <span data-label="Status"><span class="history-status history-status-approved">APPROVED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Sean D.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">BeatFood Proposal</span>
-            <span data-label="Status"><span class="history-status history-status-rejected">REJECTED</span></span>
-          </div>
-          <div class="profile-history-row">
-            <span data-label="Submitted by">Charlie K.</span>
-            <span data-label="Room">The Bozos</span>
-            <span data-label="Activity">Midterms DSAL</span>
-            <span data-label="Status"><span class="history-status history-status-pending">PENDING</span></span>
-          </div>
-          <div class="profile-history-row profile-history-row-last">
-            <span data-label="Submitted by">Hans S.</span>
-            <span data-label="Room">Auron Inc.</span>
-            <span data-label="Activity">Month Recap</span>
-            <span data-label="Status"><span class="history-status history-status-pending">PENDING</span></span>
-          </div>
+          <div id="historyRows"></div>
         </div>
+        <p class="empty-day-note" id="historyEmpty" hidden>Nothing submitted yet.</p>
       </section>
 
     </main>
@@ -437,6 +414,8 @@
   <script src="../js/rooms.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/sidebar_rooms.js"></script>
+  <script src="../js/inbox_badge.js"></script>
+  <script src="../js/attach_picker.js"></script>
   <script src="../js/profile.js"></script>
   <script src="../js/profile_api.js"></script>
   <script src="../js/user_view.js"></script>

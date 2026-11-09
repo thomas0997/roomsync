@@ -175,6 +175,37 @@
     setText(byId('statPending'), String(pending));
   }
 
+  /* ---------- history ---------- */
+  function renderHistory(items) {
+    var section = byId('historySection');
+    var rows = byId('historyRows');
+    var empty = byId('historyEmpty');
+    if (!section || !rows) { return; }
+    section.hidden = false;
+    rows.textContent = '';
+    empty.hidden = items.length > 0;
+    items.forEach(function (item, i) {
+      var row = document.createElement('div');
+      row.className = 'profile-history-row' + (i === items.length - 1 ? ' profile-history-row-last' : '');
+      var room = document.createElement('span');
+      room.setAttribute('data-label', 'Room');
+      room.textContent = item.room_name;
+      var activity = document.createElement('span');
+      activity.setAttribute('data-label', 'Activity');
+      activity.textContent = item.title;
+      var statusCell = document.createElement('span');
+      statusCell.setAttribute('data-label', 'Status');
+      var pill = document.createElement('span');
+      pill.className = 'history-status history-status-' + item.status;
+      pill.textContent = item.status.toUpperCase();
+      statusCell.appendChild(pill);
+      row.appendChild(room);
+      row.appendChild(activity);
+      row.appendChild(statusCell);
+      rows.appendChild(row);
+    });
+  }
+
   /* ---------- profile photo ---------- */
   var MAX_PHOTO = 2 * 1024 * 1024;
   var PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -378,10 +409,11 @@
 
   /* ---------- start ---------- */
   async function init() {
-    var results = await Promise.all([api('/users/me'), api('/users/me/stats'), api('/rooms')]);
+    var results = await Promise.all([api('/users/me'), api('/users/me/stats'), api('/rooms'), api('/users/me/history')]);
     if (results[0].ok) { me = results[0].body; renderMe(); } else if (results[0].status !== 401) { showToast(errorText(results[0])); }
     if (results[1].ok) { renderStats(results[1].body); }
     if (results[2].ok) { renderRooms(results[2].body); }
+    if (results[3].ok) { renderHistory(results[3].body); }
   }
   init();
 })();

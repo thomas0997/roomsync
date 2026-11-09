@@ -251,10 +251,14 @@
       li.className = 'online-user online-user-clickable';
       li.dataset.name = m.name;
       li.dataset.initials = initials(m.name);
-      li.dataset.online = '';
+      li.dataset.online = m.online ? 'true' : 'false';
       li.dataset.avatar = m.avatar_url || '';
       li.dataset.self = String(m.user_id === myId());
       li.dataset.userid = String(m.user_id);
+      var stKind = m.status && (m.status.kind === 'brb' || m.status.kind === 'away' || m.status.kind === 'custom') ? m.status.kind : 'working';
+      var stText = statusLabel(m.status);
+      li.dataset.status = stText;
+      li.dataset.kind = stKind;
 
       var avatar = document.createElement('span');
       avatar.className = 'online-user-avatar';
@@ -267,12 +271,23 @@
           if (src) { pic.src = src; avatar.insertBefore(pic, avatar.firstChild); }
         });
       }
+      var dot = document.createElement('span');
+      dot.className = 'online-dot online-dot-' + stKind + (m.online ? ' is-live' : '');
+      dot.title = m.online ? 'Online now' : '';
+      avatar.appendChild(dot);
       li.appendChild(avatar);
 
+      var textBox = document.createElement('span');
+      textBox.className = 'online-user-text';
       var name = document.createElement('span');
       name.className = 'online-user-name';
       name.textContent = m.name;
-      li.appendChild(name);
+      textBox.appendChild(name);
+      var st = document.createElement('span');
+      st.className = 'online-user-status';
+      st.textContent = stText;
+      textBox.appendChild(st);
+      li.appendChild(textBox);
 
       if (m.role === 'admin') {
         var role = document.createElement('span');
@@ -437,6 +452,8 @@
       btn.disabled = false;
       if (!r.ok) { showFormError('joinError', errorText(r)); return; }
       addRoom(r.body);
+      refreshApproveBadge();
+      refreshDiscussionBadge();
       joinForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -457,6 +474,8 @@
       btn.disabled = false;
       if (!r.ok) { showFormError('createError', errorText(r)); return; }
       addRoom(r.body);
+      refreshApproveBadge();
+      refreshDiscussionBadge();
       createForm.reset();
       setModalOpen(false);
       selectRoom(r.body.id);
@@ -505,16 +524,81 @@
   var logoutBtn = byId('logoutBtn');
   if (logoutBtn) { logoutBtn.addEventListener('click', goLogin); }
 
+  /* ---------- Approve tab badge: pending tasks across every room you admin ---------- */
+  function refreshApproveBadge() {
+    var total = 0;
+    rooms.forEach(function (r) { if (r.role === 'admin') { total += r.pending_count || 0; } });
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('a[href="approve.html"]'));
+    var tab = byId('moreTabBtn');   // phone "More" opens the menu that holds Approve on some layouts; harmless if absent
+    nodes.forEach(function (node) {
+      var badge = node.querySelector('.approve-badge');
+      if (total > 0 && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'approve-badge';
+        badge.setAttribute('role', 'img');
+        badge.setAttribute('aria-label', total + ' waiting for approval');
+        node.appendChild(badge);
+      }
+      if (badge) { badge.hidden = total <= 0; badge.textContent = total > 99 ? '99+' : String(total); }
+    });
+  }
+
+  /* ---------- Discussion tab badge: total unread messages across every room you're in (T2) ---------- */
+  function refreshDiscussionBadge() {
+    if (!rooms.length) { setDiscussionBadge(0); return; }
+    Promise.all(rooms.map(function (r) { return api('/rooms/' + r.id + '/messages/unread-count'); }))
+      .then(function (results) {
+        var total = 0;
+        results.forEach(function (r) { if (r.ok) { total += r.body.count || 0; } });
+        setDiscussionBadge(total);
+      });
+  }
+
+  function setDiscussionBadge(total) {
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('a[href="discussion.html"]'));
+    nodes.forEach(function (node) {
+      var badge = node.querySelector('.disc-badge');
+      if (total > 0 && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'disc-badge';
+        badge.setAttribute('role', 'img');
+        badge.setAttribute('aria-label', total + ' unread messages');
+        node.appendChild(badge);
+      }
+      if (badge) { badge.hidden = total <= 0; badge.textContent = total > 99 ? '99+' : String(total); }
+    });
+  }
+
+  /* ---------- real presence: tell the server we're here, every ~60s while the tab is visible ---------- */
+  function pingPresence() { api('/presence/ping', 'POST'); }
+  function startPresence() {
+    pingPresence();
+    setInterval(function () { if (!document.hidden) { pingPresence(); } }, 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { pingPresence(); } });
+  }
+
+  /* ---------- account-level task colors (Settings > Task colors, T2): applied everywhere ---------- */
+  function applyTaskColors(colors) {
+    var root = document.documentElement.style;
+    ['exam', 'quiz', 'case-study', 'activity', 'seatwork', 'assignment'].forEach(function (type) {
+      if (colors && colors[type]) { root.setProperty('--task-color-' + type, colors[type]); }
+    });
+  }
+
   /* ---------- start ---------- */
   async function init() {
     renderProfile();
-    var r = await api('/rooms');
+    var results = await Promise.all([api('/rooms'), api('/users/me/settings')]);
+    var r = results[0];
+    if (results[1].ok) { applyTaskColors(results[1].body.task_colors); }
     if (!r.ok) {
       showToast(errorText(r));
       renderHeader();
       return;
     }
     rooms = r.body;
+    refreshApproveBadge();
+    refreshDiscussionBadge();
     if (rooms.length === 0) {
       selectRoom(null);
       setModalOpen(true);   // empty state: offer Join / Create straight away
@@ -532,11 +616,13 @@
     showToast: showToast,
     errorText: errorText,
     currentRoomId: function () { return currentId; },
-    isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); }
+    isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); },
+    refreshDiscussionBadge: refreshDiscussionBadge
   };
 
   // Another script (for example Settings after Leave Room) can ask for a fresh room list.
   document.addEventListener('roomsync:rooms-changed', function () { init(); });
+  startPresence();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

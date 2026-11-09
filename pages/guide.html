@@ -28,6 +28,7 @@
       <a href="calendar.html">Calendar</a>
       <a href="notes.html">Notes</a>
       <a href="discussion.html">Discussion</a>
+      <a href="inbox.html">Inbox</a>
       <a href="approve.html">Approve</a>
       <a href="about.html">About</a>
       <a href="guide.html" class="active">Guide</a>
@@ -128,6 +129,18 @@
             </span>
             <span class="sidebar-label">Discussion</span>
           </a>
+          <a href="inbox.html" class="sidebar-link">
+            <span class="sidebar-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="icon-outline">
+                <rect x="3" y="5" width="18" height="14" rx="2.5"/>
+                <path d="M3.5 7.5l8.5 6 8.5-6"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-filled">
+                <path d="M5.5 4A3.5 3.5 0 0 0 2 7.5v9A3.5 3.5 0 0 0 5.5 20h13a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 18.5 4zM4.4 7.3a1.5 1.5 0 0 1 1.1-.5h13a1.5 1.5 0 0 1 1.1.5L12 12.6z"/>
+              </svg>
+            </span>
+            <span class="sidebar-label">Inbox</span>
+          </a>
           <a href="approve.html" class="sidebar-link">
             <span class="sidebar-icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="icon-outline">
@@ -220,6 +233,7 @@
           <p class="gd-toc-title">On this page</p>
             <a href="#what">What RoomSync is</a>
             <a href="#start">Getting started</a>
+            <a href="#invite">Inviting classmates</a>
             <a href="#deadlines">Adding deadlines</a>
             <a href="#approve">Approving</a>
             <a href="#home">Home board</a>
@@ -243,10 +257,48 @@
             <li><strong>Admin or member?</strong> Whoever creates a room is its admin. Admins approve deadlines. Members add deadlines, tick them off, chat and share notes.</li>
           </ul>
         </section>
+        <section class="gd-section" id="invite">
+          <h2 class="gd-h2">Inviting classmates</h2>
+          <p class="gd-p">Room admins share an <strong>invite code</strong> so classmates can join. On a phone it is in the menu: tap <strong>More</strong>, then scroll to <strong>Online in this room</strong>. On a computer it is in the left sidebar under the same heading.</p>
+          <p class="gd-p">Not an admin? Ask your room's admin for the code. Got a code? Tap the room button at the top, choose <strong>Join a Room</strong> and paste it in.</p>
+          <div class="gd-mock-row">
+            <figure class="gd-figure">
+              <div class="gd-phone" aria-hidden="true">
+                <div class="gd-ph-bar">roomsync</div>
+                <div class="gd-ph-title">Home</div>
+                <div class="gd-ph-tabs"><span>Home</span><span>Calendar</span><span>+</span><span>Approve</span><span class="gd-ph-hl">More</span></div>
+              </div>
+              <figcaption>1. Tap More.</figcaption>
+            </figure>
+            <figure class="gd-figure">
+              <div class="gd-phone" aria-hidden="true">
+                <div class="gd-ph-menu">
+                  <p class="gd-ph-label">MENU</p>
+                  <p>Discussion</p><p>Notes</p><p>Settings</p>
+                  <p class="gd-ph-label gd-ph-gap">ONLINE IN THIS ROOM</p>
+                  <p>Thomas, Daniel</p>
+                  <p class="gd-ph-code">Invite code: <strong>K7M2QX</strong></p>
+                </div>
+              </div>
+              <figcaption>2. Find the invite code. Only admins see it.</figcaption>
+            </figure>
+          </div>
+        </section>
         <section class="gd-section" id="deadlines">
           <h2 class="gd-h2">Adding deadlines</h2>
-          <p class="gd-p">Press <strong>New TODO</strong>, pick the room, give it a title and a due date and time, and choose a type: exam, quiz, case study, activity, seatwork or assignment. Need something else? Use a custom tag. You can add a note with details, and add several titles in one go.</p>
+          <p class="gd-p">Press <strong>New TODO</strong>, type a title, tap a type (exam, quiz, case study, assignment, activity, seatwork, or your own custom tag) and pick the due date. Tap <strong>Add a note</strong> if there is something classmates should know. To change the subject or time later, open the task and press Edit.</p>
           <p class="gd-p">A new deadline waits as <strong>pending</strong> until an admin approves it.</p>
+          <figure class="gd-figure">
+            <div class="gd-mock-form" aria-hidden="true">
+              <p class="gd-mf-head">New TODO</p>
+              <p class="gd-mf-input gd-mf-focus">Install XAMPP</p>
+              <p class="gd-mf-chips"><span>Exam</span><span>Quiz</span><span class="gd-mf-on">Assignment</span><span>Activity</span></p>
+              <p class="gd-mf-input">Wed, Nov 11</p>
+              <p class="gd-mf-link">+ Add a note</p>
+              <p class="gd-mf-btn">Create</p>
+            </div>
+            <figcaption>The New TODO form.</figcaption>
+          </figure>
         </section>
         <section class="gd-section" id="approve">
           <h2 class="gd-h2">Approving</h2>
@@ -254,7 +306,15 @@
         </section>
         <section class="gd-section" id="home">
           <h2 class="gd-h2">Home board</h2>
-          <p class="gd-p">Home shows the week at a glance, one column per day, with the approved deadlines for your room. Tick a task when you finish it, open it to see its details and notes, and use search to find a task fast.</p>
+          <p class="gd-p">Home shows the week at a glance, one column per day, with the approved deadlines for your room. Tick a task when you finish it, open it to see its details and notes, and use search to find a task fast. The ⋯ menu brings back earlier weeks.</p>
+          <figure class="gd-figure">
+            <div class="gd-mock-board" aria-hidden="true">
+              <div class="gd-mb-col"><p class="gd-mb-day">Wednesday</p><p class="gd-mb-date">Nov 11</p><p class="gd-mb-task">Install XAMPP</p></div>
+              <div class="gd-mb-col"><p class="gd-mb-day">Saturday</p><p class="gd-mb-date">Nov 14</p><p class="gd-mb-task">Spiritual Growth Chart</p></div>
+              <div class="gd-mb-col"><p class="gd-mb-day">Sunday</p><p class="gd-mb-date">Nov 15</p><p class="gd-mb-task">Code of Honor</p></div>
+            </div>
+            <figcaption>The Home board, one column per day.</figcaption>
+          </figure>
         </section>
         <section class="gd-section" id="calendar">
           <h2 class="gd-h2">Calendar</h2>
@@ -309,6 +369,8 @@
   <script src="../js/rooms.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/sidebar_rooms.js"></script>
+  <script src="../js/inbox_badge.js"></script>
+  <script src="../js/attach_picker.js"></script>
   <script src="../js/new_todo.js"></script>
   <script src="../js/search.js"></script>
   <script src="../js/guide.js"></script>

@@ -1,7 +1,7 @@
 """All database tables. Edit carefully: both of us touch this file, keep changes small."""
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -20,6 +20,9 @@ class User(Base):
     # status: "working" | "brb" | "away" | "custom". Never expires. status_text only used for "custom" (max 40).
     status_kind: Mapped[str] = mapped_column(String(10), default="working")
     status_text: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Presence (T2): set by POST /presence/ping, called every ~60s while a page is open.
+    # "online" = last_seen within the last 2 minutes (see schemas.is_online). Never set means never online.
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # soft delete
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # Goes up by one when the password is reset. Login tokens carry the number they were made with,
@@ -110,6 +113,7 @@ class Task(Base):
 
     approvals = relationship("Approval", cascade="all, delete-orphan")
     user_states = relationship("TaskUserState", cascade="all, delete-orphan")
+    attachment_links = relationship("TaskFile", cascade="all, delete-orphan")
 
 
 class TaskUserState(Base):
@@ -158,6 +162,27 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class MessageFile(Base):
+    """A note (room file) attached to a message via the clip icon, at most 5 per message
+    (see routers/discussion.py). Deleting the message or the file removes the link; the other side stays."""
+    __tablename__ = "message_files"
+    __table_args__ = (UniqueConstraint("message_id", "file_id", name="uq_message_file"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id", ondelete="CASCADE"), index=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("room_files.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MessageReadMarker(Base):
+    """Per-user, per-room "I've read up to here" marker for Discussion (T2): backs unread counts and
+    "seen by". One row per (user, room); created lazily, defaulting to the user's joined_at so history
+    from before they joined is never counted as unread (see routers/discussion.py)."""
+    __tablename__ = "message_read_markers"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), primary_key=True)
+    last_read_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class CustomTaskType(Base):
     __tablename__ = "custom_task_types"
     __table_args__ = (UniqueConstraint("user_id", "name", name="uq_user_typename"),)
@@ -165,6 +190,21 @@ class CustomTaskType(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(20))
     color: Mapped[str] = mapped_column(String(7))  # "#rrggbb"
+
+
+class UserSettings(Base):
+    """Account-level preferences (T2): docs/api-contract.md GET/PUT /users/me/settings.
+    One row per user, created on first read or write (see routers/profile.py). `task_colors` overrides
+    the color of the six built-in task types (never the badge text, never custom types)."""
+    __tablename__ = "user_settings"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    theme: Mapped[str] = mapped_column(String(10), default="system", server_default="system")  # light|dark|system
+    show_empty_days: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    notify_deadline_reminders: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    notify_mentions: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    notify_approvals: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    timezone: Mapped[str] = mapped_column(String(50), default="Asia/Manila", server_default="Asia/Manila")
+    task_colors: Mapped[str] = mapped_column(Text, default="{}", server_default="{}")  # JSON: {"exam": "#rrggbb", ...}
 
 
 class Feedback(Base):
@@ -202,4 +242,51 @@ class RoomFile(Base):
     size: Mapped[int] = mapped_column(Integer)
     data: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True, nullable=True)
     storage_key: Mapped[str | None] = mapped_column(String(200), nullable=True)  # set = bytes are in R2
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    task_links = relationship("TaskFile", cascade="all, delete-orphan")
+
+
+class TaskFile(Base):
+    """A note (room file) linked to a task, at most 5 per task (see routers/attachments.py).
+    Deleting the task or the file removes the link; the other side stays."""
+    __tablename__ = "task_files"
+    __table_args__ = (UniqueConstraint("task_id", "file_id", name="uq_task_file"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id", ondelete="CASCADE"), index=True)
+    file_id: Mapped[int] = mapped_column(ForeignKey("room_files.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class InboxMessage(Base):
+    """One private message between two room-mates (see routers/inbox.py). Plain text only.
+    Each side has its own "removed" flag; the row is deleted for good when both have removed it.
+    A message from a blocked sender is kept for the SENDER only (deleted_by_recipient=True), so the sender
+    cannot tell it was blocked and the recipient never sees it."""
+    __tablename__ = "inbox_messages"
+    __table_args__ = (
+        Index("ix_inbox_to_id", "to_user_id", "id"),
+        Index("ix_inbox_from_id", "from_user_id", "id"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    to_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    subject: Mapped[str] = mapped_column(String(120))
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reply_to_id: Mapped[int | None] = mapped_column(
+        ForeignKey("inbox_messages.id", ondelete="SET NULL"), nullable=True
+    )
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")  # the recipient's archive
+    deleted_by_sender: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    deleted_by_recipient: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+
+
+class InboxBlock(Base):
+    """`blocker_id` does not want messages from `blocked_id`."""
+    __tablename__ = "inbox_blocks"
+    __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_inbox_block"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    blocker_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    blocked_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

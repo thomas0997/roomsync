@@ -119,6 +119,50 @@
 .disc-input-bar .disc-clip { margin-bottom: 10px; }
 .disc-input-bar .disc-counter { margin-bottom: 10px; }
 
+/* ---- clip button (attach notes, T2): a plain icon button, same look as the old static SVG ----
+   The button carries the alignment margin now, so the svg's own (still used when unwrapped
+   elsewhere) must not double it up, or the icon sits higher than the textarea and Send button. */
+.disc-clip-btn {
+  background: none; border: none; padding: 0; margin: 0 0 10px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.disc-clip-btn .disc-clip { margin-bottom: 0; }
+.disc-clip-btn:disabled { cursor: default; opacity: 0.5; }
+.disc-clip-btn:hover:not(:disabled) .disc-clip { color: var(--blue, #0073ec); }
+
+/* ---- @mentions (T2): bold, no background, so it reads inline without looking like a link ---- */
+.disc-mention { font-weight: 800; }
+.disc-msg-mentions-me .disc-bubble { box-shadow: 0 0 0 2px var(--blue, #0073ec); }
+
+/* ---- clip attachments on a message (T2): small clickable chips under the text ---- */
+.disc-attachments { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.disc-attachment-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(0, 0, 0, 0.06); border: none; border-radius: 8px;
+  padding: 5px 8px; font-size: 11.5px; line-height: 1.3; text-align: left; cursor: pointer;
+  color: inherit; font-family: inherit; width: 100%;
+}
+.disc-attachment-chip:hover { background: rgba(0, 0, 0, 0.1); }
+.disc-attachment-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.disc-attachment-size { color: var(--gray-text-2, #777); flex-shrink: 0; }
+
+/* ---- notes picked for the message you're about to send (clip, T2) ---- */
+.disc-attach-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.disc-attach-row[hidden] { display: none; }
+.disc-attach-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gray-bg, #f0efec); border-radius: var(--radius-pill);
+  padding: 4px 6px 4px 10px; font-size: 12px; font-weight: 700;
+}
+.disc-attach-chip-remove {
+  background: rgba(0, 0, 0, 0.1); border: none; border-radius: 50%;
+  width: 16px; height: 16px; line-height: 1; cursor: pointer; color: inherit;
+}
+
+/* ---- "Seen by ..." line under the thread (T2) ---- */
+.disc-seenby { font-size: 11.5px; color: var(--gray-text-2, #777); margin: 4px 2px 0; }
+.disc-seenby[hidden] { display: none; }
+
 /* ---- phones: the message list scrolls by itself and the typing box stays pinned under it ---- */
 @media (max-width: 767px) {
   .disc-content { height: calc(100vh - 62px); height: calc(100dvh - 62px); padding-bottom: 12px; overflow: hidden; }
@@ -139,15 +183,21 @@
   .disc-composer { position: static; padding-top: 0; margin-top: 8px; }
 }
 
-/* ---- reply bar + typing box: one block, pinned to the bottom together ---- */
-.disc-composer {
-  position: sticky; bottom: 0; margin-top: auto; z-index: 5;
-  display: flex; flex-direction: column;
-  background: #fff; padding: 6px 0 12px; flex-shrink: 0;
+/* ---- @mention autocomplete dropdown (T2): Messenger-style, positioned above the input ---- */
+.disc-mention-menu {
+  position: absolute; left: 16px; right: 16px; bottom: 100%; margin-bottom: 8px;
+  background: #fff; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  max-height: 220px; overflow-y: auto; z-index: 6; padding: 6px;
 }
-.disc-composer .disc-input-bar { position: static; margin-top: 0; }
-.disc-composer .disc-reply-indicator { margin-bottom: 8px; }
-@media (max-width: 767px) {
-  .disc-composer { position: static; padding-top: 0; margin-top: 8px; }
+.disc-mention-menu[hidden] { display: none; }
+.disc-mention-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: none; border-radius: 10px; padding: 7px 8px;
+  font: inherit; font-size: 13.5px; text-align: left; cursor: pointer; color: inherit;
 }
+.disc-mention-item .disc-avatar { width: 26px; height: 26px; font-size: 11px; flex-shrink: 0; }
+.disc-mention-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.disc-mention-item:hover,
+.disc-mention-item.disc-mention-item-active { background: rgba(0, 0, 0, 0.07); }
 

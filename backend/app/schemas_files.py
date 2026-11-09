@@ -4,6 +4,11 @@ from datetime import datetime, timezone
 from pydantic import BaseModel, field_serializer
 
 
+class UsedIn(BaseModel):
+    task_id: int
+    title: str
+
+
 class FileOut(BaseModel):
     id: int
     room_id: int
@@ -18,6 +23,8 @@ class FileOut(BaseModel):
     updated_at: datetime
     updated_by_name: str
     version: int  # new versions arrive later; always 1 for now
+    used_in: list[UsedIn] = []  # up to 5 APPROVED tasks that link this note
+    used_in_count: int = 0
 
     @field_serializer("created_at", "updated_at")
     def as_utc_z(self, value: datetime):

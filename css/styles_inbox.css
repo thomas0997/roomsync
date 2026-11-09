@@ -1,0 +1,62 @@
+/* ============================================================
+   ROOMSYNC — styles_inbox.css (the Inbox page)
+   Two columns on desktop (list | message). On a phone only one shows at a time: the list, or the open message
+   with a Back button. Message text is plain text; pre-wrap keeps the line breaks the writer typed.
+   ============================================================ */
+.inbox-head-actions { display: flex; align-items: center; gap: 12px; }
+.inbox-compose-btn { white-space: nowrap; }
+.inbox-compose-small { display: none; align-self: flex-start; margin-bottom: 12px; }
+@media (max-width: 1199px) { .inbox-compose-small { display: inline-flex; } }
+.inbox-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
+@media (max-width: 1199px) { .inbox-tabs { margin-top: 16px; } }
+.inbox-select { width: 100%; }
+
+.inbox-wrap { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: #fff; min-height: 460px; overflow: hidden; }
+.inbox-list-col { border-right: 1px solid var(--hairline); display: flex; flex-direction: column; min-width: 0; max-height: 640px; overflow-y: auto; }
+.inbox-list { display: flex; flex-direction: column; }
+.inbox-empty { padding: 28px 18px; margin: 0; color: var(--gray-text-2); font-size: 14px; line-height: 1.5; }
+
+.inbox-row { display: flex; gap: 11px; align-items: flex-start; width: 100%; text-align: left; padding: 13px 16px; border: none; border-bottom: 1px solid #ececf0; background: #fff; cursor: pointer; font-family: inherit; color: var(--near-black); }
+.inbox-row:hover { background: var(--gray-bg-2); }
+.inbox-row.inbox-selected { background: #f3f8ff; }
+.inbox-row.inbox-unread { background: #f3f8ff; }
+.inbox-row.inbox-unread .inbox-row-name, .inbox-row.inbox-unread .inbox-row-subject { font-weight: 800; }
+.inbox-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.inbox-row-top { display: flex; justify-content: space-between; gap: 8px; }
+.inbox-row-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inbox-row-time { font-size: 11px; color: var(--gray-text-2); flex-shrink: 0; }
+.inbox-row-subject { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inbox-row-preview { font-size: 12px; color: var(--gray-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inbox-more { margin: 12px auto; padding: 8px 18px; border-radius: var(--radius-pill); border: 1px solid var(--hairline); background: #fff; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+.inbox-av { width: 34px; height: 34px; border-radius: 50%; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.inbox-av-sm { width: 28px; height: 28px; font-size: 12px; }
+
+.inbox-reader { padding: 24px 28px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.inbox-hint { margin: 0; color: var(--gray-text-2); font-size: 14px; }
+.inbox-back { display: none; align-self: flex-start; border: none; background: transparent; padding: 0; font-family: inherit; font-size: 15px; font-weight: 700; color: var(--blue); cursor: pointer; }
+.inbox-subject { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; overflow-wrap: anywhere; }
+.inbox-who { display: flex; align-items: center; gap: 10px; }
+.inbox-who-name { font-size: 14px; font-weight: 700; }
+.inbox-who-sub { font-size: 12px; color: var(--gray-text-2); }
+.inbox-body { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.55; color: #2c2c30; max-width: 640px; }
+.inbox-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.inbox-link-danger { border: none; background: transparent; padding: 0 4px; font-family: inherit; font-size: 13px; font-weight: 700; color: #c9231b; cursor: pointer; }
+.inbox-link-danger:hover { text-decoration: underline; }
+.inbox-reply { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+.inbox-reply textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--hairline); border-radius: 13px; padding: 12px 14px; font-family: inherit; font-size: 15px; resize: vertical; }
+.inbox-reply textarea:focus { outline: none; border-color: var(--blue); }
+.inbox-reply .abt-btn-submit { align-self: flex-start; }
+.inbox-note { margin: 6px 0 0; font-size: 12px; color: var(--gray-text-2); }
+
+.inbox-compose-count { font-size: 12px; color: var(--gray-text-2); text-align: right; margin-top: 4px; }
+
+@media (max-width: 767px) {
+  .inbox-wrap { grid-template-columns: 1fr; min-height: 0; }
+  .inbox-list-col { max-height: none; border-right: none; }
+  .inbox-reader { padding: 18px 16px; }
+  .inbox-wrap:not(.inbox-open) .inbox-reader { display: none; }
+  .inbox-wrap.inbox-open .inbox-list-col { display: none; }
+  .inbox-back { display: inline-block; }
+  .inbox-subject { font-size: 19px; }
+}

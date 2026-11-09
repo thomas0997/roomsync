@@ -41,7 +41,7 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | POST | /rooms | `{name, type?}` | 201 room (role `admin`). `type` defaults to `classroom`; an invalid type gives 422. | T1 DONE |
 | GET | /rooms | none | `[room]` (rooms I'm in), including `type` and `pending_count` | T1 DONE |
 | POST | /rooms/join | `{invite_code}` | room. Invalid code gives 404 "Invalid invite code". Joining a room you are already in just returns the room. Codes are case-insensitive. Limited to 10 tries per minute per user: after that 429 with a Retry-After header (stops invite-code guessing). | T1 DONE |
-| GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online?}]` (`online` is T2) | T1 DONE, add `status` TODO |
+| GET | /rooms/{room_id}/members | none | `[{user_id,name,role,joined_at,avatar_url?,status:{kind,text},online}]` (`online` = seen in the last 2 minutes via POST /presence/ping) | T1/T2 DONE |
 | POST | /rooms/{room_id}/leave | none | 204. Last member out deletes the room. The only admin can't leave while others remain (400). | T1 DONE |
 | POST | /rooms/{room_id}/members/{user_id}/role | `{role: "admin" or "member"}` | member. Admin only (403 otherwise). 404 if the user is not in the room. Any admin can promote. Only the room creator can demote an admin (403 otherwise). The creator can never be demoted (400). Invalid role gives 422. | T1 DONE |
 | PATCH | /rooms/{room_id} | `{name?, type?}` | room. Admin only (403 otherwise). Send at least one field and no unknown fields, otherwise 422. | T1 DONE |
@@ -51,8 +51,9 @@ Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_u
 | DELETE | /rooms/{room_id}/avatar | none | 204. Admin only (403). Back to the default icon. | T1 TODO |
 
 ## Tasks (Daniel)
-Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, note?, edited_by_name?, edited_at?, done}`
+Task: `{id, room_id, title, type, subject?, due_at, all_day, status:"pending|approved|rejected", created_by, created_by_name, decided_by_name?, decided_at?, note?, edited_by_name?, edited_at?, attachments, done}`
 `note` is an optional plain-text note, max 300 characters. `edited_by_name` and `edited_at` are set when an admin edits an approved task; the frontend shows "Edited by <name>".
+`attachments` is a list of up to 5 notes (room files) linked to the task: `[{file_id, name, size}]`, oldest first (empty list when none). It carries names only, never file contents; downloading still goes through `GET /files/{file_id}/download` and its member-only check. See "Note attachments" below.
 `done` is true when the CURRENT user ticked the task off. It is per user (nobody else sees it) and is filled in on the week, calendar, removed-list and done/hidden responses; on every other response it is false.
 `type` is one of `exam, quiz, case-study, activity, seatwork, assignment` or a custom type name of 1 to 15 characters (was 30; every built-in type fits). Custom types show as a neutral grey chip.
 "Add another title" in the New TODO form needs no endpoint: the form shares subject, type, date and time and sends one POST /rooms/{room_id}/tasks per title, so every title is its own separate task and card.
@@ -62,7 +63,7 @@ A task cannot be due in the past (decided Oct 20). Admins can still approve or r
 Time zone: until the T2 timezone setting exists, weeks and months are calculated in Asia/Manila (UTC+8).
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?, note?}` | 201 task. `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
+| POST | /rooms/{room_id}/tasks | `{title, type, due_at, all_day?, subject?, note?, file_ids?}` | 201 task. `file_ids` is an optional list of up to 5 file ids to attach (see Note attachments); every id must be a file of THIS room, otherwise 422 "One of the files was not found in this room" (same answer for a missing file and for a file of another room). `due_at` is required (422 if missing), must include a time zone, and must be in the future (422 "due_at must be in the future"). Status is `pending`, EXCEPT `approved` immediately when the creator is the room's only admin. | T1 DONE |
 | GET | /rooms/{room_id}/tasks?week_start=YYYY-MM-DD | none | `[task]` approved tasks due in that Sun to Sat week, sorted by due_at. The week runs Sun 00:00 to Sat 23:59:59 Asia/Manila. `week_start` must be a Sunday, otherwise 422. | T1 DONE |
 | GET | /rooms/{room_id}/calendar?month=YYYY-MM | none | `[task]` approved tasks due that month (month boundaries in Asia/Manila). Invalid month gives 422. | T1 DONE |
 | PATCH | /tasks/{task_id} | `{title?, type?, due_at?, all_day?, subject?, note?}` | task. While `pending`: the creator OR a room admin (decided Oct 21). While `approved`: room admins ONLY (members get 403); no re-approval, the status stays `approved`, and `edited_by_name` and `edited_at` are recorded. `rejected` tasks cannot be edited (403). The creator and status are never changed by an edit. Send at least one field; title, type, due_at and all_day can never be null; unknown fields (such as status) give 422. subject and note can be cleared with null. `type` is 1 to 15 characters, `note` max 300 (422 otherwise). If `due_at` is sent it must be in the future (422); changing only other fields of a task whose date has passed is allowed. | T1 TODO (approved-task edit, note, 15-char type) |
@@ -78,6 +79,20 @@ Time zone: until the T2 timezone setting exists, weeks and months are calculated
 Done and removed are stored per user and per task and are deleted together with the task. `GET /rooms/{room_id}/tasks?week_start=` (the Home board) leaves out tasks I removed; `GET /rooms/{room_id}/calendar` still includes them. Both mark `done` for me.
 
 Task-id endpoints (PATCH and DELETE /tasks/{task_id}, PUT and DELETE /tasks/{task_id}/done and /hidden, POST /tasks/{task_id}/approve and /reject) return 404 both when the task does not exist and when the caller is not a member of its room, so task ids cannot be probed. Room endpoints return 403.
+
+### Note attachments (T2 DONE)
+A task can link up to 5 notes (room files) so syncmates open the right file from the task card, and the Notes page shows which tasks use a file.
+| Method | Path | Body | Returns | Tier / Status |
+|---|---|---|---|---|
+| PUT | /tasks/{task_id}/attachments/{file_id} | none | 200 task (with `attachments`). Links the file to the task. Doing it twice is fine. | T2 DONE |
+| DELETE | /tasks/{task_id}/attachments/{file_id} | none | 204. Unlinks the file (the file itself is NOT deleted). Unlinking a file that was not linked is fine. | T2 DONE |
+Rules:
+- Same-room only. The file must belong to the task's room. A missing file and a file of another room give the same 404 "File not found", and a non-member gets the usual task-id 404, so nothing can be probed.
+- Who: the task's creator or a room admin (403 for other members). Allowed on `pending` and `approved` tasks; a `rejected` task gives 403. Attaching does not count as an edit (no "Edited by").
+- Limits: at most 5 notes per task (409 "A task can have at most 5 notes"). Rate limit: 60 attach or unlink calls per hour per user (429).
+- Access does not change: attaching never gives anyone new access. Only room members can see a task or download a file, exactly as before.
+- Cleanup: deleting a task removes its links; deleting a file removes it from every task (the tasks stay).
+- Notes page: each file in `GET /rooms/{room_id}/files` also has `used_in` (up to 5 APPROVED tasks that link it, `[{task_id, title}]`) and `used_in_count`. Pending and rejected tasks are never listed there.
 
 ## Approvals (Daniel)
 Rules:
@@ -99,27 +114,33 @@ Rules:
 | POST | /tasks/{task_id}/reject | none | task (updated). Admin only. | T1 DONE |
 
 ## Discussion (Daniel): room chat, text only
-Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at}`
+Message: `{id, room_id, author_id, author_name, body, reply_to_id?, reply_to?:{author_name, snippet}, created_at, mentions, attachments}`
 Rules:
 - Only room members can read or post (`require_member` on every endpoint). `body` is 1 to 2000 characters; rate-limit posting.
 - A user can delete ONLY their own messages. Room admins can NOT delete other users' messages (403).
 - Room discussion is NOT end-to-end encrypted (stored readable; disclosed in the privacy note). Never log message content.
-- The frontend renders message text with `textContent`, never `innerHTML`.
+- The frontend renders message text with `textContent`, never `innerHTML` (mentions are highlighted by wrapping the matched substring in its own text node, not by injecting markup).
 - reply_to_id must point to a message in the same room, otherwise 422.
 - Deleting a message that has replies is a hard delete; those replies then show reply_to as null.
 - reply_to.snippet is the first 80 characters of the replied-to message.
 - `body` is trimmed, then must be 1 to 2000 characters; a blank body gives 422.
 - GET messages: `limit` defaults to 50 and must be 1 to 100 (422 otherwise); a bad `before_id` (not a positive integer) gives 422; a `before_id` that does not exist or belongs to another room returns an empty list.
 - DELETE message: 404 when the message does not exist or is in a room the caller is not in (so ids cannot be probed); 403 for a room member who is not the author (admins included).
+- **@mentions (T2 DONE).** `mentions` is a list of user ids: every current room member whose exact display name appears in `body` as `@Full Name` on a word boundary (computed on read, not stored, so a rename or a membership change changes future `mentions` on old messages too). No endpoint needed; the `notify_mentions` account setting (`GET/PUT /users/me/settings`) exists for a future notification feature but sending one is not built.
+- **Attachments via the clip (T2 DONE).** Reuses the Files pipeline: `file_ids` on `POST /rooms/{room_id}/messages`, up to 5, every id must already be a file of this room (422 "One of the files was not found in this room" otherwise, same answer for a missing file and a file of another room). `attachments` on every message is `[{file_id, name, size}]`, oldest-attached first (empty list when none). Carries names only; downloading still goes through `GET /files/{file_id}/download` and its member-only check.
+- **Unread counts and "seen by" (T2 DONE).** One per-user, per-room read marker (`last_read_at`), set to the room's `joined_at` the first time it is needed so history from before you joined is never "unread". Posting a message does not mark it read for the author's own other devices; only `POST .../read` does.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/messages?limit=50&before_id= | none | `[message]` oldest first (the latest page by default; `before_id` loads older ones) | T1 DONE |
-| POST | /rooms/{room_id}/messages | `{body, reply_to_id?}` | 201 message | T1 DONE |
+| POST | /rooms/{room_id}/messages | `{body, reply_to_id?, file_ids?}` | 201 message | T1/T2 DONE |
 | DELETE | /messages/{message_id} | none | 204. Author only; anyone else, including admins, gets 403. | T1 DONE |
-T2 (not defined yet): @mentions, attachments, unread counts, "seen by". T3: WebSockets, DMs, calls (see Messaging).
+| GET | /rooms/{room_id}/messages/unread-count | none | `{count}` messages after my read marker, not authored by me. | T2 DONE |
+| POST | /rooms/{room_id}/messages/read | none | 204. Moves my read marker for this room to now. Rate-limited. | T2 DONE |
+| GET | /rooms/{room_id}/messages/seen | none | `[{user_id, name}]` other room members whose read marker is at or past the newest message (empty list when there are no messages yet). | T2 DONE |
+T3: WebSockets, DMs, calls (see Messaging).
 
 ## Files (Thomas): replaces Notes
-File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version}`
+File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version, used_in, used_in_count}`
 Rules:
 - Only room members can list or download. Locked = read-only notes: no new version, no rename (everyone can still download). The creator or any room admin can lock or unlock. The creator or any room admin can delete (even if locked).
 - Allowed: .pdf .docx .xlsx .pptx .txt .csv .md; source code of any language as plain text (.py .java .c .cpp .h .cs .js .ts .json .html .css .sql .php .rb .go .rs .sh and similar); images .png .jpg .jpeg .gif .webp; audio .mp3 .wav .m4a. Everything else is rejected with 415 (video, archives, executables and installers, macro-enabled Office files, legacy .doc/.xls/.ppt, SVG).
@@ -147,17 +168,18 @@ User: `{id, email, name, avatar_url?, status:{kind,text}, joined_at}`
 | GET | /users/me | none | user | T1 DONE |
 | PATCH | /users/me | `{name?, status_kind?, status_text?}` | user. `status_text` required when kind is `custom` (max 40); it is cleared when the kind is not `custom`. Send at least one field; unknown fields give 422. The members list also returns each member's `status`. | T1 DONE |
 | GET | /users/me/stats | none | `{submitted, approved, rejected}` (counts of my tasks across all rooms) | T1 DONE |
+| GET | /users/me/history?limit=50 | none | `[{id,title,room_id,room_name,type,status,created_at,decided_at?}]` my own submitted tasks, newest first (Profile > History) | T2 DONE |
 | GET | /users/{user_id} | none | `{id, name, avatar_url, status, joined_at, rooms:[{id,name}]}` for me or someone who shares a room with me; `rooms` are only the rooms we are both in; no email. Anyone else, a missing user and a deleted user all give the same 404. Non-number id gives 422. | T1 DONE |
 | DELETE | /users/me | none | 204. 400 if I am the only admin of a room that still has other members (pass the admin role first). My messages and tasks stay, shown as "Deleted user". I leave all my rooms (a room with no one left is deleted), the email is freed for a new signup, and the old token stops working (401). | T1 DONE |
 | PUT | /users/me/avatar | multipart `image` | user. png/jpg/webp, max 2 MB, resized to 256x256, re-encoded. | T2 TODO |
 | DELETE | /users/me/avatar | none | 204 | T2 TODO |
-| POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes) | T2 TODO |
+| POST | /presence/ping | none | 204 (call every ~60 s; online = seen in the last 2 minutes). Rate-limited (120/min/user). | T2 DONE |
 | GET | /users/me/task-types | none | `[{id,name,color}]` | T2 TODO |
 | POST | /users/me/task-types | `{name(max 20), color:"#rrggbb"}` | 201 `{id,name,color}` (409 if name exists) | T2 TODO |
 | DELETE | /users/me/task-types/{id} | none | 204 | T2 TODO |
-| GET | /users/me/settings | none | settings | T2 TODO |
-| PUT | /users/me/settings | `{theme:"light|dark|system", show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone:"Asia/Manila", task_colors?:{type:"#rrggbb"}}` | settings | T2 TODO |
-Until T2, theme, show-empty-days and task colors stay in browser `localStorage`.
+| GET | /users/me/settings | none | `{theme, show_empty_days, notify_deadline_reminders, notify_mentions, notify_approvals, timezone, task_colors}` | T2 DONE |
+| PUT | /users/me/settings | partial `{theme?:"light\|dark\|system", show_empty_days?, notify_deadline_reminders?, notify_mentions?, notify_approvals?, timezone?, task_colors?:{type:"#rrggbb"}}` (send at least one field) | settings. `task_colors` MERGES into what is saved (does not replace it); only the six built-in types are accepted (422 otherwise). Theme and the notification toggles are saved but not read by the frontend yet. | T2 DONE (theme/notify toggles: saved, not wired) |
+Show-empty-days and task colors are account-level now (GET/PUT /users/me/settings), not `localStorage`.
 
 ## Email (T2)
 Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas@roomsync.me`. Settings live only in environment variables: `RESEND_API_KEY` (a Sending-access key limited to roomsync.me), `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `APP_URL`. With no `RESEND_API_KEY` set (local dev, tests) emails are not sent. Nothing is ever logged about an email except the kind and a success or failure flag.
@@ -176,13 +198,38 @@ Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas
 | POST | /contact | `{name, email, message(max 2000), website?}` | 204 |
 Public endpoints: rate-limited (5 per hour per address each, 429 after that). `website` is a hidden honeypot field; if it is filled in, return 204 and save nothing. Bad input gives 422. Messages are saved in the tables `feedback` and `contact_messages` (read them in the Neon SQL editor); once the Email service is configured, each saved message is also forwarded to `CONTACT_INBOX` (Reply-To is the sender's address for Contact). A failed forward never fails the request.
 
+## Inbox (T2 DONE): replaces direct messages
+A private, one-to-one inbox, like email inside RoomSync. A person writes to a syncmate (someone who shares a room with them), picked by name, and the message lands in the recipient's Inbox tab. It is NOT a mailto link and sends no real email in v1 (a "you have a new message" email may come later). It is NOT end-to-end encrypted (see Privacy below).
+Message: `{id, from_user_id, from_name, to_user_id, to_name, subject, body, created_at, read_at?, reply_to_id?, archived}`. Names only; email addresses are never returned. A deleted account shows as "Deleted user".
+| Method | Path | Body | Returns | Tier / Status |
+|---|---|---|---|---|
+| GET | /inbox/syncmates | none | `[{user_id, name, rooms: [room name]}]` everyone who shares a room with me (not me, not deleted accounts), sorted by name. Powers the name picker. No emails. | T2 DONE |
+| POST | /inbox | `{to_user_id, subject, body}` | 201 message. `subject` 1 to 120 characters, `body` 1 to 2000, both trimmed and not blank (422). Writing to yourself gives 422. | T2 DONE |
+| POST | /inbox/{message_id}/reply | `{body}` | 201 message to the other person, subject "Re: ..." (reply_to_id set). Same rules and limits as a new message. | T2 DONE |
+| GET | /inbox?folder=inbox&limit=50&before_id= | none | `[message]` newest first. `folder`: `inbox` (default), `sent`, `archived`. `limit` 1 to 100. `before_id` pages older messages. 422 for a bad value. | T2 DONE |
+| GET | /inbox/unread-count | none | `{count}` unread messages in my inbox. The frontend polls this every 30 seconds for the dot and the toast. | T2 DONE |
+| GET | /inbox/{message_id} | none | message. Opening it as the recipient marks it read (sets `read_at`). | T2 DONE |
+| PATCH | /inbox/{message_id} | `{archived}` | message. Recipient only (404 for anyone else). | T2 DONE |
+| DELETE | /inbox/{message_id} | none | 204. Removes it from MY view only; the other person keeps their copy. When both have removed it, it is deleted for good. | T2 DONE |
+| PUT | /inbox/blocks/{user_id} | none | 204. Blocks that person from writing to me. Doing it twice is fine. | T2 DONE |
+| DELETE | /inbox/blocks/{user_id} | none | 204. Unblocks. | T2 DONE |
+Rules:
+- Room-mates only. You can write only to someone who shares at least one room with you. An unknown id, a deleted account and a person you share no room with ALL give the same 404 "Syncmate not found", so nobody can find out who has an account. Signup and login behavior is unchanged.
+- Privacy of messages: only the sender and the recipient can open a message. For any other person, and for a message that does not exist, the answer is the same 404, so ids cannot be probed. Admins have no extra access in the app.
+- Blocks: a blocked sender still gets the normal 201 (they are not told) and sees the message in their Sent folder, but it is never delivered: the recipient never sees it and it never counts as unread. Blocking someone does not remove old messages. You can block someone you share a room with or who has written to you (otherwise 404).
+- Limits (429 when exceeded): 20 messages per hour and 100 per day per user, and at most 10 per hour to the same person. Message size is capped as above (422).
+- Plain text only. Subject and body are shown with `textContent`, links are NOT made clickable (phishing risk), and nothing is ever rendered as HTML.
+- Never log message content, subjects or recipient emails (log only the kind and a success flag).
+- Privacy page and Terms (PR 4): must say that Inbox messages are not end-to-end encrypted, are stored on our servers, and that RoomSync operators could technically access stored messages; room admins cannot read them in the app.
+- Retention: messages stay until both people remove them or an account is deleted (then the message text may remain for the other person, shown as "Deleted user"). The retention schedule is still to be decided with the Privacy page.
+
 ## Messaging (T3: AFTER LAUNCH, do NOT build yet)
 Listed so nobody invents conflicting endpoints. Exact endpoints are added here BEFORE any code is written.
 - Instant delivery (WebSockets) for room chat, typing indicators, presence.
-- Direct messages: private between two users, END-TO-END ENCRYPTED. The server stores only ciphertext. Room admins and developers can NOT read DMs. Users still see history. Users can delete only their own DMs.
+- Direct messages are replaced by the Inbox above (decided Nov 7). No end-to-end encrypted direct messages are planned for now.
 - Audio and video calls (press Call, the other person is rung), 1-on-1 and room group calls, through an embedded call service. The ring uses the WebSocket.
 - Live co-editing docs in Files.
-- Until DMs ship, do not claim end-to-end encryption anywhere in the product or docs.
+- Nothing in RoomSync is end-to-end encrypted. Do not claim it anywhere in the product or docs.
 
 ## Frontend conventions (all pages)
 - API address: `js/config.js` sets `window.ROOMSYNC.API_BASE` (empty in production, `http://localhost:8000` on Live Server ports).

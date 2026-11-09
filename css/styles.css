@@ -2366,7 +2366,7 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 .todo-modal form[hidden], .todo-modal form.abt-panel:not(.abt-panel-active) { display: none; }
 
 /* New TODO: short create form (Edit mode keeps every field) */
-.todo-type-chips, .todo-quick-links { display: none; }
+.todo-type-chips, .todo-quick-icons { display: none; }
 .todo-chip {
   padding: 8px 13px; border-radius: 999px; border: 1px solid var(--hairline); background: #fff; cursor: pointer;
   font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--near-black);
@@ -2375,27 +2375,39 @@ body.is-public .abt-stats { margin-left: -18px; margin-right: -18px; padding-lef
 .todo-chip:last-child[aria-pressed="false"] { color: var(--blue); }
 .todo-link-btn { border: none; background: transparent; padding: 0; cursor: pointer; font-family: inherit; font-size: 14.5px; font-weight: 700; color: var(--blue); }
 .todo-link-btn:hover { text-decoration: underline; }
+
+/* Quick-add icon row: Time / Subject / Note / Attach / another Title. One compact row that
+   never grows, instead of separate text links piling up as more get used. */
+.todo-quick-icon {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border: 1px solid var(--hairline); background: #fff; border-radius: 12px; padding: 8px 6px;
+  cursor: pointer; font-family: inherit; font-size: 10.5px; font-weight: 600; color: var(--gray-text-2);
+}
+.todo-quick-icon svg { width: 17px; height: 17px; color: var(--blue); flex-shrink: 0; }
+.todo-quick-icon:hover { border-color: var(--blue); }
+.todo-quick-icon.active { border-color: var(--blue); background: #eaf3ff; color: var(--near-black); }
+.todo-quick-icon:disabled { opacity: 0.45; cursor: default; border-color: var(--hairline); background: #fff; }
+
 .todo-modal form.todo-simple .todo-type-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.todo-modal form.todo-simple .todo-quick-links { display: flex; gap: 22px; }
+.todo-modal form.todo-simple .todo-quick-icons { display: flex; gap: 8px; }
 .todo-modal form.todo-simple #todoType { display: none; }
-.todo-modal form.todo-simple .todo-opt-field,
-.todo-modal form.todo-simple .todo-extra-titles,
-.todo-modal form.todo-simple .todo-add-title,
-.todo-modal form.todo-simple .todo-hint,
+.todo-modal form.todo-simple .todo-room-field { display: none; }
 .todo-modal form.todo-simple .todo-note-field:not(.open),
+.todo-modal form.todo-simple .todo-subject-field:not(.open),
 .todo-modal form.todo-simple .todo-time-field:not(.open) { display: none; }
 .todo-modal form.todo-simple .abt-field:has(#todoTitle) { order: 1; }
 .todo-modal form.todo-simple .abt-field:has(#todoType) { order: 2; }
 .todo-modal form.todo-simple .todo-custom-type { order: 3; }
 .todo-modal form.todo-simple .abt-field:has(#todoDate) { order: 4; }
-.todo-modal form.todo-simple .todo-time-field { order: 5; }
-.todo-modal form.todo-simple .todo-note-field { order: 6; }
-.todo-modal form.todo-simple .todo-attach-field { order: 7; }
-.todo-modal form.todo-simple .todo-quick-links { order: 8; }
-.todo-modal form.todo-simple .todo-room-field { order: 9; flex-direction: row; align-items: center; gap: 10px; }
-.todo-modal form.todo-simple .todo-room-field select { width: auto; padding: 7px 12px; font-size: 14px; border-radius: 10px; }
-.todo-modal form.todo-simple #todoFormError { order: 10; }
-.todo-modal form.todo-simple .abt-form-actions { order: 11; }
+.todo-modal form.todo-simple .todo-quick-icons { order: 5; }
+.todo-modal form.todo-simple .todo-extra-titles { order: 6; }
+.todo-modal form.todo-simple .todo-hint { order: 7; }
+.todo-modal form.todo-simple .todo-time-field { order: 8; }
+.todo-modal form.todo-simple .todo-subject-field { order: 9; }
+.todo-modal form.todo-simple .todo-note-field { order: 10; }
+.todo-modal form.todo-simple .todo-attach-field { order: 11; }
+.todo-modal form.todo-simple #todoFormError { order: 12; }
+.todo-modal form.todo-simple .abt-form-actions { order: 13; }
 .todo-modal form .todo-attach-field { display: none; }
 .todo-modal form.todo-simple .todo-attach-field.open { display: flex; flex-direction: column; gap: 8px; }
 .todo-attached-list { display: flex; flex-direction: column; gap: 8px; }

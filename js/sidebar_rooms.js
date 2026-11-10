@@ -454,6 +454,56 @@
     });
   }
 
+  // "Remove from room" in the person modal (opened from a member in the sidebar). Admin-only,
+  // never offered for yourself. The real rules live on the backend (the room creator can't be
+  // removed; only the creator can remove a fellow admin) -- a 400/403 just shows as a toast.
+  var personModalOverlay = byId('personModalOverlay');
+  if (personModalOverlay) {
+    var removeBtn = byId('personModalRemove');
+    if (!removeBtn) {
+      removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.id = 'personModalRemove';
+      removeBtn.className = 'person-modal-remove';
+      removeBtn.textContent = 'Remove from room';
+      removeBtn.hidden = true;
+      var actionsRow = personModalOverlay.querySelector('.abt-form-actions');
+      if (actionsRow && actionsRow.parentNode) {
+        actionsRow.parentNode.insertBefore(removeBtn, actionsRow.nextSibling);
+      }
+    }
+
+    var onlineList = byId('onlineUsersList');
+    if (onlineList) {
+      onlineList.addEventListener('click', function (e) {
+        var item = e.target.closest('.online-user-clickable');
+        if (!item) { return; }
+        var targetId = item.dataset.userid || '';
+        var isSelf = item.dataset.self === 'true';
+        var room = currentRoom();
+        var iAmAdmin = !!(room && room.role === 'admin');
+        removeBtn.dataset.userid = targetId;
+        removeBtn.dataset.name = item.dataset.name || 'this member';
+        removeBtn.hidden = !iAmAdmin || isSelf || !targetId;
+      });
+    }
+
+    removeBtn.addEventListener('click', function () {
+      var targetId = removeBtn.dataset.userid;
+      var name = removeBtn.dataset.name || 'this member';
+      if (!targetId || currentId === null) { return; }
+      if (!window.confirm('Remove ' + name + ' from this room? They’ll need a new invite to rejoin.')) { return; }
+      removeBtn.disabled = true;
+      api('/rooms/' + currentId + '/members/' + targetId, 'DELETE').then(function (r) {
+        removeBtn.disabled = false;
+        if (!r.ok) { showToast(errorText(r)); return; }
+        personModalOverlay.hidden = true;
+        showToast(name + ' was removed from the room.');
+        loadMembers(currentId);
+      });
+    });
+  }
+
   function setModalOpen(open) {
     var overlay = byId('newRoomModalOverlay');
     if (overlay) { overlay.hidden = !open; }

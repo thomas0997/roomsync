@@ -1977,6 +1977,19 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
   color: var(--gray-text); font-size: 15px; line-height: 20px; cursor: pointer;
 }
 .verify-banner-dismiss:hover, .verify-banner-dismiss:focus-visible { background: rgba(0,0,0,0.06); color: var(--near-black); }
+
+/* Person modal: "Remove from room" (js/sidebar_rooms.js) -- a quiet destructive link below
+   the Message/View Profile row, admin-only, never shown on your own card. */
+.person-modal-remove {
+  /* No "display" here on purpose: setting one (even display:block) ties with the browser's
+     own [hidden]{display:none} on specificity and wins by source order, so a hidden button
+     would show anyway (the recurring [hidden]-vs-class bug noted for this project). A
+     <button>'s default display (inline-block) already takes width:100% fine. */
+  width: 100%; margin-top: 14px; padding: 0; border: none; background: none;
+  font-size: 13.2px; font-weight: 700; color: var(--exam); cursor: pointer;
+}
+.person-modal-remove:hover, .person-modal-remove:focus-visible { text-decoration: underline; }
+.person-modal-remove:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
 .abt-form-error { margin: 0; font-size: 14.4px; font-weight: 600; color: #c0392b; }
 .abt-form-error[hidden] { display: none; }
 .avatar { overflow: visible; }

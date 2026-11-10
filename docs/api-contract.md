@@ -188,14 +188,15 @@ Show-empty-days and task colors are account-level now (GET/PUT /users/me/setting
 Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas@roomsync.me`. Settings live only in environment variables: `RESEND_API_KEY` (a Sending-access key limited to roomsync.me), `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `APP_URL`. With no `RESEND_API_KEY` set (local dev, tests) emails are not sent. Nothing is ever logged about an email except the kind and a success or failure flag.
 - Sending never blocks or breaks a request: it runs in the background, and a failed send does not turn the API answer into an error.
 - Free plan limits: 100 emails per day, 3,000 per month. Emails that are not time-critical (reminders) are batched; password-reset and security emails always go first.
-- Emails we send: password reset link, "password changed" notice, email verification link, Contact and Feedback forwards to `CONTACT_INBOX` (later: deadline reminders).
+- Emails we send: password reset link, "password changed" notice, email verification link, deadline-reminder digest, Contact and Feedback forwards to `CONTACT_INBOX`.
 
-## Deadline reminders (T2, no public endpoints except unsubscribe)
+## Deadline reminders (T2 DONE, no public endpoints except unsubscribe)
 **DECIDED (Nov 10, replaces the earlier fixed-schedule plan): one daily digest per user, not three emails per task.** The original per-offset design (3 days, 1 day, 3 hours before `due_at`, separately) would send one email per task per offset per user -- a single 30-person room with one task is already 90 emails, which blows the Resend free plan (100/day, 3,000/month) almost immediately. A daily digest costs at most one email per verified, opted-in user per day, regardless of room size or task count.
-- A background job runs once a day and sends each eligible user ONE email: every task across their rooms that is APPROVED, not yet ticked done by them, and due within the next 3 days.
-- Eligible = `email_verified` is true AND `notify_deadline_reminders` is true. Nothing is sent to an unverified address.
-- At most one digest per user per calendar day (tracked so a retry or redeploy never double-sends the same day). No per-task "already sent" state needed, since the digest just reflects whatever is currently due soon.
-- Every email has an unsubscribe link: GET `/unsubscribe?token=` turns `notify_deadline_reminders` off without requiring login.
+- In-process scheduler (APScheduler, `app/scheduler.py`), one Render instance only. Runs once a day at 23:00 UTC (7:00 AM Manila) and sends each eligible user ONE email (`app/digest.py`): every task across their rooms that is APPROVED, not yet ticked done by them, due within the next 3 days, and not already overdue.
+- Eligible = `email_verified` is true AND `notify_deadline_reminders` is true (or no settings row saved yet, since that column's own default is true) AND the account isn't soft-deleted. A user with nothing due soon is skipped (not emailed just to say "nothing's due").
+- At most one digest per user per calendar day (`users.last_digest_sent_at`), so a retry or redeploy never double-sends the same day. No per-task "already sent" state needed, since the digest just reflects whatever is currently due soon.
+- Manual test without waiting for the schedule: `python -m app.digest` (dry run, prints what would be sent) or `python -m app.digest --send` (actually sends).
+- `GET /unsubscribe?token=` | none | 200 HTML confirmation, or 400 for a bad token. Turns `notify_deadline_reminders` off, no login needed. The token is `HMAC(SECRET_KEY, "unsub:<user_id>")`-based, never expires, needs no database row. Rate limited 30/hour per address.
 
 ## About (T1 DONE)
 | Method | Path | Body | Returns |

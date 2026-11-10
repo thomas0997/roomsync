@@ -566,7 +566,9 @@ ul { list-style: none; }
 
   .board-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    /* auto-fill (not auto-fit): keep day cards at their natural width and leave the
+       leftover row space empty, instead of stretching 1-2 cards to fill the whole row. */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
   }
   .day-card-today { max-width: 220px; }
@@ -669,7 +671,9 @@ ul { list-style: none; }
 
   .week-section { margin-bottom: 0; }
   .board-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    /* auto-fill (not auto-fit): keep day cards at their natural width and leave the
+       leftover row space empty, instead of stretching 1-2 cards to fill the whole row. */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 17px;
   }
   .day-card-today { max-width: 210px; }

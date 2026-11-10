@@ -25,8 +25,14 @@ def ask_reset(client, email="a@example.com"):
     return client.post("/auth/forgot", json={"email": email})
 
 
+def test_signup_sends_a_verification_email(client):
+    signup(client)
+    assert len(SENT) == 1 and SENT[0]["to"] == "a@example.com" and SENT[0]["kind"] == "email_verification"
+
+
 def test_forgot_known_and_unknown_email_look_identical(client):
     signup(client)
+    SENT.clear()  # signup itself already sent a verification email; not what this test is about
     known = ask_reset(client)
     unknown = ask_reset(client, "nobody@example.com")
     assert known.status_code == unknown.status_code == 204
@@ -37,6 +43,7 @@ def test_forgot_known_and_unknown_email_look_identical(client):
 def test_reset_link_is_in_the_fragment_and_only_the_hash_is_stored(client, monkeypatch):
     monkeypatch.setenv("APP_URL", "https://roomsync.me")
     signup(client)
+    SENT.clear()
     ask_reset(client)
     token = token_from(SENT[0])
     assert "https://roomsync.me/pages/reset.html#token=" in SENT[0]["text"]
@@ -47,6 +54,7 @@ def test_reset_link_is_in_the_fragment_and_only_the_hash_is_stored(client, monke
 
 def test_reset_changes_password_once_and_logs_everyone_out(client):
     old = signup(client)
+    SENT.clear()
     ask_reset(client)
     token = token_from(SENT[0])
     r = client.post("/auth/reset", json={"token": token, "new_password": "brandnew123"})
@@ -64,6 +72,7 @@ def test_reset_changes_password_once_and_logs_everyone_out(client):
 
 def test_bad_and_expired_tokens_get_the_same_400(client):
     signup(client)
+    SENT.clear()
     ask_reset(client)
     token = token_from(SENT[0])
     bad = client.post("/auth/reset", json={"token": "nope", "new_password": "brandnew123"})
@@ -78,6 +87,7 @@ def test_bad_and_expired_tokens_get_the_same_400(client):
 
 def test_new_request_replaces_the_old_link(client):
     signup(client)
+    SENT.clear()
     ask_reset(client)
     first = token_from(SENT[0])
     ask_reset(client)
@@ -88,6 +98,7 @@ def test_new_request_replaces_the_old_link(client):
 
 def test_short_or_too_long_new_password_is_422(client):
     signup(client)
+    SENT.clear()
     ask_reset(client)
     token = token_from(SENT[0])
     assert client.post("/auth/reset", json={"token": token, "new_password": "short"}).status_code == 422
@@ -96,6 +107,7 @@ def test_short_or_too_long_new_password_is_422(client):
 
 def test_deleted_account_gets_no_email(client):
     signup(client)
+    SENT.clear()  # signup itself already sent a verification email; not what this test is about
     with SessionLocal() as db:
         db.query(User).update({"deleted_at": datetime.now(timezone.utc)})
         db.commit()

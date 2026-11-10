@@ -20,17 +20,20 @@ Rules for every endpoint: validate input, check membership/admin first, never lo
 ## Auth (Thomas)
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
-| POST | /auth/signup | `{email, name, password(min 8)}` | 201 `{access_token, token_type, user:{id,email,name}}` | T1 DONE |
+| POST | /auth/signup | `{email, name, password(min 8)}` | 201 `{access_token, token_type, user:{id,email,name,email_verified}}`. Also sends a verification email in the background. | T1 DONE |
 | POST | /auth/login | `{email, password}` | `{access_token, token_type, user}` | T1 DONE |
-| GET | /auth/me | none | `{id,email,name}` | T1 DONE |
-| POST | /auth/forgot | `{email}` | 204 always, same answer and similar speed whether or not the email exists. Sends a reset email only to a real, active account. | T2 TODO |
-| POST | /auth/reset | `{token, new_password(min 8)}` | 204. 400 "Invalid or expired link" for any bad, used or expired token. | T2 TODO |
-| POST | /auth/verify | `{token}` | 204 | T2 TODO |
+| GET | /auth/me | none | `{id,email,name,email_verified}` | T1 DONE |
+| POST | /auth/forgot | `{email}` | 204 always, same answer and similar speed whether or not the email exists. Sends a reset email only to a real, active account. | T2 DONE |
+| POST | /auth/reset | `{token, new_password(min 8)}` | 204. 400 "Invalid or expired link" for any bad, used or expired token. | T2 DONE |
+| POST | /auth/verify | `{token}` | 204. 400 "Invalid or expired link" for any bad, used or expired token. | T2 DONE |
+| POST | /auth/resend-verification | none (logged in) | 204 always, even if already verified (no-op, no second email). | T2 DONE |
 | GET | /auth/google, /auth/github (+ `/callback`) | none | redirect flow, then the same token response as login | T2 TODO |
 
 Password reset rules: the emailed link is `APP_URL/pages/reset.html#token=...` (the token is in the URL fragment so it never reaches server logs or Referer headers). Only a SHA-256 hash of the token is stored. A token works once, expires after 30 minutes, and a newer request replaces the older one. Rate limits: forgot 5/hour per address and 3/hour per email; reset 10/hour per address. A successful reset bumps the user's `token_version`, so every older login token stops working (401), and a "Your password was changed" email is sent. The reset response does NOT log the user in.
 
-Log out = the client deletes the token (no endpoint). Rate-limit signup, login, forgot and reset (429). Social accounts link to an existing account only by a VERIFIED email. No Apple sign-in.
+Email verification rules: same shape as password reset (own `email_verifications` table, SHA-256 hash only, link in the URL fragment: `APP_URL/pages/verify.html#token=...`). A token works once and expires after 24 hours; a new request (signup, or `/auth/resend-verification`) replaces the older one. Rate limits: verify 10/hour per address; resend-verification 3/hour per account. Verifying does NOT log the user in or out, and an unverified account can still log in and use the app normally — `email_verified` only gates features that depend on reaching a real inbox (deadline reminders).
+
+Log out = the client deletes the token (no endpoint). Rate-limit signup, login, forgot, reset, verify and resend-verification (429). Social accounts link to an existing account only by a VERIFIED email. No Apple sign-in.
 
 ## Rooms (Thomas)
 Room: `{id, name, type, invite_code, role, member_count, pending_count, avatar_url?}`
@@ -185,11 +188,14 @@ Show-empty-days and task colors are account-level now (GET/PUT /users/me/setting
 Sent through Resend from `RoomSync <no-reply@roomsync.me>` with Reply-To `thomas@roomsync.me`. Settings live only in environment variables: `RESEND_API_KEY` (a Sending-access key limited to roomsync.me), `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `APP_URL`. With no `RESEND_API_KEY` set (local dev, tests) emails are not sent. Nothing is ever logged about an email except the kind and a success or failure flag.
 - Sending never blocks or breaks a request: it runs in the background, and a failed send does not turn the API answer into an error.
 - Free plan limits: 100 emails per day, 3,000 per month. Emails that are not time-critical (reminders) are batched; password-reset and security emails always go first.
-- Emails we send: password reset link, "password changed" notice, Contact and Feedback forwards to `CONTACT_INBOX` (later: deadline reminders, email verification).
+- Emails we send: password reset link, "password changed" notice, email verification link, Contact and Feedback forwards to `CONTACT_INBOX` (later: deadline reminders).
 
 ## Deadline reminders (T2, no public endpoints except unsubscribe)
-- A background job emails users before an APPROVED task is due: defaults 3 days, 1 day and 3 hours before `due_at`.
-- Each user, task and offset is emailed at most once. Respects `notify_deadline_reminders`. Every email has an unsubscribe link: GET `/unsubscribe?token=` turns the setting off.
+**DECIDED (Nov 10, replaces the earlier fixed-schedule plan): one daily digest per user, not three emails per task.** The original per-offset design (3 days, 1 day, 3 hours before `due_at`, separately) would send one email per task per offset per user -- a single 30-person room with one task is already 90 emails, which blows the Resend free plan (100/day, 3,000/month) almost immediately. A daily digest costs at most one email per verified, opted-in user per day, regardless of room size or task count.
+- A background job runs once a day and sends each eligible user ONE email: every task across their rooms that is APPROVED, not yet ticked done by them, and due within the next 3 days.
+- Eligible = `email_verified` is true AND `notify_deadline_reminders` is true. Nothing is sent to an unverified address.
+- At most one digest per user per calendar day (tracked so a retry or redeploy never double-sends the same day). No per-task "already sent" state needed, since the digest just reflects whatever is currently due soon.
+- Every email has an unsubscribe link: GET `/unsubscribe?token=` turns `notify_deadline_reminders` off without requiring login.
 
 ## About (T1 DONE)
 | Method | Path | Body | Returns |

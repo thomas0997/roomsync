@@ -1952,6 +1952,31 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 }
 .invite-code-line { margin: 10px 0 0; font-size: 13.2px; color: var(--gray-text-2); }
 .invite-code-line strong { color: var(--near-black); letter-spacing: 0.5px; user-select: all; }
+.copy-invite-link-btn {
+  display: block; margin-top: 4px; padding: 0; border: none; background: none;
+  font-size: 12.6px; font-weight: 600; color: var(--blue); cursor: pointer;
+}
+.copy-invite-link-btn:hover, .copy-invite-link-btn:focus-visible { text-decoration: underline; }
+
+/* "Verify your email" reminder (js/sidebar_rooms.js) -- plain block at the top of the
+   page, not fixed/sticky, so it never fights .topbar's own sticky positioning. */
+.verify-banner {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 4px 14px; padding: 10px 20px; background: #eaf3ff; border-bottom: 1px solid var(--hairline);
+  font-size: 13.2px; color: var(--near-black);
+}
+.verify-banner-actions { display: flex; align-items: center; gap: 14px; }
+.verify-banner-resend {
+  padding: 0; border: none; background: none; font-size: 13.2px; font-weight: 700;
+  color: var(--blue); cursor: pointer;
+}
+.verify-banner-resend:hover, .verify-banner-resend:focus-visible { text-decoration: underline; }
+.verify-banner-resend:disabled { opacity: 0.6; cursor: default; }
+.verify-banner-dismiss {
+  width: 20px; height: 20px; padding: 0; border: none; border-radius: 50%; background: none;
+  color: var(--gray-text); font-size: 15px; line-height: 20px; cursor: pointer;
+}
+.verify-banner-dismiss:hover, .verify-banner-dismiss:focus-visible { background: rgba(0,0,0,0.06); color: var(--near-black); }
 .abt-form-error { margin: 0; font-size: 14.4px; font-weight: 600; color: #c0392b; }
 .abt-form-error[hidden] { display: none; }
 .avatar { overflow: visible; }
@@ -2017,6 +2042,17 @@ body[data-current-room]:not([data-current-room="The Bozos"]) .task-count {
 .reminder-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .reminder-top { position: relative; }
 .reminder-title { flex: 1; min-width: 0; }
+/* Clamp long titles to 2 lines so every card in a day column locks to the same height
+   (a long title used to wrap onto as many lines as it needed and blow the card up --
+   worst with "Show empty days" on, since every day in the row then stretches to match
+   the tallest card). Full title is still reachable: native title= tooltip on hover
+   (js/home_board.js, js/task_ui.js), and the (i) button opens the full task detail. */
+.reminder-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .reminder-remove {
   flex-shrink: 0; width: 18px; height: 18px; margin: -2px -4px 0 0; padding: 0;
   border: none; border-radius: 50%; background: transparent; color: var(--gray-text);

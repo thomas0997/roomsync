@@ -37,11 +37,18 @@
   function drop(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
   function byId(id) { return document.getElementById(id); }
 
+  // A shared invite link is pages/home.html?join=CODE. Read once, used both to
+  // forward a logged-out visitor through login and to auto-join once they land here.
+  function joinCodeFromURL() {
+    try { return (new URL(window.location.href).searchParams.get('join') || '').trim(); } catch (e) { return ''; }
+  }
+
   function goLogin() {
     drop(cfg.TOKEN_KEY);
     drop(cfg.USER_KEY);
     drop(LAST_ROOM_KEY);
-    window.location.replace('login.html');
+    var join = joinCodeFromURL();
+    window.location.replace('login.html' + (join ? '?join=' + encodeURIComponent(join) : ''));
   }
 
   // Logged out? Leave before doing anything else. The exception is a public
@@ -414,12 +421,39 @@
       var strong = document.createElement('strong');
       strong.id = 'inviteCodeValue';
       line.appendChild(strong);
+      var copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'copy-invite-link-btn';
+      copyBtn.id = 'copyInviteLinkBtn';
+      copyBtn.textContent = 'Copy invite link';
+      line.appendChild(copyBtn);
       byId('onlineUsersList').parentNode.appendChild(line);
     }
     // We have no live "online" tracking yet (T2), so call the list what it is.
     document.querySelectorAll('.online-users-title').forEach(function (el) { el.textContent = 'Members'; });
   }
   prepareModals();
+
+  // "Copy invite link" sits next to the invite code (admins only, same visibility as
+  // inviteCodeLine). The link is the code packaged into a URL -- same secret, same
+  // /rooms/join rate limit, just one less thing to retype.
+  var copyLinkBtn = byId('copyInviteLinkBtn');
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener('click', function () {
+      var room = currentRoom();
+      if (!room || !room.invite_code) { return; }
+      var link = new URL('home.html?join=' + encodeURIComponent(room.invite_code), window.location.href).href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(
+          function () { showToast('Invite link copied.'); },
+          function () { showToast(link); }   // clipboard blocked: show it so it can be selected by hand
+        );
+      } else {
+        showToast(link);
+      }
+    });
+  }
+
   function setModalOpen(open) {
     var overlay = byId('newRoomModalOverlay');
     if (overlay) { overlay.hidden = !open; }
@@ -594,21 +628,86 @@
     });
   }
 
+  /* ---------- "verify your email" reminder: shown on every page until verified or dismissed ---------- */
+  var VERIFY_DISMISS_KEY = 'roomsync_verify_dismissed';
+  function sessionFlag(key) { try { return sessionStorage.getItem(key) === '1'; } catch (e) { return false; } }
+  function setSessionFlag(key) { try { sessionStorage.setItem(key, '1'); } catch (e) { /* ignore */ } }
+
+  function renderVerifyBanner(verified) {
+    var existing = byId('verifyBanner');
+    if (verified || sessionFlag(VERIFY_DISMISS_KEY)) {
+      if (existing) { existing.remove(); }
+      return;
+    }
+    if (existing) { return; }
+    var bar = document.createElement('div');
+    bar.id = 'verifyBanner';
+    bar.className = 'verify-banner';
+    bar.setAttribute('role', 'status');
+
+    var text = document.createElement('span');
+    text.className = 'verify-banner-text';
+    text.textContent = 'Verify your email to get deadline reminders.';
+    bar.appendChild(text);
+
+    var actions = document.createElement('div');
+    actions.className = 'verify-banner-actions';
+
+    var resend = document.createElement('button');
+    resend.type = 'button';
+    resend.className = 'verify-banner-resend';
+    resend.textContent = 'Resend email';
+    resend.addEventListener('click', function () {
+      resend.disabled = true;
+      api('/auth/resend-verification', 'POST').then(function (r) {
+        resend.disabled = false;
+        showToast(r.ok ? 'Verification email sent.' : errorText(r));
+      });
+    });
+    actions.appendChild(resend);
+
+    var dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'verify-banner-dismiss';
+    dismiss.textContent = '×';
+    dismiss.setAttribute('aria-label', 'Dismiss');
+    dismiss.addEventListener('click', function () { setSessionFlag(VERIFY_DISMISS_KEY); bar.remove(); });
+    actions.appendChild(dismiss);
+
+    bar.appendChild(actions);
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
+
+  /* ---------- joining a room from a shared invite link (pages/home.html?join=CODE) ---------- */
+  async function tryPendingJoin() {
+    var code = joinCodeFromURL();
+    if (!code) { return null; }
+    // Scrub the URL right away so a refresh or the back button never re-submits it.
+    try { history.replaceState(null, '', window.location.pathname); } catch (e) { /* ignore */ }
+    var r = await api('/rooms/join', 'POST', { invite_code: code });
+    if (!r.ok) { showToast(errorText(r)); return null; }
+    addRoom(r.body);
+    showToast('Joined ' + r.body.name);
+    return r.body.id;
+  }
+
   /* ---------- start ---------- */
   async function init() {
     renderProfile();
-    var results = await Promise.all([api('/rooms'), api('/users/me/settings')]);
+    var results = await Promise.all([api('/rooms'), api('/users/me/settings'), api('/auth/me')]);
     var r = results[0];
     if (results[1].ok) { applyTaskColors(results[1].body.task_colors); }
+    if (results[2].ok) { renderVerifyBanner(results[2].body.email_verified); }
     if (!r.ok) {
       showToast(errorText(r));
       renderHeader();
       return;
     }
     rooms = r.body;
+    var joinedId = await tryPendingJoin();
     refreshApproveBadge();
     refreshDiscussionBadge();
-    if (rooms.length === 0) {
+    if (rooms.length === 0 && !joinedId) {
       selectRoom(null);
       setModalOpen(true);   // empty state: offer Join / Create straight away
       return;
@@ -616,6 +715,7 @@
     var saved = Number(read(LAST_ROOM_KEY));
     var start = rooms[0].id;
     rooms.forEach(function (room) { if (room.id === saved) { start = saved; } });
+    if (joinedId) { start = joinedId; }   // a shared link always lands you in the room you just joined
     selectRoom(start);
   }
 

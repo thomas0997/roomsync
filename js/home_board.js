@@ -165,7 +165,9 @@
     var bullet = el('span', 'reminder-bullet');
     bullet.setAttribute('aria-hidden', 'true');
     top.appendChild(bullet);
-    top.appendChild(el('p', 'reminder-title', task.title));
+    var titleEl = el('p', 'reminder-title', task.title);
+    titleEl.title = task.title;   // native tooltip: the full title stays reachable when CSS clamps it to 2 lines
+    top.appendChild(titleEl);
     var info = el('button', 'reminder-info' + (task.note ? ' has-note' : ''), 'i');
     info.type = 'button';
     info.setAttribute('aria-label', task.note ? 'Task details and note' : 'Task details');

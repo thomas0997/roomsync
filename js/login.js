@@ -27,6 +27,13 @@ document.addEventListener('DOMContentLoaded', function () {
   var mode = 'login';
   var busy = false;
 
+  // A shared invite link routes through here as login.html?join=CODE; carry it to
+  // home.html so sidebar_rooms.js can finish the join once you're signed in.
+  var joinParam = (function () {
+    try { return new URL(window.location.href).searchParams.get('join') || ''; } catch (e) { return ''; }
+  })();
+  function homeHref() { return 'home.html' + (joinParam ? '?join=' + encodeURIComponent(joinParam) : ''); }
+
   /* ---------- storage (wrapped: it can throw in private windows) ---------- */
   function store(key, value) { try { localStorage.setItem(key, value); return true; } catch (e) { return false; } }
   function read(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
@@ -150,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
         store(cfg.USER_KEY, JSON.stringify(r.body.user));
-        window.location.href = 'home.html';
+        window.location.href = homeHref();
       })
       .catch(function () {
         showError('Can’t reach the server. Check your connection and try again.');
@@ -167,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (existing) {
     fetch(cfg.API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + existing } })
       .then(function (res) {
-        if (res.ok) { window.location.href = 'home.html'; return; }
+        if (res.ok) { window.location.href = homeHref(); return; }
         drop(cfg.TOKEN_KEY);
         drop(cfg.USER_KEY);
       })

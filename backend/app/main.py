@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -7,7 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .routers import about, approvals, attachments, auth, avatar, discussion, inbox, notes, presence, profile, rooms, task_state, tasks
+from . import scheduler
+from .routers import (
+    about, approvals, attachments, auth, avatar, discussion, inbox, notes, presence, profile,
+    rooms, task_state, tasks, unsubscribe,
+)
 
 load_dotenv()
 
@@ -21,7 +26,16 @@ def docs_settings(env: str) -> dict:
     return {}
 
 
-app = FastAPI(title="RoomSync API", **docs_settings(os.getenv("ENV", "development")))
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Starts the deadline-digest scheduler (app/scheduler.py). Tests never trigger this: see
+    # that file's docstring for why TestClient(app) without `with` leaves it inert.
+    scheduler.start()
+    yield
+    scheduler.stop()
+
+
+app = FastAPI(title="RoomSync API", lifespan=lifespan, **docs_settings(os.getenv("ENV", "development")))
 
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5500").split(",") if o.strip()]
 app.add_middleware(
@@ -80,7 +94,7 @@ async def security_headers(request: Request, call_next):
 
 # Tables are created and changed by Alembic migrations, not by the app: run `alembic upgrade head`.
 
-for module in (auth, rooms, tasks, task_state, approvals, attachments, notes, inbox, discussion, profile, avatar, about, presence):
+for module in (auth, rooms, tasks, task_state, approvals, attachments, notes, inbox, discussion, profile, avatar, about, presence, unsubscribe):
     app.include_router(module.router)
 
 

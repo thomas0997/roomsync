@@ -31,6 +31,9 @@ class User(Base):
     # Confirms the address actually belongs to them (see routers/auth.py POST /auth/verify). Does NOT
     # block login -- only gates features that depend on reaching a real inbox, such as deadline reminders.
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Date (not a precise time) the deadline-reminder digest last went out to them, so the daily job
+    # never double-sends the same day if it is re-run (see app/digest.py).
+    last_digest_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
     task_types = relationship("CustomTaskType", cascade="all, delete-orphan")

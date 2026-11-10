@@ -28,6 +28,9 @@ class User(Base):
     # Goes up by one when the password is reset. Login tokens carry the number they were made with,
     # so every older login stops working the moment it changes.
     token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Confirms the address actually belongs to them (see routers/auth.py POST /auth/verify). Does NOT
+    # block login -- only gates features that depend on reaching a real inbox, such as deadline reminders.
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
     task_types = relationship("CustomTaskType", cascade="all, delete-orphan")
@@ -37,6 +40,18 @@ class PasswordReset(Base):
     """A "forgot password" link. We store only the SHA-256 hash of the secret (like a password),
     so a leaked database can't be used to reset anyone. One row per user at a time; works once."""
     __tablename__ = "password_resets"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class EmailVerification(Base):
+    """A "confirm your email" link, same shape and safety as PasswordReset: we store only the
+    SHA-256 hash of the secret. One row per user at a time; a new request replaces the old link."""
+    __tablename__ = "email_verifications"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)

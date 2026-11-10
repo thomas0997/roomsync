@@ -58,11 +58,16 @@ class ResetIn(BaseModel):
         return v
 
 
+class VerifyIn(BaseModel):
+    token: str = Field(min_length=1, max_length=200)
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: EmailStr
     name: str
+    email_verified: bool = False
 
 
 class TokenOut(BaseModel):

@@ -77,6 +77,21 @@
     if (open) { field.focus(); }
   }
 
+  // Same as toggleQuickField, but closes every other entry in group first, so only one of
+  // them is ever open at once: the form shows at most one extra row, not one per icon tapped.
+  function toggleQuickFieldExclusive(wrap, btn, field, group) {
+    var wasOpen = wrap.classList.contains('open');
+    group.forEach(function (g) {
+      g.wrap.classList.remove('open');
+      g.btn.classList.remove('active');
+    });
+    if (!wasOpen) {
+      wrap.classList.add('open');
+      btn.classList.add('active');
+      field.focus();
+    }
+  }
+
   function manilaTodayText() {
     return new Date(Date.now() + MANILA_MS).toISOString().slice(0, 10);
   }
@@ -266,12 +281,25 @@
     timeWrap.classList.add('todo-time-field');
     byId('todoModalRoom').closest('label').classList.add('todo-room-field');   // hidden while creating: always your current room
 
+    // Time / Subject / Note share one slot: opening one closes whichever of the others was open,
+    // so the form only ever grows by at most one row, no matter how many icons get tapped.
     timeLink = quickIconBtn('time', 'Time');
-    timeLink.addEventListener('click', function () { toggleQuickField(timeWrap, timeLink, byId('todoTime')); });
     subjectLink = quickIconBtn('subject', 'Subject');
-    subjectLink.addEventListener('click', function () { toggleQuickField(subjectWrap, subjectLink, byId('todoSubject')); });
     noteLink = quickIconBtn('note', 'Note');
-    noteLink.addEventListener('click', function () { toggleQuickField(noteWrap, noteLink, noteInput); });
+    var exclusiveGroup = [
+      { wrap: timeWrap, btn: timeLink },
+      { wrap: subjectWrap, btn: subjectLink },
+      { wrap: noteWrap, btn: noteLink }
+    ];
+    timeLink.addEventListener('click', function () {
+      toggleQuickFieldExclusive(timeWrap, timeLink, byId('todoTime'), exclusiveGroup);
+    });
+    subjectLink.addEventListener('click', function () {
+      toggleQuickFieldExclusive(subjectWrap, subjectLink, byId('todoSubject'), exclusiveGroup);
+    });
+    noteLink.addEventListener('click', function () {
+      toggleQuickFieldExclusive(noteWrap, noteLink, noteInput, exclusiveGroup);
+    });
 
     var icons = document.createElement('div');
     icons.className = 'todo-quick-icons';

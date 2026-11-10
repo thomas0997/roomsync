@@ -569,6 +569,15 @@
     });
   }
 
+  // Opening the Discussion tab marks EVERY room's messages read, not just the one you land
+  // on, and clears the badge right away -- so the badge always matches "I opened Discussion",
+  // instead of lingering because of unread in a room you didn't happen to switch to.
+  function markAllDiscussionsRead() {
+    if (!rooms.length) { setDiscussionBadge(0); return; }
+    Promise.all(rooms.map(function (r) { return api('/rooms/' + r.id + '/messages/read', 'POST'); }))
+      .then(function () { setDiscussionBadge(0); });
+  }
+
   /* ---------- real presence: tell the server we're here, every ~60s while the tab is visible ---------- */
   function pingPresence() { api('/presence/ping', 'POST'); }
   function startPresence() {
@@ -617,7 +626,8 @@
     errorText: errorText,
     currentRoomId: function () { return currentId; },
     isAdmin: function () { var r = currentRoom(); return !!(r && r.role === 'admin'); },
-    refreshDiscussionBadge: refreshDiscussionBadge
+    refreshDiscussionBadge: refreshDiscussionBadge,
+    markAllDiscussionsRead: markAllDiscussionsRead
   };
 
   // Another script (for example Settings after Leave Room) can ask for a fresh room list.

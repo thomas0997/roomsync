@@ -662,8 +662,10 @@
   /* ---------- rooms ---------- */
   function switchRoom(id) {
     if (started && id === roomId) { return; }
+    var firstOpen = !started;   // the moment the Discussion tab itself is opened, not just a room switch
     started = true;
     roomId = id;
+    if (firstOpen && home.markAllDiscussionsRead) { home.markAllDiscussionsRead(); }
     token++;
     busy = false;
     pollFailed = false;

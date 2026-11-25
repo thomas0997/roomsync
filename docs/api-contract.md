@@ -143,7 +143,8 @@ Rules:
 T3: WebSockets, DMs, calls (see Messaging).
 
 ## Files (Thomas): replaces Notes
-File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version, used_in, used_in_count}`
+File: `{id, room_id, name, kind:"docs|sheets|files", mime, size, locked, locked_by_name?, created_by, created_by_name, created_at, updated_at, updated_by_name, version, used_in, used_in_count, is_public, share_token}`
+`is_public` is true once the creator or a room admin has made a public link for this one file (see "Public share link" below); everyone in the room sees it. `share_token` is the actual link token, but is only ever filled in for the file's creator or a room admin (`null` for everyone else, even when `is_public` is true) -- same visibility rule as a room's `invite_code`.
 Rules:
 - Only room members can list or download. Locked = read-only notes: no new version, no rename (everyone can still download). The creator or any room admin can lock or unlock. The creator or any room admin can delete (even if locked).
 - Allowed: .pdf .docx .xlsx .pptx .txt .csv .md; source code of any language as plain text (.py .java .c .cpp .h .cs .js .ts .json .html .css .sql .php .rb .go .rs .sh and similar); images .png .jpg .jpeg .gif .webp; audio .mp3 .wav .m4a. Everything else is rejected with 415 (video, archives, executables and installers, macro-enabled Office files, legacy .doc/.xls/.ppt, SVG).
@@ -151,6 +152,7 @@ Rules:
 - Validation order: logged in and member, size cap while streaming, extension allowlist, magic-bytes check (real type must match; text must be valid UTF-8 with no NUL bytes), sanitize the display name, store under a random key, re-encode images (strip EXIF). Never unzip or parse uploaded docx/xlsx on the server. Never execute or render uploaded files.
 - Serving (T2 goal): user files never come from the roomsync.me origin. Signed short-lived links, `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, text as `text/plain`.
 - **Launch version (Oct 30, T1 DONE).** File contents are stored in a private Cloudflare R2 bucket when the `R2_*` environment values are set (the database keeps the file list and a random object key); without them, in the database table `room_files` (local development and tests). Allowed: .pdf .docx .txt .md .csv .json .sql and code (.py .java .c .cc .cpp .cxx .h .hpp .cs .js .ts). Everything else gives 415. Limits: 10 MB per file, 500 MB per room (413), 8 GB for the whole app (507), R2 unreachable (503), 20 uploads per hour per user (429). The upload is the raw file as the request body, with its name in `?name=` (not multipart). Content is checked against the name (422): PDFs must be real PDFs without scripts or embedded files, .docx must be a real Word file without macros or embedded programs (only the zip's file list is read, nothing is unpacked), text and code must be valid UTF-8. A download is the file itself, always as `application/octet-stream` with `Content-Disposition: attachment` and `nosniff`, only for room members (a file in another room is a 404). Not built yet: new blank docs and sheets, locking, rename, new versions, signed links, xlsx/pptx/images/audio.
+- **Public share link (Nov 25, T1 DONE).** For sharing one file outside RoomSync (e.g. with a reviewer who has no account), the creator or any room admin can turn on a public link for THAT FILE ONLY; the rest of the room, and every other file, stays private. Turning it on sets a random 192-bit token (`secrets.token_urlsafe(24)`, same pattern as a room's `invite_code`) and turning it off clears it, so the old link 404s immediately and a new Share makes a different link. The public endpoint has no login and no membership check at all -- that is the point -- but serves the exact same locked-down response as a normal download (`application/octet-stream`, `Content-Disposition: attachment`, `nosniff`; never rendered as a page), and is rate-limited by caller IP (30/hour) since it is reachable by anyone who has the link.
 | Method | Path | Body | Returns | Tier / Status |
 |---|---|---|---|---|
 | GET | /rooms/{room_id}/files?kind=&sort=modified&order=desc | none | `[file]`. `kind`: docs, sheets, files. `sort`: modified, created, name, size. `order`: asc, desc. | T1 DONE |
@@ -161,6 +163,9 @@ Rules:
 | PUT | /files/{file_id}/content | multipart `file` | file (new version). 403 if locked. | T2 TODO |
 | PATCH | /files/{file_id} | `{name?, locked?}` | file. Rename: not when locked. Lock or unlock: creator or admin. | T2 TODO |
 | DELETE | /files/{file_id} | none | 204 (creator or room admin; other members get 403) | T1 DONE |
+| POST | /files/{file_id}/share | none | 200 file, with `is_public:true` and a fresh `share_token` (creator or room admin; 403 otherwise; calling it again while already on just returns the same token). | T1 DONE |
+| DELETE | /files/{file_id}/share | none | 200 file, with `is_public:false` and `share_token:null` (creator or room admin; 403 otherwise). | T1 DONE |
+| GET | /public/files/{token} | none, NO LOGIN | the file itself as a download, same headers as the normal download. 404 if the token is wrong or sharing is off. 429 past 30/hour per IP. | T1 DONE |
 T3: live co-editing docs (Yjs over WebSockets). Not defined yet.
 
 ## Users: profile, status, account

@@ -7,7 +7,15 @@ A classmate could upload anything, so we trust nothing:
  - Files come back ONLY as a download ("attachment", generic type, nosniff), never as a web page.
  - Only room members can list or fetch files. A file in someone else's room looks exactly like a missing one (404).
  - The bytes live in Cloudflare R2 (private bucket; see app/storage.py), or in the database table room_files when R2 is
-   not configured. Limits: 10 MB per file, 500 MB per room, 8 GB for the whole app, 20 uploads an hour per user."""
+   not configured. Limits: 10 MB per file, 500 MB per room, 8 GB for the whole app, 20 uploads an hour per user.
+
+Public share links (/files/{id}/share, /public/files/{token}): the creator or a room admin can make ONE file,
+and only that file, downloadable with no login and no room membership at all -- for sharing outside RoomSync
+(e.g. with a reviewer who has no account). It reuses the same random-token + rate-limit pattern as room invite
+codes: a 192-bit `secrets.token_urlsafe` value, so it cannot be guessed, and turning it off (DELETE) makes the
+old link 404 immediately. The public endpoint serves the exact same locked-down response as the normal
+download (attachment, generic type, nosniff) -- it is never rendered as a page, same as every other file."""
+import secrets
 from typing import Literal
 from urllib.parse import quote
 
@@ -21,7 +29,7 @@ from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..filecheck import ALLOWED, ALLOWED_LIST, TEXT_EXTENSIONS, check_content, clean_name, extension_of
 from ..models import Membership, RoomFile, Task, TaskFile, User
-from ..ratelimit import limit_by_user
+from ..ratelimit import limit_by_ip, limit_by_user
 from ..schemas_files import FileOut, FileTextOut, UsedIn
 
 router = APIRouter(tags=["notes"])
@@ -40,13 +48,27 @@ def _uploader_name(user: User | None) -> str:
     return "Deleted user" if user is None or user.deleted_at is not None else user.name
 
 
-def _out(f: RoomFile, uploader: User | None) -> FileOut:
+def _out(f: RoomFile, uploader: User | None, *, can_manage: bool = False) -> FileOut:
     name = _uploader_name(uploader)
     return FileOut(
         id=f.id, room_id=f.room_id, name=f.name, kind=f.kind, mime=f.mime, size=f.size, locked=False,
         created_by=f.created_by, created_by_name=name, created_at=f.created_at,
         updated_at=f.created_at, updated_by_name=name, version=1,
+        is_public=f.share_token is not None,
+        share_token=f.share_token if can_manage else None,  # only the creator or a room admin sees the token
     )
+
+
+def _can_manage(f: RoomFile, user: User, membership: Membership) -> bool:
+    """Same rule as deleting a file: the person who shared it, or a room admin."""
+    return f.created_by == user.id or membership.role == "admin"
+
+
+def _new_share_token(db: Session) -> str:
+    while True:
+        token = secrets.token_urlsafe(24)
+        if not db.query(RoomFile).filter(RoomFile.share_token == token).first():
+            return token
 
 
 def _file_for_member(db: Session, user: User, file_id: int) -> tuple[RoomFile, Membership]:
@@ -161,7 +183,7 @@ def list_files(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    require_member(db, user, room_id)
+    membership = require_member(db, user, room_id)
     query = db.query(RoomFile, User).join(User, User.id == RoomFile.created_by).filter(RoomFile.room_id == room_id)
     if kind:
         query = query.filter(RoomFile.kind == kind)
@@ -172,7 +194,7 @@ def list_files(
     used = _used_in(db, [f.id for f, _ in rows])
     out = []
     for f, uploader in rows:
-        item = _out(f, uploader)
+        item = _out(f, uploader, can_manage=_can_manage(f, user, membership))
         tasks = used.get(f.id, [])
         item.used_in, item.used_in_count = tasks[:5], len(tasks)
         out.append(item)
@@ -227,8 +249,49 @@ def file_text(file_id: int, db: Session = Depends(get_db), user: User = Depends(
 @router.delete("/files/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_file(file_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     f, membership = _file_for_member(db, user, file_id)
-    if f.created_by != user.id and membership.role != "admin":
+    if not _can_manage(f, user, membership):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who shared this file or a room admin can delete it")
     db.delete(f)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/files/{file_id}/share", response_model=FileOut)
+def enable_public_share(file_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Make this one file downloadable with no login at all, via GET /public/files/{token}. The rest of the
+    room, and every other file, stays exactly as private as before."""
+    f, membership = _file_for_member(db, user, file_id)
+    if not _can_manage(f, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who shared this file or a room admin can make it public")
+    if f.share_token is None:
+        f.share_token = _new_share_token(db)
+        db.commit()
+        db.refresh(f)
+    return _out(f, db.get(User, f.created_by), can_manage=True)
+
+
+@router.delete("/files/{file_id}/share", response_model=FileOut)
+def disable_public_share(file_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Turn a public link back off. The old link 404s immediately; a new Share makes a different one."""
+    f, membership = _file_for_member(db, user, file_id)
+    if not _can_manage(f, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who shared this file or a room admin can turn this off")
+    f.share_token = None
+    db.commit()
+    db.refresh(f)
+    return _out(f, db.get(User, f.created_by), can_manage=True)
+
+
+@router.get("/public/files/{token}", dependencies=[Depends(limit_by_ip("public_file", 30, 3600))])
+def public_download(token: str, db: Session = Depends(get_db)):
+    """No login, no membership check -- that's the point. Only reachable with the random token from Share,
+    and only while that file's public link is still on. A wrong or turned-off token looks exactly like a
+    file that was never shared (404), so this can't be used to probe whether a token almost matches."""
+    f = db.query(RoomFile).filter(RoomFile.share_token == token).first()
+    if f is None:
+        raise _not_found()
+    return Response(
+        content=_bytes_of(f),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": _disposition(f.name), "X-Content-Type-Options": "nosniff"},
+    )

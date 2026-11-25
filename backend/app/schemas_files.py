@@ -25,6 +25,10 @@ class FileOut(BaseModel):
     version: int  # new versions arrive later; always 1 for now
     used_in: list[UsedIn] = []  # up to 5 APPROVED tasks that link this note
     used_in_count: int = 0
+    is_public: bool = False  # true once someone made a public link for this file (see /files/{id}/share)
+    # The actual token, only ever filled in for the file's creator or a room admin (same people who can
+    # turn sharing on/off). Everyone else sees is_public but never the token itself.
+    share_token: str | None = None
 
     @field_serializer("created_at", "updated_at")
     def as_utc_z(self, value: datetime):

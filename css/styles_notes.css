@@ -1,7 +1,7 @@
 /* ROOMSYNC - styles_notes.css
    Notes page: real files (cards with a delete button), empty messages, and the text/code viewer. */
 .notes-file-item { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.notes-file-item .notes-file-card { width: 100%; min-width: 0; padding-right: 36px; cursor: pointer; }
+.notes-file-item .notes-file-card { width: 100%; min-width: 0; padding-right: 68px; cursor: pointer; }
 .notes-file-name { overflow-wrap: anywhere; }
 .notes-file-icon.notes-icon-generic { font-size: 11px; letter-spacing: -0.02em; }
 .notes-file-delete {
@@ -51,6 +51,43 @@
 .notes-file-share:hover { background: var(--gray-bg); color: var(--blue); }
 .notes-file-share.is-public { opacity: 1; color: var(--blue); }  /* stays visible once a link exists */
 @media (hover: none) { .notes-file-share { opacity: 1; } }
+
+/* Move-to-folder button: sits left of Share */
+.notes-file-move {
+  position: absolute; top: 8px; right: 72px; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-text); opacity: 0; transition: opacity 0.15s, color 0.15s;
+}
+.notes-file-move svg { width: 14px; height: 14px; }
+.notes-file-item:hover .notes-file-move, .notes-file-move:focus-visible { opacity: 1; }
+.notes-file-move:hover { background: var(--gray-bg); color: var(--blue); }
+@media (hover: none) { .notes-file-move { opacity: 1; } }
+
+/* Move file modal: a plain list of folders to move the file into */
+.notes-move-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow: auto; }
+.notes-move-option {
+  text-align: left; padding: 10px 12px; border-radius: 10px; font-size: 13.2px; font-weight: 600;
+  color: var(--near-black); background: none; border: 1px solid transparent; cursor: pointer;
+}
+.notes-move-option:hover, .notes-move-option:focus-visible { background: var(--gray-bg); border-color: var(--hairline); }
+.notes-move-option.is-current { color: var(--blue); cursor: default; background: #e8f1fe; }
+.notes-move-option.is-current:hover { background: #e8f1fe; }
+
+/* Folders row: reuses the filter-pill look, plus a toolbar for the currently-selected folder */
+.notes-folder-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0 12px; }
+.notes-folder-add { color: var(--blue); font-weight: 700; }
+.notes-folder-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; margin: -4px 0 14px; border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  background: var(--gray-bg-2);
+}
+.notes-folder-toolbar[hidden] { display: none; }
+.notes-folder-toolbar-name { font-size: 13.2px; font-weight: 700; overflow-wrap: anywhere; }
+.notes-folder-toolbar-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.notes-folder-toolbar-actions .notes-file-share,
+.notes-folder-toolbar-actions .notes-file-delete {
+  position: static; opacity: 1;
+}
 
 .notes-share-modal { max-width: 460px; }
 .notes-share-modal .abt-form-actions { justify-content: space-between; align-items: center; }

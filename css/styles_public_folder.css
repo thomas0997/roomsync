@@ -1,0 +1,24 @@
+/* ROOMSYNC - styles_public_folder.css
+   Standalone, no-login page opened from a folder's public share link (public_folder.html).
+   No sidebar, no auth chrome -- just the RoomSync wordmark and the file list. */
+
+.pf-topbar {
+  display: flex; align-items: center; padding: 14px 24px;
+  background: #333333;   /* same as .topbar, so .brand-word's white text (styles.css) stays visible */
+}
+.pf-topbar .topbar-brand { display: flex; align-items: center; gap: 10px; }
+.pf-topbar .rs-brand-logo { width: 28px; height: 28px; }
+
+.pf-shell { display: flex; justify-content: center; padding: 40px 20px 80px; }
+.pf-card {
+  width: 100%; max-width: 860px; background: var(--gray-bg-2);
+  border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 32px;
+}
+.pf-eyebrow { font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; color: var(--gray-text); margin-bottom: 8px; }
+.pf-title { font-size: 26.4px; font-weight: 800; overflow-wrap: anywhere; margin-bottom: 8px; }
+.pf-sub { font-size: 13.2px; color: var(--gray-text-2); margin-bottom: 28px; }
+.pf-empty { color: var(--gray-text); font-size: 13.2px; padding: 8px 0; }
+.pf-empty[hidden] { display: none; }
+
+.pf-grid[hidden] { display: none; }
+.pf-file-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; }

@@ -22,8 +22,8 @@
 
   var files = [];           // the room's files, as the server sent them
   var folders = [];         // the room's folders (flat, no nesting)
-  var filter = 'all';
-  var folderFilter = 'all'; // 'all' | 'unfiled' | a folder id
+  var filter = 'all';       // 'all' | 'docs' | 'sheets' | 'files' | 'folders'
+  var folderFilter = 'all'; // only used when filter === 'folders': 'all' (every foldered file) or a folder id
   var sortKey = 'date-modified';
   var loadCounter = 0;      // lets us ignore answers that arrive after you switched room
   var viewing = null;       // the file open in the viewer
@@ -85,9 +85,13 @@
   }
 
   function visibleFiles() {
-    var list = files.filter(function (f) { return filter === 'all' || f.kind === filter; });
-    if (folderFilter === 'unfiled') { list = list.filter(function (f) { return f.folder_id === null; }); }
-    else if (folderFilter !== 'all') { list = list.filter(function (f) { return f.folder_id === folderFilter; }); }
+    var list;
+    if (filter === 'folders') {
+      list = files.filter(function (f) { return f.folder_id !== null; });
+      if (typeof folderFilter === 'number') { list = list.filter(function (f) { return f.folder_id === folderFilter; }); }
+    } else {
+      list = files.filter(function (f) { return filter === 'all' || f.kind === filter; });
+    }
     list.sort(function (a, b) {
       if (sortKey === 'az') { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }
       if (sortKey === 'za') { return a.name.toLowerCase() < b.name.toLowerCase() ? 1 : -1; }
@@ -152,26 +156,44 @@
     return svg;
   }
 
-  // Under each card: which approved tasks use this note, and a button to attach it to a task.
+  function attachIcon() {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', 'M9.5 13.5l4.2-4.2a2.1 2.1 0 1 1 3 3l-6.2 6.2a4 4 0 1 1-5.6-5.6l6.2-6.2');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  // Under each card: a single icon for which approved tasks use this note, and attaching it to one.
+  // Hover/focus shows the detail as a title tooltip instead of spelling it out in text.
   function usageRow(f) {
     var row = el('div', 'notes-usage');
     var used = f.used_in || [];
-    var tags = el('div', 'notes-usage-tags');
+    var attach = el('button', 'notes-usage-icon' + (used.length ? ' has-usage' : ''));
+    attach.type = 'button';
     if (used.length) {
-      tags.appendChild(el('span', 'notes-usage-label', 'USED IN'));
-      used.forEach(function (u) { tags.appendChild(el('span', 'notes-usage-tag', u.title)); });
       var extra = (f.used_in_count || used.length) - used.length;
-      if (extra > 0) { tags.appendChild(el('span', 'notes-usage-more', '+' + extra + ' more')); }
+      var titles = used.map(function (u) { return u.title; });
+      if (extra > 0) { titles.push('+' + extra + ' more'); }
+      attach.title = 'Used in: ' + titles.join(', ');
+      attach.setAttribute('aria-label', 'Used in ' + titles.join(', ') + '. Click to attach to another task.');
     } else {
-      tags.appendChild(el('span', 'notes-usage-label', 'NOT ATTACHED TO ANY TASK'));
+      attach.title = 'Attach to a task';
+      attach.setAttribute('aria-label', 'Attach ' + f.name + ' to a task');
     }
-    row.appendChild(tags);
+    attach.appendChild(attachIcon());
     if (window.RoomSyncAttach) {
-      var attach = el('button', 'todo-link-btn notes-usage-attach', 'Attach to a task');
-      attach.type = 'button';
       attach.addEventListener('click', function () { attachToTask(f); });
-      row.appendChild(attach);
+    } else {
+      attach.disabled = true;
     }
+    row.appendChild(attach);
     return row;
   }
 
@@ -199,7 +221,6 @@
     var opens = !!TEXT[extOf(f.name)];
     var cue = el('span', 'notes-file-cue');
     cue.appendChild(cueIcon(opens ? 'open' : 'download'));
-    cue.appendChild(el('span', 'notes-file-cue-text', opens ? 'Click to open' : 'Click to download'));
     card.appendChild(cue);
     card.title = opens ? 'Open ' + f.name : 'Download ' + f.name;
     card.addEventListener('click', function () { openFile(f, card); });
@@ -215,14 +236,6 @@
       move.addEventListener('click', function (e) { e.stopPropagation(); openMoveModal(f); });
       item.appendChild(move);
 
-      var share = el('button', 'notes-file-share' + (f.is_public ? ' is-public' : ''));
-      share.type = 'button';
-      share.setAttribute('aria-label', (f.is_public ? 'Manage public link for ' : 'Share ') + f.name);
-      share.title = f.is_public ? 'Public link is on' : 'Share with a public link';
-      share.appendChild(shareIcon());
-      share.addEventListener('click', function (e) { e.stopPropagation(); openShareModal(f, 'file'); });
-      item.appendChild(share);
-
       var del = el('button', 'notes-file-delete');
       del.type = 'button';
       del.setAttribute('aria-label', 'Delete ' + f.name);
@@ -230,6 +243,14 @@
       del.appendChild(trashIcon());
       del.addEventListener('click', function () { deleteFile(f); });
       item.appendChild(del);
+
+      var share = el('button', 'notes-file-share' + (f.is_public ? ' is-public' : ''));
+      share.type = 'button';
+      share.setAttribute('aria-label', (f.is_public ? 'Manage public link for ' : 'Share ') + f.name);
+      share.title = f.is_public ? 'Public link is on' : 'Share with a public link';
+      share.appendChild(shareIcon());
+      share.addEventListener('click', function (e) { e.stopPropagation(); openShareModal(f, 'file'); });
+      item.appendChild(share);
     }
     return item;
   }
@@ -238,7 +259,9 @@
     while (grid.firstChild) { grid.removeChild(grid.firstChild); }
     var list = visibleFiles();
     list.forEach(function (f) { grid.appendChild(fileCard(f)); });
-    if (list.length === 0 && files.length > 0) { setMessage('No ' + filter + ' here yet.'); }
+    if (filter === 'folders' && list.length === 0) {
+      setMessage(typeof folderFilter === 'number' ? 'This folder is empty.' : 'No files in folders yet. Use the folder icon on a file to put it in one.');
+    } else if (list.length === 0 && files.length > 0) { setMessage('No ' + filter + ' here yet.'); }
     else if (list.length === 0) { setMessage('No files yet. Upload the first one!'); }
     else { setMessage(''); }
     renderFolderBar();
@@ -272,6 +295,8 @@
     var row = byId('notesFolderRow');
     if (!row) { return; }
     while (row.firstChild) { row.removeChild(row.firstChild); }
+    if (filter !== 'folders') { row.hidden = true; renderFolderToolbar(); return; }
+    row.hidden = false;
 
     function chip(key, label, count) {
       var btn = el('button', 'notes-filter-pill notes-folder-pill' + (folderFilter === key ? ' notes-filter-active' : ''),
@@ -282,7 +307,6 @@
     }
 
     row.appendChild(chip('all', 'All'));
-    row.appendChild(chip('unfiled', 'Unfiled', files.filter(function (f) { return f.folder_id === null; }).length));
     folders.forEach(function (folder) {
       row.appendChild(chip(folder.id, folder.name, folder.file_count));
     });
@@ -299,7 +323,8 @@
     var bar = byId('notesFolderToolbar');
     var actions = byId('notesFolderToolbarActions');
     if (!bar || !actions) { return; }
-    var folder = typeof folderFilter === 'number' ? folders.find(function (f) { return f.id === folderFilter; }) : null;
+    var folder = (filter === 'folders' && typeof folderFilter === 'number')
+      ? folders.find(function (f) { return f.id === folderFilter; }) : null;
     if (!folder) { bar.hidden = true; return; }
     bar.hidden = false;
     byId('notesFolderToolbarName').textContent = folder.name;
@@ -443,16 +468,15 @@
     return svg;
   }
 
-  // While a download runs the card says "Downloading..." (and ignores a second click), so it never looks stuck.
-  function setBusy(card, on, label) {
+  // While a download runs the icon spins (and a second click is ignored), so it never looks stuck.
+  function setBusy(card, on) {
     if (!card) { return; }
     var cue = card.querySelector('.notes-file-cue');
     card.classList.toggle('is-busy', on);
     card.setAttribute('aria-busy', on ? 'true' : 'false');
     if (cue) {
       while (cue.firstChild) { cue.removeChild(cue.firstChild); }
-      if (on) { cue.appendChild(cueIcon('busy')); cue.appendChild(el('span', 'notes-file-cue-text', 'Downloading...')); }
-      else { cue.appendChild(cueIcon('download')); cue.appendChild(el('span', 'notes-file-cue-text', label || 'Click to download')); }
+      cue.appendChild(cueIcon(on ? 'busy' : 'download'));
     }
   }
 
@@ -661,12 +685,13 @@
   byId('notesNewDoc').addEventListener('click', function () { home.showToast('New docs are coming soon. For now, upload a .docx file.'); });
   byId('notesNewSheet').addEventListener('click', function () { home.showToast('New sheets are coming soon.'); });
 
-  var pills = document.querySelectorAll('.notes-filter-pill');
+  var pills = document.querySelectorAll('.notes-filter-row > .notes-filter-pill');
   pills.forEach(function (pill) {
     pill.addEventListener('click', function () {
       pills.forEach(function (p) { p.classList.remove('notes-filter-active'); });
       pill.classList.add('notes-filter-active');
       filter = pill.dataset.filter;
+      folderFilter = 'all';
       render();
     });
   });

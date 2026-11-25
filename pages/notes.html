@@ -286,6 +286,7 @@
         <button class="notes-filter-pill" data-filter="docs">Docs</button>
         <button class="notes-filter-pill" data-filter="sheets">Sheets</button>
         <button class="notes-filter-pill" data-filter="files">Files</button>
+        <button class="notes-filter-pill" data-filter="folders">Folders</button>
         <select class="sort-select" id="notesSortSelect" aria-label="Sort files">
           <option value="date-modified">Date Modified</option>
           <option value="date-added">Date Added</option>
@@ -295,7 +296,7 @@
       </div>
 
       <!-- ---------- FOLDERS ---------- -->
-      <div class="notes-folder-row" id="notesFolderRow" aria-label="Folders"></div>
+      <div class="notes-folder-row" id="notesFolderRow" aria-label="Folders" hidden></div>
       <div class="notes-folder-toolbar" id="notesFolderToolbar" hidden>
         <span class="notes-folder-toolbar-name" id="notesFolderToolbarName"></span>
         <div class="notes-folder-toolbar-actions" id="notesFolderToolbarActions"></div>

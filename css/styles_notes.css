@@ -1,11 +1,17 @@
 /* ROOMSYNC - styles_notes.css
    Notes page: real files (cards with a delete button), empty messages, and the text/code viewer. */
-.notes-file-item { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.notes-file-item .notes-file-card { width: 100%; min-width: 0; padding-right: 68px; cursor: pointer; }
-.notes-file-name { overflow-wrap: anywhere; }
+.notes-file-item { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; }
+.notes-file-item .notes-file-card {
+  width: 100%; min-width: 0; height: 100%; min-height: 136px; padding-right: 68px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.notes-file-name {
+  overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.notes-file-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notes-file-icon.notes-icon-generic { font-size: 11px; letter-spacing: -0.02em; }
 .notes-file-delete {
-  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
+  position: absolute; top: 8px; right: 40px; width: 26px; height: 26px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--gray-text); opacity: 0; transition: opacity 0.15s;
 }
@@ -16,9 +22,9 @@
 
 .notes-file-card { transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
 .notes-file-card:hover, .notes-file-card:focus-visible { border-color: var(--blue); box-shadow: 0 2px 10px rgba(0, 113, 227, 0.12); transform: translateY(-1px); }
-/* The line at the bottom of each card: tells you what a click does, and shows when a download is running. */
-.notes-file-cue { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--blue); }
-.notes-file-cue svg { width: 14px; height: 14px; flex-shrink: 0; }
+/* Bottom-left of each card: just the open/download icon (no label), plus shows when a download is running. */
+.notes-file-cue { display: inline-flex; align-items: center; margin-top: auto; color: var(--blue); }
+.notes-file-cue svg { width: 16px; height: 16px; flex-shrink: 0; }
 .notes-file-card.is-busy { cursor: progress; border-color: var(--blue); }
 .notes-file-card.is-busy .notes-file-cue { color: var(--gray-text-2); }
 .notes-file-card.is-busy .notes-file-cue svg { animation: notes-spin 0.8s linear infinite; }
@@ -40,9 +46,11 @@
 .notes-view-note { font-size: 11.5px; color: var(--gray-text); margin: -4px 0 10px; }
 .notes-view-note[hidden] { display: none; }
 
-/* Share-file modal: a public link for one file, no RoomSync account needed */
+/* Share-file modal: a public link for one file, no RoomSync account needed.
+   Rightmost of the three management icons -- and the one that stays visible once a link is on,
+   so an already-shared file always shows just this one icon, even without hovering. */
 .notes-file-share {
-  position: absolute; top: 8px; right: 40px; width: 26px; height: 26px; border-radius: 50%;
+  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--gray-text); opacity: 0; transition: opacity 0.15s, color 0.15s;
 }
@@ -52,7 +60,7 @@
 .notes-file-share.is-public { opacity: 1; color: var(--blue); }  /* stays visible once a link exists */
 @media (hover: none) { .notes-file-share { opacity: 1; } }
 
-/* Move-to-folder button: sits left of Share */
+/* Move-to-folder button: leftmost of the three (folder, trash, link, left to right on hover) */
 .notes-file-move {
   position: absolute; top: 8px; right: 72px; width: 26px; height: 26px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -105,10 +113,15 @@
 .notes-share-off-btn:hover, .notes-share-off-btn:focus-visible { text-decoration: underline; }
 .notes-share-off-btn:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
 
-/* "Used in" tags and "Attach to a task" under each note card */
-.notes-usage { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 4px; }
-.notes-usage-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
-.notes-usage-label { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; color: var(--gray-text-2); }
-.notes-usage-tag { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #e8f1fe; color: var(--blue); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.notes-usage-more { font-size: 11.5px; font-weight: 700; color: var(--gray-text-2); }
-.notes-usage-attach { font-size: 13px; }
+/* "Used in"/"Attach to a task", collapsed to one icon under each card. Hover or focus for the detail
+   (which tasks, if any) as a tooltip, rather than spelling it out as text every time. */
+.notes-usage { display: flex; align-items: center; padding: 0 4px; height: 26px; }
+.notes-usage-icon {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-text-2);
+}
+.notes-usage-icon svg { width: 15px; height: 15px; }
+.notes-usage-icon:hover, .notes-usage-icon:focus-visible { background: var(--gray-bg); color: var(--blue); }
+.notes-usage-icon.has-usage { color: var(--blue); }
+.notes-usage-icon:disabled { cursor: default; opacity: 0.6; }
+.notes-usage-icon:disabled:hover { background: none; color: var(--gray-text-2); }

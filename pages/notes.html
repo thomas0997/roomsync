@@ -294,6 +294,13 @@
         </select>
       </div>
 
+      <!-- ---------- FOLDERS ---------- -->
+      <div class="notes-folder-row" id="notesFolderRow" aria-label="Folders"></div>
+      <div class="notes-folder-toolbar" id="notesFolderToolbar" hidden>
+        <span class="notes-folder-toolbar-name" id="notesFolderToolbarName"></span>
+        <div class="notes-folder-toolbar-actions" id="notesFolderToolbarActions"></div>
+      </div>
+
       <!-- Grid/Scroll toggle — reuses the exact mechanism from Home/Calendar (rooms.js targets
            .layout-btn/.board generically), just made visible on mobile too for this page. -->
       <div class="board-controls notes-board-controls">
@@ -452,7 +459,8 @@
     </div>
   </div>
 
-  <!-- Share a file publicly: a link anyone can open with no RoomSync account, scoped to that one file -->
+  <!-- Share a file or folder publicly: a link anyone can open with no RoomSync account.
+       #shareModalFileName is reused for both a file's name and a folder's name. -->
   <div class="todo-modal-overlay" id="shareModalOverlay" hidden>
     <div class="todo-modal abt-form-card notes-share-modal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
       <div class="todo-modal-head">
@@ -461,7 +469,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
         </button>
       </div>
-      <p class="notes-share-note">Anyone with this link can view and download <strong id="shareModalFileName"></strong> &mdash; no RoomSync account needed. The rest of this room stays private.</p>
+      <p class="notes-share-note" id="shareModalNote">Anyone with this link can view and download <strong id="shareModalFileName"></strong> &mdash; no RoomSync account needed. The rest of this room stays private.</p>
       <div class="notes-share-link-row">
         <input type="text" class="notes-share-link-input" id="shareModalLink" readonly aria-label="Public link">
         <button type="button" class="abt-btn-submit notes-share-copy-btn" id="shareModalCopy">Copy link</button>
@@ -470,6 +478,42 @@
         <button type="button" class="notes-share-off-btn" id="shareModalOff">Turn off public link</button>
         <button type="button" class="abt-btn-reset" id="shareModalDone">Done</button>
       </div>
+    </div>
+  </div>
+
+  <!-- New folder / rename folder (same modal; title and submit label switch in JS) -->
+  <div class="todo-modal-overlay" id="folderModalOverlay" hidden>
+    <div class="todo-modal abt-form-card" role="dialog" aria-modal="true" aria-labelledby="folderModalTitle">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title" id="folderModalTitle">New folder</h2>
+        <button type="button" class="todo-modal-close" id="folderModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form id="folderModalForm">
+        <label class="abt-field">
+          <span class="abt-field-label">Folder name</span>
+          <input type="text" id="folderModalName" maxlength="100" required>
+        </label>
+        <p class="abt-form-error" id="folderModalError" role="alert" hidden></p>
+        <div class="abt-form-actions">
+          <button type="submit" class="abt-btn-submit" id="folderModalSubmit">Create</button>
+          <button type="button" class="abt-btn-reset" id="folderModalCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Move a file into (or out of) a folder -->
+  <div class="todo-modal-overlay" id="moveModalOverlay" hidden>
+    <div class="todo-modal abt-form-card" role="dialog" aria-modal="true" aria-labelledby="moveModalTitle">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title" id="moveModalTitle">Move file</h2>
+        <button type="button" class="todo-modal-close" id="moveModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="notes-move-list" id="moveModalList"></div>
     </div>
   </div>
 

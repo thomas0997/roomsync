@@ -14,12 +14,25 @@ and only that file, downloadable with no login and no room membership at all -- 
 (e.g. with a reviewer who has no account). It reuses the same random-token + rate-limit pattern as room invite
 codes: a 192-bit `secrets.token_urlsafe` value, so it cannot be guessed, and turning it off (DELETE) makes the
 old link 404 immediately. The public endpoint serves the exact same locked-down response as the normal
-download (attachment, generic type, nosniff) -- it is never rendered as a page, same as every other file."""
+download (attachment, generic type, nosniff) -- it is never rendered as a page, same as every other file.
+
+Folders (/rooms/{room_id}/folders, /folders/{id}, /files/{id}/move): a flat (no nesting) way to group files
+within a room. Any member can create one and move files in and out; only the folder's creator or a room admin
+can rename, delete, or (un)share it -- same rule as files. Deleting a folder never deletes its files: they fall
+back to the room's root (folder_id -> NULL).
+
+Public folder share links (/folders/{id}/share, /public/folders/{token}, /public/folders/{token}/files/{file_id}):
+same no-login model as a single public file, but for every file CURRENTLY in that folder (files added later are
+included automatically; nothing outside the folder is ever reachable this way). GET /public/folders/{token}
+returns a small listing (name/size/mime per file, no tokens, nothing else about the room); each file is then
+downloaded one at a time via GET /public/folders/{token}/files/{file_id}, which re-checks that the file still
+sits in that exact folder before serving it."""
 import secrets
 from typing import Literal
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
@@ -28,9 +41,9 @@ from .. import storage
 from ..auth import get_current_user, require_member
 from ..db import get_db
 from ..filecheck import ALLOWED, ALLOWED_LIST, TEXT_EXTENSIONS, check_content, clean_name, extension_of
-from ..models import Membership, RoomFile, Task, TaskFile, User
+from ..models import Membership, RoomFile, RoomFolder, Task, TaskFile, User
 from ..ratelimit import limit_by_ip, limit_by_user
-from ..schemas_files import FileOut, FileTextOut, UsedIn
+from ..schemas_files import FileMove, FileOut, FileTextOut, FolderCreate, FolderOut, FolderRename, UsedIn
 
 router = APIRouter(tags=["notes"])
 
@@ -40,8 +53,8 @@ MAX_TOTAL_BYTES = 8 * 1024 * 1024 * 1024  # every room together (stays under R2'
 PREVIEW_BYTES = 200_000               # how much of a text/code file the in-page viewer shows
 
 
-def _not_found() -> HTTPException:
-    return HTTPException(status.HTTP_404_NOT_FOUND, "File not found")
+def _not_found(what: str = "File") -> HTTPException:
+    return HTTPException(status.HTTP_404_NOT_FOUND, f"{what} not found")
 
 
 def _uploader_name(user: User | None) -> str:
@@ -56,6 +69,7 @@ def _out(f: RoomFile, uploader: User | None, *, can_manage: bool = False) -> Fil
         updated_at=f.created_at, updated_by_name=name, version=1,
         is_public=f.share_token is not None,
         share_token=f.share_token if can_manage else None,  # only the creator or a room admin sees the token
+        folder_id=f.folder_id,
     )
 
 
@@ -69,6 +83,38 @@ def _new_share_token(db: Session) -> str:
         token = secrets.token_urlsafe(24)
         if not db.query(RoomFile).filter(RoomFile.share_token == token).first():
             return token
+
+
+def _folder_out(folder: RoomFolder, *, can_manage: bool = False, file_count: int = 0) -> FolderOut:
+    return FolderOut(
+        id=folder.id, room_id=folder.room_id, name=folder.name, created_by=folder.created_by,
+        created_at=folder.created_at, file_count=file_count,
+        is_public=folder.share_token is not None,
+        share_token=folder.share_token if can_manage else None,
+    )
+
+
+def _can_manage_folder(folder: RoomFolder, user: User, membership: Membership) -> bool:
+    """Same rule as files: the person who made the folder, or a room admin."""
+    return folder.created_by == user.id or membership.role == "admin"
+
+
+def _new_folder_share_token(db: Session) -> str:
+    while True:
+        token = secrets.token_urlsafe(24)
+        if not db.query(RoomFolder).filter(RoomFolder.share_token == token).first():
+            return token
+
+
+def _folder_for_member(db: Session, user: User, folder_id: int) -> tuple[RoomFolder, Membership]:
+    """The folder, if it exists AND I am in its room. Missing and not-yours give the same 404."""
+    folder = db.get(RoomFolder, folder_id)
+    if folder is None:
+        raise _not_found("Folder")
+    m = db.query(Membership).filter(Membership.user_id == user.id, Membership.room_id == folder.room_id).first()
+    if m is None:
+        raise _not_found("Folder")
+    return folder, m
 
 
 def _file_for_member(db: Session, user: User, file_id: int) -> tuple[RoomFile, Membership]:
@@ -180,6 +226,8 @@ def list_files(
     kind: Literal["docs", "sheets", "files"] | None = None,
     sort: Literal["modified", "created", "name", "size"] = "modified",
     order: Literal["asc", "desc"] = "desc",
+    folder_id: int | None = None,  # only files in this folder
+    unfiled: bool = False,  # only files with no folder (the room's root); ignored if folder_id is set
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -187,6 +235,10 @@ def list_files(
     query = db.query(RoomFile, User).join(User, User.id == RoomFile.created_by).filter(RoomFile.room_id == room_id)
     if kind:
         query = query.filter(RoomFile.kind == kind)
+    if folder_id is not None:
+        query = query.filter(RoomFile.folder_id == folder_id)
+    elif unfiled:
+        query = query.filter(RoomFile.folder_id.is_(None))
     column = {"modified": RoomFile.created_at, "created": RoomFile.created_at,
               "name": func.lower(RoomFile.name), "size": RoomFile.size}[sort]
     direction = (lambda c: c.asc()) if order == "asc" else (lambda c: c.desc())
@@ -288,6 +340,163 @@ def public_download(token: str, db: Session = Depends(get_db)):
     and only while that file's public link is still on. A wrong or turned-off token looks exactly like a
     file that was never shared (404), so this can't be used to probe whether a token almost matches."""
     f = db.query(RoomFile).filter(RoomFile.share_token == token).first()
+    if f is None:
+        raise _not_found()
+    return Response(
+        content=_bytes_of(f),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": _disposition(f.name), "X-Content-Type-Options": "nosniff"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Folders
+# ---------------------------------------------------------------------------
+
+def _folder_file_count(db: Session, folder_id: int) -> int:
+    return db.query(func.count(RoomFile.id)).filter(RoomFile.folder_id == folder_id).scalar() or 0
+
+
+def _clean_folder_name(raw: str) -> str:
+    name = raw.strip()
+    if not name or len(name) > 100:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Folder name must be 1-100 characters.")
+    return name
+
+
+@router.get("/rooms/{room_id}/folders", response_model=list[FolderOut])
+def list_folders(room_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    membership = require_member(db, user, room_id)
+    rows = db.query(RoomFolder).filter(RoomFolder.room_id == room_id).order_by(func.lower(RoomFolder.name)).all()
+    counts = dict(
+        db.query(RoomFile.folder_id, func.count(RoomFile.id))
+        .filter(RoomFile.room_id == room_id, RoomFile.folder_id.isnot(None))
+        .group_by(RoomFile.folder_id)
+        .all()
+    )
+    return [
+        _folder_out(f, can_manage=_can_manage_folder(f, user, membership), file_count=counts.get(f.id, 0))
+        for f in rows
+    ]
+
+
+@router.post("/rooms/{room_id}/folders", response_model=FolderOut, status_code=status.HTTP_201_CREATED)
+def create_folder(room_id: int, body: FolderCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    require_member(db, user, room_id)  # any member can make a folder
+    row = RoomFolder(room_id=room_id, created_by=user.id, name=_clean_folder_name(body.name))
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _folder_out(row, can_manage=True)
+
+
+@router.patch("/folders/{folder_id}", response_model=FolderOut)
+def rename_folder(folder_id: int, body: FolderRename, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    folder, membership = _folder_for_member(db, user, folder_id)
+    if not _can_manage_folder(folder, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who made this folder or a room admin can rename it")
+    folder.name = _clean_folder_name(body.name)
+    db.commit()
+    db.refresh(folder)
+    return _folder_out(folder, can_manage=True, file_count=_folder_file_count(db, folder.id))
+
+
+@router.delete("/folders/{folder_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_folder(folder_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """The folder goes away; its files don't. They fall back to the room's root (folder_id -> NULL)."""
+    folder, membership = _folder_for_member(db, user, folder_id)
+    if not _can_manage_folder(folder, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who made this folder or a room admin can delete it")
+    db.query(RoomFile).filter(RoomFile.folder_id == folder.id).update({"folder_id": None})
+    db.delete(folder)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.patch("/files/{file_id}/move", response_model=FileOut)
+def move_file(file_id: int, body: FileMove, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    f, membership = _file_for_member(db, user, file_id)
+    if not _can_manage(f, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who shared this file or a room admin can move it")
+    if body.folder_id is not None:
+        folder = db.get(RoomFolder, body.folder_id)
+        if folder is None or folder.room_id != f.room_id:
+            raise _not_found("Folder")
+    f.folder_id = body.folder_id
+    db.commit()
+    db.refresh(f)
+    return _out(f, db.get(User, f.created_by), can_manage=True)
+
+
+@router.post("/folders/{folder_id}/share", response_model=FolderOut)
+def enable_folder_share(folder_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Make every file CURRENTLY in this folder (and any added later) browsable and downloadable with no
+    login, via GET /public/folders/{token}. Nothing outside the folder is ever reachable this way."""
+    folder, membership = _folder_for_member(db, user, folder_id)
+    if not _can_manage_folder(folder, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who made this folder or a room admin can make it public")
+    if folder.share_token is None:
+        folder.share_token = _new_folder_share_token(db)
+        db.commit()
+        db.refresh(folder)
+    return _folder_out(folder, can_manage=True, file_count=_folder_file_count(db, folder.id))
+
+
+@router.delete("/folders/{folder_id}/share", response_model=FolderOut)
+def disable_folder_share(folder_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Turn a folder's public link back off. The old link 404s immediately, same as a file's."""
+    folder, membership = _folder_for_member(db, user, folder_id)
+    if not _can_manage_folder(folder, user, membership):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the person who made this folder or a room admin can turn this off")
+    folder.share_token = None
+    db.commit()
+    db.refresh(folder)
+    return _folder_out(folder, can_manage=True, file_count=_folder_file_count(db, folder.id))
+
+
+class PublicFolderFile(BaseModel):
+    id: int
+    name: str
+    kind: str  # "docs" | "sheets" | "files"
+    mime: str
+    size: int
+
+
+class PublicFolderOut(BaseModel):
+    name: str
+    files: list[PublicFolderFile]
+
+
+@router.get(
+    "/public/folders/{token}",
+    response_model=PublicFolderOut,
+    dependencies=[Depends(limit_by_ip("public_folder", 30, 3600))],
+)
+def public_folder_listing(token: str, db: Session = Depends(get_db)):
+    """No login, no membership check. Lists only name/size/kind per file -- no tokens, no room info, nothing
+    about who uploaded what. A wrong or turned-off token looks exactly like a folder that was never shared."""
+    folder = db.query(RoomFolder).filter(RoomFolder.share_token == token).first()
+    if folder is None:
+        raise _not_found("Folder")
+    files = db.query(RoomFile).filter(RoomFile.folder_id == folder.id).order_by(func.lower(RoomFile.name)).all()
+    return PublicFolderOut(
+        name=folder.name,
+        files=[PublicFolderFile(id=f.id, name=f.name, kind=f.kind, mime=f.mime, size=f.size) for f in files],
+    )
+
+
+@router.get(
+    "/public/folders/{token}/files/{file_id}",
+    dependencies=[Depends(limit_by_ip("public_folder_file", 30, 3600))],
+)
+def public_folder_file_download(token: str, file_id: int, db: Session = Depends(get_db)):
+    """Same no-login model as /public/files/{token}, but re-checks that the file is STILL in this exact
+    shared folder before serving it -- moving a file out, or turning the folder's link off, locks it
+    immediately, even though the file row itself never changes."""
+    folder = db.query(RoomFolder).filter(RoomFolder.share_token == token).first()
+    if folder is None:
+        raise _not_found("Folder")
+    f = db.query(RoomFile).filter(RoomFile.id == file_id, RoomFile.folder_id == folder.id).first()
     if f is None:
         raise _not_found()
     return Response(

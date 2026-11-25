@@ -29,6 +29,7 @@ class FileOut(BaseModel):
     # The actual token, only ever filled in for the file's creator or a room admin (same people who can
     # turn sharing on/off). Everyone else sees is_public but never the token itself.
     share_token: str | None = None
+    folder_id: int | None = None  # NULL = sits in the room's root (see /folders)
 
     @field_serializer("created_at", "updated_at")
     def as_utc_z(self, value: datetime):
@@ -36,6 +37,36 @@ class FileOut(BaseModel):
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class FolderCreate(BaseModel):
+    name: str
+
+
+class FolderRename(BaseModel):
+    name: str
+
+
+class FolderOut(BaseModel):
+    id: int
+    room_id: int
+    name: str
+    created_by: int
+    created_at: datetime
+    file_count: int = 0
+    is_public: bool = False  # true once someone made a public link for this folder (see /folders/{id}/share)
+    # Only ever filled in for the folder's creator or a room admin -- same visibility rule as FileOut.share_token.
+    share_token: str | None = None
+
+    @field_serializer("created_at")
+    def as_utc_z(self, value: datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class FileMove(BaseModel):
+    folder_id: int | None  # None = move back to the room's root
 
 
 class FileTextOut(BaseModel):

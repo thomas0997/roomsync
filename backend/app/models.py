@@ -246,6 +246,22 @@ class ContactMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class RoomFolder(Base):
+    """A flat (no nesting) folder in a room's Notes, used only to group RoomFiles (see routers/notes.py).
+    Deleting a folder does NOT delete its files -- they fall back to the room's root (folder_id -> NULL)."""
+    __tablename__ = "room_folders"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), index=True)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Public share link (see routers/notes.py "/folders/{id}/share"). NULL = not shared. When set, anyone with
+    # GET /public/folders/{share_token} can browse and download every file CURRENTLY in this folder, with no
+    # login and no room access at all. Files added to the folder later are included automatically.
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
+    files = relationship("RoomFile", back_populates="folder")
+
+
 class RoomFile(Base):
     """A file shared in a room's Notes (see routers/notes.py). The bytes are in Cloudflare R2 (`storage_key` is set)
     or, for local development and files from before R2, right here in `data`.
@@ -264,6 +280,10 @@ class RoomFile(Base):
     # Public share link (see routers/notes.py "/files/{id}/share"). NULL = not shared. When set, anyone with
     # GET /public/files/{share_token} can download THIS file only, with no login and no room access at all.
     share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
+    # NULL = sits in the room's root (no folder). Set = grouped under that RoomFolder; deleting the folder
+    # sets this back to NULL rather than deleting the file.
+    folder_id: Mapped[int | None] = mapped_column(ForeignKey("room_folders.id", ondelete="SET NULL"), nullable=True, index=True)
+    folder = relationship("RoomFolder", back_populates="files")
     task_links = relationship("TaskFile", cascade="all, delete-orphan")
 
 

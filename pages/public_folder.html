@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RoomSync | Shared folder</title>
+<link rel="icon" href="../assets/roomsync_logo.png">
+
+<meta name="description" content="A folder shared from RoomSync.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link href="../css/styles.css" rel="stylesheet">
+<link href="../css/styles_notes.css" rel="stylesheet">
+<link href="../css/styles_public_folder.css" rel="stylesheet">
+</head>
+<body>
+
+  <header class="pf-topbar">
+    <a href="../index.html" class="topbar-brand">
+      <img src="../assets/roomsync_logo.png" alt="RoomSync logo" class="rs-brand-logo">
+      <span class="brand-word"><span class="dim">room</span>sync</span>
+    </a>
+  </header>
+
+  <main class="pf-shell">
+    <div class="pf-card">
+      <p class="pf-eyebrow">SHARED FOLDER</p>
+      <h1 class="pf-title" id="pfFolderName">Loading&hellip;</h1>
+      <p class="pf-sub">Anyone with this link can view and download these files. No RoomSync account needed.</p>
+
+      <div class="notes-file-grid pf-grid" id="pfGrid"></div>
+      <p class="pf-empty" id="pfEmpty" hidden></p>
+    </div>
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/public_folder.js"></script>
+</body>
+</html>

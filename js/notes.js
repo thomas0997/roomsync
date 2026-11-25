@@ -21,12 +21,16 @@
   var TEXT = { txt: 1, md: 1, csv: 1, json: 1, sql: 1, py: 1, java: 1, c: 1, cc: 1, cpp: 1, cxx: 1, h: 1, hpp: 1, cs: 1, js: 1, ts: 1 };
 
   var files = [];           // the room's files, as the server sent them
+  var folders = [];         // the room's folders (flat, no nesting)
   var filter = 'all';
+  var folderFilter = 'all'; // 'all' | 'unfiled' | a folder id
   var sortKey = 'date-modified';
   var loadCounter = 0;      // lets us ignore answers that arrive after you switched room
   var viewing = null;       // the file open in the viewer
   var viewCounter = 0;
   var uploading = false;
+  var movingFile = null;    // the file currently shown in the move-to-folder modal
+  var editingFolder = null; // non-null while the folder modal is renaming (vs. creating new)
 
   function byId(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
@@ -82,6 +86,8 @@
 
   function visibleFiles() {
     var list = files.filter(function (f) { return filter === 'all' || f.kind === filter; });
+    if (folderFilter === 'unfiled') { list = list.filter(function (f) { return f.folder_id === null; }); }
+    else if (folderFilter !== 'all') { list = list.filter(function (f) { return f.folder_id === folderFilter; }); }
     list.sort(function (a, b) {
       if (sortKey === 'az') { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; }
       if (sortKey === 'za') { return a.name.toLowerCase() < b.name.toLowerCase() ? 1 : -1; }
@@ -114,6 +120,34 @@
     svg.setAttribute('stroke-linejoin', 'round');
     var path = document.createElementNS(SVG_NS_SHARE, 'path');
     path.setAttribute('d', 'M15 6a3 3 0 1 0-2.8-4M9 13.5a3 3 0 1 0 0 5.9M15 18a3 3 0 1 0 2.8 4M9.4 11.2l5.2-3M9.4 14.7l5.2 3');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function folderIcon() {
+    var svg = document.createElementNS(SVG_NS_SHARE, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS_SHARE, 'path');
+    path.setAttribute('d', 'M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function editIcon() {
+    var svg = document.createElementNS(SVG_NS_SHARE, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS_SHARE, 'path');
+    path.setAttribute('d', 'M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19 3 20l1-4z');
     svg.appendChild(path);
     return svg;
   }
@@ -173,12 +207,20 @@
     item.appendChild(usageRow(f));
     var canManage = f.created_by === myId() || home.isAdmin();
     if (canManage) {
+      var move = el('button', 'notes-file-move');
+      move.type = 'button';
+      move.setAttribute('aria-label', 'Move ' + f.name + ' to a folder');
+      move.title = 'Move to a folder';
+      move.appendChild(folderIcon());
+      move.addEventListener('click', function (e) { e.stopPropagation(); openMoveModal(f); });
+      item.appendChild(move);
+
       var share = el('button', 'notes-file-share' + (f.is_public ? ' is-public' : ''));
       share.type = 'button';
       share.setAttribute('aria-label', (f.is_public ? 'Manage public link for ' : 'Share ') + f.name);
       share.title = f.is_public ? 'Public link is on' : 'Share with a public link';
       share.appendChild(shareIcon());
-      share.addEventListener('click', function (e) { e.stopPropagation(); openShareModal(f); });
+      share.addEventListener('click', function (e) { e.stopPropagation(); openShareModal(f, 'file'); });
       item.appendChild(share);
 
       var del = el('button', 'notes-file-delete');
@@ -199,20 +241,186 @@
     if (list.length === 0 && files.length > 0) { setMessage('No ' + filter + ' here yet.'); }
     else if (list.length === 0) { setMessage('No files yet. Upload the first one!'); }
     else { setMessage(''); }
+    renderFolderBar();
   }
 
   async function load() {
     var mine = ++loadCounter;
     var roomId = home.currentRoomId();
     files = [];
+    folders = [];
+    folderFilter = 'all';
     while (grid.firstChild) { grid.removeChild(grid.firstChild); }
-    if (roomId === null || roomId === undefined) { setMessage('Join or create a room to share files.'); return; }
+    if (roomId === null || roomId === undefined) { setMessage('Join or create a room to share files.'); renderFolderBar(); return; }
     setMessage('Loading files...');
     var r = await home.api('/rooms/' + roomId + '/files');
     if (mine !== loadCounter) { return; }   // you switched room while this loaded
     if (!r.ok) { setMessage("Couldn't load this room's files."); home.showToast(home.errorText(r)); return; }
     files = r.body;
+    var fr = await home.api('/rooms/' + roomId + '/folders');
+    if (mine !== loadCounter) { return; }
+    folders = fr.ok ? fr.body : [];
     render();
+  }
+
+  /* ---------- folders ---------- */
+  function folderCanManage(folder) {
+    return folder.created_by === myId() || home.isAdmin();
+  }
+
+  function renderFolderBar() {
+    var row = byId('notesFolderRow');
+    if (!row) { return; }
+    while (row.firstChild) { row.removeChild(row.firstChild); }
+
+    function chip(key, label, count) {
+      var btn = el('button', 'notes-filter-pill notes-folder-pill' + (folderFilter === key ? ' notes-filter-active' : ''),
+                   count === undefined ? label : label + ' (' + count + ')');
+      btn.type = 'button';
+      btn.addEventListener('click', function () { folderFilter = key; render(); });
+      return btn;
+    }
+
+    row.appendChild(chip('all', 'All'));
+    row.appendChild(chip('unfiled', 'Unfiled', files.filter(function (f) { return f.folder_id === null; }).length));
+    folders.forEach(function (folder) {
+      row.appendChild(chip(folder.id, folder.name, folder.file_count));
+    });
+
+    var add = el('button', 'notes-filter-pill notes-folder-add', '+ New Folder');
+    add.type = 'button';
+    add.addEventListener('click', function () { openFolderModal(null); });
+    row.appendChild(add);
+
+    renderFolderToolbar();
+  }
+
+  function renderFolderToolbar() {
+    var bar = byId('notesFolderToolbar');
+    var actions = byId('notesFolderToolbarActions');
+    if (!bar || !actions) { return; }
+    var folder = typeof folderFilter === 'number' ? folders.find(function (f) { return f.id === folderFilter; }) : null;
+    if (!folder) { bar.hidden = true; return; }
+    bar.hidden = false;
+    byId('notesFolderToolbarName').textContent = folder.name;
+    while (actions.firstChild) { actions.removeChild(actions.firstChild); }
+    if (!folderCanManage(folder)) { return; }
+
+    var share = el('button', 'notes-file-share' + (folder.is_public ? ' is-public' : ''));
+    share.type = 'button';
+    share.title = folder.is_public ? 'Public link is on' : 'Share with a public link';
+    share.setAttribute('aria-label', (folder.is_public ? 'Manage public link for ' : 'Share ') + folder.name);
+    share.appendChild(shareIcon());
+    share.addEventListener('click', function () { openShareModal(folder, 'folder'); });
+    actions.appendChild(share);
+
+    var rename = el('button', 'notes-file-share');
+    rename.type = 'button';
+    rename.title = 'Rename folder';
+    rename.setAttribute('aria-label', 'Rename ' + folder.name);
+    rename.appendChild(editIcon());
+    rename.addEventListener('click', function () { openFolderModal(folder); });
+    actions.appendChild(rename);
+
+    var del = el('button', 'notes-file-delete');
+    del.type = 'button';
+    del.title = 'Delete folder';
+    del.setAttribute('aria-label', 'Delete ' + folder.name);
+    del.appendChild(trashIcon());
+    del.addEventListener('click', function () { deleteFolder(folder); });
+    actions.appendChild(del);
+  }
+
+  function openFolderModal(folder) {
+    editingFolder = folder;
+    byId('folderModalTitle').textContent = folder ? 'Rename folder' : 'New folder';
+    byId('folderModalSubmit').textContent = folder ? 'Save' : 'Create';
+    byId('folderModalName').value = folder ? folder.name : '';
+    byId('folderModalError').hidden = true;
+    byId('folderModalOverlay').hidden = false;
+    byId('folderModalName').focus();
+  }
+
+  function closeFolderModal() {
+    editingFolder = null;
+    byId('folderModalOverlay').hidden = true;
+  }
+
+  async function submitFolderModal(e) {
+    e.preventDefault();
+    var name = byId('folderModalName').value.trim();
+    var errorBox = byId('folderModalError');
+    errorBox.hidden = true;
+    if (!name) { return; }
+    var roomId = home.currentRoomId();
+    var r = editingFolder
+      ? await home.api('/folders/' + editingFolder.id, 'PATCH', { name: name })
+      : await home.api('/rooms/' + roomId + '/folders', 'POST', { name: name });
+    if (!r.ok) {
+      if (r.status !== 401) { errorBox.textContent = home.errorText(r); errorBox.hidden = false; }
+      return;
+    }
+    if (editingFolder) {
+      var i = folders.findIndex(function (x) { return x.id === r.body.id; });
+      if (i !== -1) { folders[i] = r.body; }
+    } else {
+      folders.push(r.body);
+    }
+    closeFolderModal();
+    render();
+    home.showToast(editingFolder ? 'Folder renamed.' : 'Folder created.');
+  }
+
+  async function deleteFolder(folder) {
+    if (!window.confirm('Delete "' + folder.name + '"? Its files will move back to the room’s main list.')) { return; }
+    var r = await home.api('/folders/' + folder.id, 'DELETE');
+    if (!r.ok && r.status !== 404) { if (r.status !== 401) { home.showToast(home.errorText(r)); } return; }
+    folders = folders.filter(function (x) { return x.id !== folder.id; });
+    files.forEach(function (f) { if (f.folder_id === folder.id) { f.folder_id = null; } });
+    if (folderFilter === folder.id) { folderFilter = 'all'; }
+    render();
+    home.showToast('Folder deleted.');
+  }
+
+  /* ---------- move file to folder ---------- */
+  function openMoveModal(f) {
+    movingFile = f;
+    var list = byId('moveModalList');
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+
+    function option(key, label, current) {
+      var btn = el('button', 'notes-move-option' + (current ? ' is-current' : ''), label);
+      btn.type = 'button';
+      btn.disabled = current;
+      btn.addEventListener('click', function () { moveFileTo(key); });
+      return btn;
+    }
+
+    list.appendChild(option(null, 'No folder (room root)', f.folder_id === null));
+    folders.forEach(function (folder) {
+      list.appendChild(option(folder.id, folder.name, f.folder_id === folder.id));
+    });
+    if (folders.length === 0) {
+      list.appendChild(el('p', 'notes-empty', 'No folders yet. Create one first.'));
+    }
+    byId('moveModalOverlay').hidden = false;
+  }
+
+  function closeMoveModal() {
+    movingFile = null;
+    byId('moveModalOverlay').hidden = true;
+  }
+
+  async function moveFileTo(folderId) {
+    if (!movingFile) { return; }
+    var f = movingFile;
+    var r = await home.api('/files/' + f.id + '/move', 'PATCH', { folder_id: folderId });
+    if (!r.ok) { if (r.status !== 401) { home.showToast(home.errorText(r)); } return; }
+    var i = files.findIndex(function (x) { return x.id === r.body.id; });
+    if (i !== -1) { files[i] = r.body; }
+    closeMoveModal();
+    render();
+    home.showToast(folderId === null ? 'Moved to room root.' : 'Moved to folder.');
   }
 
   /* ---------- open, download, delete ---------- */
@@ -314,35 +522,53 @@
     home.showToast('File deleted.');
   }
 
-  /* ---------- public share link ---------- */
-  var sharing = null;   // the file currently shown in the share modal
+  /* ---------- public share link (files and folders share this one modal) ---------- */
+  var sharing = null;      // the file or folder currently shown in the share modal
+  var sharingKind = null;  // 'file' | 'folder'
 
   function publicLink(token) {
     var base = cfg.API_BASE || window.location.origin;
     return base + '/public/files/' + encodeURIComponent(token);
   }
 
+  function publicFolderLink(token) {
+    return window.location.origin + window.location.pathname.replace(/notes\.html$/, 'public_folder.html')
+      + '?token=' + encodeURIComponent(token);
+  }
+
   function applyShareUpdate(updated) {
-    var i = files.findIndex(function (x) { return x.id === updated.id; });
-    if (i !== -1) { files[i] = updated; }
+    if (sharingKind === 'folder') {
+      var fi = folders.findIndex(function (x) { return x.id === updated.id; });
+      if (fi !== -1) { folders[fi] = updated; }
+    } else {
+      var i = files.findIndex(function (x) { return x.id === updated.id; });
+      if (i !== -1) { files[i] = updated; }
+    }
     if (sharing && sharing.id === updated.id) { sharing = updated; }
     render();
   }
 
-  function fillShareModal(f) {
-    byId('shareModalFileName').textContent = f.name;
-    byId('shareModalLink').value = f.share_token ? publicLink(f.share_token) : '';
-    byId('shareModalOff').disabled = !f.share_token;
+  function fillShareModal(obj) {
+    byId('shareModalFileName').textContent = obj.name;
+    byId('shareModalTitle').textContent = sharingKind === 'folder' ? 'Share folder' : 'Share file';
+    byId('shareModalNote').textContent = sharingKind === 'folder'
+      ? 'Anyone with this link can browse and download every file in this folder — no RoomSync account needed. Files added to the folder later are included automatically. The rest of this room stays private.'
+      : 'Anyone with this link can view and download this file — no RoomSync account needed. The rest of this room stays private.';
+    var makeLink = sharingKind === 'folder' ? publicFolderLink : publicLink;
+    byId('shareModalLink').value = obj.share_token ? makeLink(obj.share_token) : '';
+    byId('shareModalOff').disabled = !obj.share_token;
   }
 
-  async function openShareModal(f) {
-    sharing = f;
-    fillShareModal(f);
+  async function openShareModal(obj, kind) {
+    sharing = obj;
+    sharingKind = kind;
+    fillShareModal(obj);
     byId('shareModalOverlay').hidden = false;
-    if (!f.is_public) {
+    if (!obj.is_public) {
       byId('shareModalOff').disabled = true;
-      var r = await home.api('/files/' + f.id + '/share', 'POST');
-      if (sharing !== f) { return; }   // closed before this came back
+      var path = kind === 'folder' ? '/folders/' + obj.id + '/share' : '/files/' + obj.id + '/share';
+      var r = await home.api(path, 'POST');
+      if (sharing !== obj) { return; }   // closed before this came back
       if (!r.ok) {
         if (r.status !== 401) { home.showToast(home.errorText(r)); }
         closeShareModal();
@@ -356,14 +582,17 @@
 
   function closeShareModal() {
     sharing = null;
+    sharingKind = null;
     byId('shareModalOverlay').hidden = true;
   }
 
   async function turnOffShare() {
     if (!sharing) { return; }
-    var f = sharing;
+    var obj = sharing;
+    var kind = sharingKind;
     byId('shareModalOff').disabled = true;
-    var r = await home.api('/files/' + f.id + '/share', 'DELETE');
+    var path = kind === 'folder' ? '/folders/' + obj.id + '/share' : '/files/' + obj.id + '/share';
+    var r = await home.api(path, 'DELETE');
     if (!r.ok) {
       if (r.status !== 401) { home.showToast(home.errorText(r)); }
       byId('shareModalOff').disabled = false;
@@ -452,6 +681,8 @@
     if (e.key !== 'Escape') { return; }
     if (!byId('fileViewOverlay').hidden) { closeViewer(); }
     if (!byId('shareModalOverlay').hidden) { closeShareModal(); }
+    if (!byId('folderModalOverlay').hidden) { closeFolderModal(); }
+    if (!byId('moveModalOverlay').hidden) { closeMoveModal(); }
   });
 
   byId('shareModalClose').addEventListener('click', closeShareModal);
@@ -459,6 +690,14 @@
   byId('shareModalOverlay').addEventListener('click', function (e) { if (e.target === e.currentTarget) { closeShareModal(); } });
   byId('shareModalCopy').addEventListener('click', copyShareLink);
   byId('shareModalOff').addEventListener('click', turnOffShare);
+
+  byId('folderModalClose').addEventListener('click', closeFolderModal);
+  byId('folderModalCancel').addEventListener('click', closeFolderModal);
+  byId('folderModalOverlay').addEventListener('click', function (e) { if (e.target === e.currentTarget) { closeFolderModal(); } });
+  byId('folderModalForm').addEventListener('submit', submitFolderModal);
+
+  byId('moveModalClose').addEventListener('click', closeMoveModal);
+  byId('moveModalOverlay').addEventListener('click', function (e) { if (e.target === e.currentTarget) { closeMoveModal(); } });
 
   document.addEventListener('roomsync:room', load);
   if (home.currentRoomId() !== null && home.currentRoomId() !== undefined) { load(); }

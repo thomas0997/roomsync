@@ -261,6 +261,9 @@ class RoomFile(Base):
     data: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True, nullable=True)
     storage_key: Mapped[str | None] = mapped_column(String(200), nullable=True)  # set = bytes are in R2
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Public share link (see routers/notes.py "/files/{id}/share"). NULL = not shared. When set, anyone with
+    # GET /public/files/{share_token} can download THIS file only, with no login and no room access at all.
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
     task_links = relationship("TaskFile", cascade="all, delete-orphan")
 
 

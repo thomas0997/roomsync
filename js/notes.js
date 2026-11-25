@@ -103,6 +103,21 @@
     return svg;
   }
 
+  var SVG_NS_SHARE = 'http://www.w3.org/2000/svg';
+  function shareIcon() {
+    var svg = document.createElementNS(SVG_NS_SHARE, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(SVG_NS_SHARE, 'path');
+    path.setAttribute('d', 'M15 6a3 3 0 1 0-2.8-4M9 13.5a3 3 0 1 0 0 5.9M15 18a3 3 0 1 0 2.8 4M9.4 11.2l5.2-3M9.4 14.7l5.2 3');
+    svg.appendChild(path);
+    return svg;
+  }
+
   // Under each card: which approved tasks use this note, and a button to attach it to a task.
   function usageRow(f) {
     var row = el('div', 'notes-usage');
@@ -156,7 +171,16 @@
     card.addEventListener('click', function () { openFile(f, card); });
     item.appendChild(card);
     item.appendChild(usageRow(f));
-    if (f.created_by === myId() || home.isAdmin()) {
+    var canManage = f.created_by === myId() || home.isAdmin();
+    if (canManage) {
+      var share = el('button', 'notes-file-share' + (f.is_public ? ' is-public' : ''));
+      share.type = 'button';
+      share.setAttribute('aria-label', (f.is_public ? 'Manage public link for ' : 'Share ') + f.name);
+      share.title = f.is_public ? 'Public link is on' : 'Share with a public link';
+      share.appendChild(shareIcon());
+      share.addEventListener('click', function (e) { e.stopPropagation(); openShareModal(f); });
+      item.appendChild(share);
+
       var del = el('button', 'notes-file-delete');
       del.type = 'button';
       del.setAttribute('aria-label', 'Delete ' + f.name);
@@ -290,6 +314,78 @@
     home.showToast('File deleted.');
   }
 
+  /* ---------- public share link ---------- */
+  var sharing = null;   // the file currently shown in the share modal
+
+  function publicLink(token) {
+    var base = cfg.API_BASE || window.location.origin;
+    return base + '/public/files/' + encodeURIComponent(token);
+  }
+
+  function applyShareUpdate(updated) {
+    var i = files.findIndex(function (x) { return x.id === updated.id; });
+    if (i !== -1) { files[i] = updated; }
+    if (sharing && sharing.id === updated.id) { sharing = updated; }
+    render();
+  }
+
+  function fillShareModal(f) {
+    byId('shareModalFileName').textContent = f.name;
+    byId('shareModalLink').value = f.share_token ? publicLink(f.share_token) : '';
+    byId('shareModalOff').disabled = !f.share_token;
+  }
+
+  async function openShareModal(f) {
+    sharing = f;
+    fillShareModal(f);
+    byId('shareModalOverlay').hidden = false;
+    if (!f.is_public) {
+      byId('shareModalOff').disabled = true;
+      var r = await home.api('/files/' + f.id + '/share', 'POST');
+      if (sharing !== f) { return; }   // closed before this came back
+      if (!r.ok) {
+        if (r.status !== 401) { home.showToast(home.errorText(r)); }
+        closeShareModal();
+        return;
+      }
+      applyShareUpdate(r.body);
+      fillShareModal(r.body);
+      home.showToast('Public link created.');
+    }
+  }
+
+  function closeShareModal() {
+    sharing = null;
+    byId('shareModalOverlay').hidden = true;
+  }
+
+  async function turnOffShare() {
+    if (!sharing) { return; }
+    var f = sharing;
+    byId('shareModalOff').disabled = true;
+    var r = await home.api('/files/' + f.id + '/share', 'DELETE');
+    if (!r.ok) {
+      if (r.status !== 401) { home.showToast(home.errorText(r)); }
+      byId('shareModalOff').disabled = false;
+      return;
+    }
+    applyShareUpdate(r.body);
+    fillShareModal(r.body);
+    home.showToast('Public link turned off.');
+  }
+
+  async function copyShareLink() {
+    var input = byId('shareModalLink');
+    if (!input.value) { return; }
+    try {
+      await navigator.clipboard.writeText(input.value);
+      home.showToast('Link copied.');
+    } catch (e) {
+      input.select();
+      home.showToast('Copy this link: ' + input.value);
+    }
+  }
+
   /* ---------- upload ---------- */
   async function uploadAll(picked) {
     var roomId = home.currentRoomId();
@@ -352,7 +448,17 @@
   byId('fileViewDone').addEventListener('click', closeViewer);
   byId('fileViewDownload').addEventListener('click', function () { if (viewing) { download(viewing); } });
   byId('fileViewOverlay').addEventListener('click', function (e) { if (e.target === e.currentTarget) { closeViewer(); } });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !byId('fileViewOverlay').hidden) { closeViewer(); } });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') { return; }
+    if (!byId('fileViewOverlay').hidden) { closeViewer(); }
+    if (!byId('shareModalOverlay').hidden) { closeShareModal(); }
+  });
+
+  byId('shareModalClose').addEventListener('click', closeShareModal);
+  byId('shareModalDone').addEventListener('click', closeShareModal);
+  byId('shareModalOverlay').addEventListener('click', function (e) { if (e.target === e.currentTarget) { closeShareModal(); } });
+  byId('shareModalCopy').addEventListener('click', copyShareLink);
+  byId('shareModalOff').addEventListener('click', turnOffShare);
 
   document.addEventListener('roomsync:room', load);
   if (home.currentRoomId() !== null && home.currentRoomId() !== undefined) { load(); }

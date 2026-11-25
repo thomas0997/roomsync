@@ -40,6 +40,34 @@
 .notes-view-note { font-size: 11.5px; color: var(--gray-text); margin: -4px 0 10px; }
 .notes-view-note[hidden] { display: none; }
 
+/* Share-file modal: a public link for one file, no RoomSync account needed */
+.notes-file-share {
+  position: absolute; top: 8px; right: 40px; width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-text); opacity: 0; transition: opacity 0.15s, color 0.15s;
+}
+.notes-file-share svg { width: 14px; height: 14px; }
+.notes-file-item:hover .notes-file-share, .notes-file-share:focus-visible { opacity: 1; }
+.notes-file-share:hover { background: var(--gray-bg); color: var(--blue); }
+.notes-file-share.is-public { opacity: 1; color: var(--blue); }  /* stays visible once a link exists */
+@media (hover: none) { .notes-file-share { opacity: 1; } }
+
+.notes-share-modal { max-width: 460px; }
+.notes-share-modal .abt-form-actions { justify-content: space-between; align-items: center; }
+.notes-share-note { font-size: 13.2px; line-height: 1.5; color: var(--gray-text-2); margin: 0 0 16px; }
+.notes-share-note strong { color: var(--near-black); overflow-wrap: anywhere; }
+.notes-share-link-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.notes-share-link-input {
+  flex: 1; min-width: 0; height: 38px; padding: 0 12px; border: 1px solid var(--hairline);
+  border-radius: 10px; font-size: 12.6px; color: var(--gray-text-2); background: var(--gray-bg);
+}
+.notes-share-copy-btn { flex-shrink: 0; height: 38px; padding: 0 16px; font-size: 13.2px; }
+.notes-share-off-btn {
+  font-size: 13.2px; font-weight: 700; color: var(--exam); padding: 0; background: none; border: none; cursor: pointer;
+}
+.notes-share-off-btn:hover, .notes-share-off-btn:focus-visible { text-decoration: underline; }
+.notes-share-off-btn:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
+
 /* "Used in" tags and "Attach to a task" under each note card */
 .notes-usage { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 4px; }
 .notes-usage-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }

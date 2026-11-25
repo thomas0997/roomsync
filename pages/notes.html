@@ -452,6 +452,27 @@
     </div>
   </div>
 
+  <!-- Share a file publicly: a link anyone can open with no RoomSync account, scoped to that one file -->
+  <div class="todo-modal-overlay" id="shareModalOverlay" hidden>
+    <div class="todo-modal abt-form-card notes-share-modal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+      <div class="todo-modal-head">
+        <h2 class="abt-form-title" id="shareModalTitle">Share file</h2>
+        <button type="button" class="todo-modal-close" id="shareModalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <p class="notes-share-note">Anyone with this link can view and download <strong id="shareModalFileName"></strong> &mdash; no RoomSync account needed. The rest of this room stays private.</p>
+      <div class="notes-share-link-row">
+        <input type="text" class="notes-share-link-input" id="shareModalLink" readonly aria-label="Public link">
+        <button type="button" class="abt-btn-submit notes-share-copy-btn" id="shareModalCopy">Copy link</button>
+      </div>
+      <div class="abt-form-actions">
+        <button type="button" class="notes-share-off-btn" id="shareModalOff">Turn off public link</button>
+        <button type="button" class="abt-btn-reset" id="shareModalDone">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Phone bottom tab bar (hidden on tablet and desktop) -->
   <nav class="mobile-tabbar" aria-label="Main">
     <a href="home.html" class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 3l8 7.5"/><path d="M6 9.5V20a1 1 0 0 0 1 1h3v-6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v6h3a1 1 0 0 0 1-1V9.5"/></svg><span>Home</span></a>

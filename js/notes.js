@@ -170,10 +170,11 @@
     return svg;
   }
 
-  // Under each card: a single icon for which approved tasks use this note, and attaching it to one.
+  // Sits inside the card, right beside the open/download icon: a single icon for which approved
+  // tasks use this note, and attaching it to one. It's a sibling of the card (not nested inside its
+  // <button>, which HTML doesn't allow), positioned to land right next to the cue icon.
   // Hover/focus shows the detail as a title tooltip instead of spelling it out in text.
-  function usageRow(f) {
-    var row = el('div', 'notes-usage');
+  function usageButton(f) {
     var used = f.used_in || [];
     var attach = el('button', 'notes-usage-icon' + (used.length ? ' has-usage' : ''));
     attach.type = 'button';
@@ -189,12 +190,11 @@
     }
     attach.appendChild(attachIcon());
     if (window.RoomSyncAttach) {
-      attach.addEventListener('click', function () { attachToTask(f); });
+      attach.addEventListener('click', function (e) { e.stopPropagation(); attachToTask(f); });
     } else {
       attach.disabled = true;
     }
-    row.appendChild(attach);
-    return row;
+    return attach;
   }
 
   async function attachToTask(f) {
@@ -225,7 +225,7 @@
     card.title = opens ? 'Open ' + f.name : 'Download ' + f.name;
     card.addEventListener('click', function () { openFile(f, card); });
     item.appendChild(card);
-    item.appendChild(usageRow(f));
+    item.appendChild(usageButton(f));
     var canManage = f.created_by === myId() || home.isAdmin();
     if (canManage) {
       var move = el('button', 'notes-file-move');
